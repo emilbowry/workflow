@@ -361,48 +361,57 @@ const tryComposite: TTryDispatch = (node) => {
 };
 
 const tryReference: TTryDispatch = (node) => {
-    if (node.type === AST_NODE_TYPES.TSTypeReference) {
-        return handleTypeReference(node);
+    let result: TMaybeString = undefined;
+    switch (node.type) {
+    case AST_NODE_TYPES.TSTypeReference:
+        result = handleTypeReference(node);
+        break;
+    case AST_NODE_TYPES.TSFunctionType:
+        result = handleFunctionType(node);
+        break;
+    case AST_NODE_TYPES.TSArrayType:
+        result = handleArrayType(node);
+        break;
+    case AST_NODE_TYPES.TSTypeOperator:
+        result = handleTypeOperator(node);
+        break;
     }
-    if (node.type === AST_NODE_TYPES.TSFunctionType) {
-        return handleFunctionType(node);
-    }
-    if (node.type === AST_NODE_TYPES.TSArrayType) {
-        return handleArrayType(node);
-    }
-    if (node.type === AST_NODE_TYPES.TSTypeOperator) {
-        return handleTypeOperator(node);
-    }
-    return undefined;
+    return result;
 };
 
 const tryLiteral: TTryDispatch = (node) => {
-    if (node.type === AST_NODE_TYPES.TSLiteralType) {
-        return handleLiteralType(node);
+    let result: TMaybeString = undefined;
+    switch (node.type) {
+    case AST_NODE_TYPES.TSLiteralType:
+        result = handleLiteralType(node);
+        break;
+    case AST_NODE_TYPES.TSTupleType:
+        result = handleTupleType(node);
+        break;
+    case AST_NODE_TYPES.TSIndexedAccessType:
+        result = handleIndexedAccessType(node);
+        break;
     }
-    if (node.type === AST_NODE_TYPES.TSTupleType) {
-        return handleTupleType(node);
-    }
-    if (node.type === AST_NODE_TYPES.TSIndexedAccessType) {
-        return handleIndexedAccessType(node);
-    }
-    return undefined;
+    return result;
 };
 
 const tryAdvanced: TTryDispatch = (node) => {
-    if (node.type === AST_NODE_TYPES.TSTypeQuery) {
-        return handleTypeQuery(node);
+    let result: TMaybeString = undefined;
+    switch (node.type) {
+    case AST_NODE_TYPES.TSTypeQuery:
+        result = handleTypeQuery(node);
+        break;
+    case AST_NODE_TYPES.TSConditionalType:
+        result = handleConditionalType(node);
+        break;
+    case AST_NODE_TYPES.TSMappedType:
+        result = handleMappedType(node);
+        break;
+    case AST_NODE_TYPES.TSInferType:
+        result = handleInferType(node);
+        break;
     }
-    if (node.type === AST_NODE_TYPES.TSConditionalType) {
-        return handleConditionalType(node);
-    }
-    if (node.type === AST_NODE_TYPES.TSMappedType) {
-        return handleMappedType(node);
-    }
-    if (node.type === AST_NODE_TYPES.TSInferType) {
-        return handleInferType(node);
-    }
-    return undefined;
+    return result;
 };
 
 const dispatchNode: TCanonical = (node) =>
