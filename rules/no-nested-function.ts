@@ -20,7 +20,7 @@
 
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+import { ESLintUtils } from "@typescript-eslint/utils";
 
 const MSG: string =
     "Nested function definition. " +
@@ -41,37 +41,32 @@ type TFunctionNode =
     | TSESTree.FunctionDeclaration
     | TSESTree.FunctionExpression;
 
-type TMaybeNode = TSESTree.Node | undefined;
+type TMaybeNode = TSESTree.Node | null | undefined;
 
 type TFnParamCount = {
     (node: TSESTree.Node): number;
 };
 
-const fnParamCount: TFnParamCount = (node) => {
-    let count: number = -1;
-    switch (node.type) {
-        case AST_NODE_TYPES.ArrowFunctionExpression:
-        case AST_NODE_TYPES.FunctionDeclaration:
-        case AST_NODE_TYPES.FunctionExpression:
-            count = node.params.length;
-            break;
-    }
-    return count;
+const fnParamCount: TFnParamCount = (node) =>
+    "params" in node ? node.params.length : -1;
+
+type TFindAncestorFnParamCount = {
+    (current: TMaybeNode): number;
 };
+
+const findAncestorFnParamCount: TFindAncestorFnParamCount = (current) =>
+    current === undefined || current === null
+        ? -1
+        : fnParamCount(current) >= 0
+            ? fnParamCount(current)
+            : findAncestorFnParamCount(current.parent);
 
 type TParentIsParameterized = {
     (node: TSESTree.Node): boolean;
 };
 
-const parentIsParameterized: TParentIsParameterized = (node) => {
-    let current: TMaybeNode = node.parent;
-    let result: number = -1;
-    while (current && result < 0) {
-        result = fnParamCount(current);
-        current = current.parent;
-    }
-    return result > 0;
-};
+const parentIsParameterized: TParentIsParameterized = (node) =>
+    findAncestorFnParamCount(node.parent) > 0;
 
 type TFunctionPredicate = {
     (node: TFunctionNode): boolean;

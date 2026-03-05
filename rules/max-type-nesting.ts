@@ -69,13 +69,12 @@ type TCheck = {
 };
 
 const check: TCheck = (state, context, node) => {
-    if (state.stack.length === 0) {
-        return;
-    }
-    state.stack = increment(state.stack);
-    const count: number = state.stack[state.stack.length - 1];
-    if (count > state.max) {
-        report(context, node, count, state.max);
+    if (state.stack.length > 0) {
+        state.stack = increment(state.stack);
+        const count: number = state.stack[state.stack.length - 1];
+        if (count > state.max) {
+            report(context, node, count, state.max);
+        }
     }
 };
 
@@ -97,17 +96,26 @@ const meta: TMeta = {
     type: "suggestion",
 };
 
+type TVisitor = ReturnType<TRule["create"]>;
+
+type TMakeVisitor = {
+    (state: TState, context: TContext): TVisitor;
+};
+
+const makeVisitor: TMakeVisitor = (state, context) =>
+    ((): TVisitor => ({
+        TSTypeAliasDeclaration: () => enter(state),
+        "TSTypeAliasDeclaration:exit": () => exit(state),
+        TSTypeLiteral: (node: TSESTree.Node) => check(state, context, node),
+    }))();
+
 const rule: TRule = ESLintUtils.RuleCreator.withoutDocs({
     create(context) {
         const state: TState = {
             max: context.options[0],
             stack: [],
         };
-        return {
-            TSTypeAliasDeclaration: () => enter(state),
-            "TSTypeAliasDeclaration:exit": () => exit(state),
-            TSTypeLiteral: (node) => check(state, context, node),
-        };
+        return makeVisitor(state, context);
     },
     defaultOptions: [1],
     meta,

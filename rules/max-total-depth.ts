@@ -89,11 +89,7 @@ type TCheckLine = {
     ): void;
 };
 
-const checkLine: TCheckLine = (context, node, max, line, idx) => {
-    const isEmpty: boolean = line.trim() === "";
-    if (isEmpty) {
-        return;
-    }
+const reportIfTooDeep: TCheckLine = (context, node, max, line, idx) => {
     const leading: string = getLeading(line);
     const depth: number = getDepth(leading);
     const tooDeep: boolean = depth > max;
@@ -107,6 +103,24 @@ const checkLine: TCheckLine = (context, node, max, line, idx) => {
     }
 };
 
+const checkLine: TCheckLine = (context, node, max, line, idx) => {
+    const isEmpty: boolean = line.trim() === "";
+    if (!isEmpty) {
+        reportIfTooDeep(context, node, max, line, idx);
+    }
+};
+
+type TLineCallback = {
+    (line: string, idx: number): void;
+};
+
+type TMakeLineCallback = {
+    (context: TContext, node: TSESTree.Program, max: number): TLineCallback;
+};
+
+const makeLineCallback: TMakeLineCallback = (context, node, max) =>
+    checkLine.bind(null, context, node, max);
+
 type TCheckLines = {
     (context: TContext, node: TSESTree.Program, max: number): void;
 };
@@ -115,19 +129,36 @@ const checkLines: TCheckLines = (context, node, max) => {
     const sourceCode: TSourceCode = context.sourceCode;
     const text: string = sourceCode.getText();
     const lines: Array<string> = text.split("\n");
-    lines.forEach((line, idx) => {
-        checkLine(context, node, max, line, idx);
-    });
+    const callback: TLineCallback = makeLineCallback(context, node, max);
+    lines.forEach(callback);
 };
+
+type TProgramExit = {
+    (context: TContext, max: number, node: TSESTree.Program): void;
+};
+
+const programExit: TProgramExit = (context, max, node) => {
+    checkLines(context, node, max);
+};
+
+type TProgramExitHandler = {
+    (node: TSESTree.Program): void;
+};
+
+type TMakeHandler = {
+    (context: TContext, max: number): TProgramExitHandler;
+};
+
+const makeHandler: TMakeHandler = (context, max) =>
+    programExit.bind(null, context, max);
 
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
     const max: number = context.options[0];
+    const handler: TProgramExitHandler = makeHandler(context, max);
     return {
-        "Program:exit"(node: TSESTree.Program): void {
-            checkLines(context, node, max);
-        },
+        "Program:exit": handler,
     };
 };
 

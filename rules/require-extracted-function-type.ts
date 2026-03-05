@@ -23,11 +23,11 @@ type TReport = {
 
 type TContext = Parameters<TRule["create"]>[0];
 
-type TMakeReport = {
-    (context: TContext): TReport;
+type TCheckAnnotation = {
+    (context: TContext, node: TSESTree.TSTypeAnnotation): void;
 };
 
-const makeReport: TMakeReport = (context) => (node) => {
+const checkAnnotation: TCheckAnnotation = (context, node) => {
     const inner: TSESTree.TypeNode = node.typeAnnotation;
     if (!isAllowed(inner)) {
         context.report({
@@ -37,10 +37,20 @@ const makeReport: TMakeReport = (context) => (node) => {
     }
 };
 
+type TMakeReport = {
+    (checkAnnotation: TCheckAnnotation, context: TContext): TReport;
+};
+
+const makeReport: TMakeReport = (checkAnnotation, context) =>
+    (
+        () => (node: TSESTree.TSTypeAnnotation) =>
+            checkAnnotation(context, node)
+    )();
+
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
-    const handler: TReport = makeReport(context);
+    const handler: TReport = makeReport(checkAnnotation, context);
     return {
         TSTypeAnnotation: handler,
     };
