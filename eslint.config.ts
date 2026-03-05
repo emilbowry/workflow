@@ -1,14 +1,17 @@
-import js from "@eslint/js";
+import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import react from "eslint-plugin-react";
 import maxTotalDepth from "./rules/max-total-depth.js";
-import eslintComments from "eslint-plugin-eslint-comments";
-import restrictReturnCount from "./rules/restrict-return-count.js";
-import requireSeperateFunctionType from "./rules/require-extracted-function-type.js";
+import eslintComments
+    from "@eslint-community/eslint-plugin-eslint-comments";
+import restrictReturnCount
+    from "./rules/restrict-return-count.js";
+import requireSeperateFunctionType
+    from "./rules/require-extracted-function-type.js";
 
 export default tseslint.config(
-    js.configs.recommended,
+    eslint.configs.recommended,
     ...tseslint.configs.strictTypeChecked,
     //   ...tseslint.configs.recommended,
 
@@ -16,7 +19,8 @@ export default tseslint.config(
         languageOptions: {
             parserOptions: {
                 projectService: true,
-                tsconfigRootDir: import.meta.dirname,
+                tsconfigRootDir:
+                    import.meta.dirname,
             },
         },
         plugins: {
@@ -98,14 +102,21 @@ export default tseslint.config(
                         "el",
                         "e",
                     ],
-                    properties: "never", // Don't enforce this on property names from APIs you don't control
+                    // Don't enforce on property names
+                    // from APIs you don't control
+                    properties: "never",
                 },
             ],
         },
     },
 
     {
-        ignores: ["dist/", "rules/", "vite.config.ts", "eslint.config.js"],
+        ignores: [
+            "dist/",
+            "rules/",
+            "vite.config.ts",
+            "eslint.config.ts",
+        ],
     },
     {
         files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
