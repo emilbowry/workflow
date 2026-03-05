@@ -433,7 +433,13 @@ type THandleInfer = {
 const handleInferType: THandleInfer = (node) =>
     "infer " + node.typeParameter.name.name;
 
-const dispatchNode: TCanonical = (node) => {
+type TMaybeString = string | undefined;
+
+type TTryDispatch = {
+    (node: TSESTree.TypeNode): TMaybeString;
+};
+
+const tryCompound: TTryDispatch = (node) => {
     if (node.type === AST_NODE_TYPES.TSTypeLiteral) {
         return handleTypeLiteral(node);
     }
@@ -457,6 +463,10 @@ const dispatchNode: TCanonical = (node) => {
     if (node.type === AST_NODE_TYPES.TSTypeOperator) {
         return handleTypeOperator(node);
     }
+    return undefined;
+};
+
+const trySpecial: TTryDispatch = (node) => {
     if (node.type === AST_NODE_TYPES.TSLiteralType) {
         return handleLiteralType(node);
     }
@@ -482,7 +492,14 @@ const dispatchNode: TCanonical = (node) => {
     if (node.type === AST_NODE_TYPES.TSInferType) {
         return handleInferType(node);
     }
-    return node.type;
+    return undefined;
+};
+
+const dispatchNode: TCanonical = (node) => {
+    const compound: TMaybeString = tryCompound(node);
+    const special: TMaybeString =
+        compound ?? trySpecial(node);
+    return special ?? node.type;
 };
 
 const canonical: TCanonical = (node) => {
