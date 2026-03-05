@@ -439,7 +439,7 @@ type TTryDispatch = {
     (node: TSESTree.TypeNode): TMaybeString;
 };
 
-const tryCompound: TTryDispatch = (node) => {
+const tryComposite: TTryDispatch = (node) => {
     if (node.type === AST_NODE_TYPES.TSTypeLiteral) {
         return handleTypeLiteral(node);
     }
@@ -451,6 +451,10 @@ const tryCompound: TTryDispatch = (node) => {
     ) {
         return handleIntersectionType(node);
     }
+    return undefined;
+};
+
+const tryReference: TTryDispatch = (node) => {
     if (node.type === AST_NODE_TYPES.TSTypeReference) {
         return handleTypeReference(node);
     }
@@ -466,7 +470,7 @@ const tryCompound: TTryDispatch = (node) => {
     return undefined;
 };
 
-const trySpecial: TTryDispatch = (node) => {
+const tryLiteral: TTryDispatch = (node) => {
     if (node.type === AST_NODE_TYPES.TSLiteralType) {
         return handleLiteralType(node);
     }
@@ -478,6 +482,10 @@ const trySpecial: TTryDispatch = (node) => {
     ) {
         return handleIndexedAccessType(node);
     }
+    return undefined;
+};
+
+const tryAdvanced: TTryDispatch = (node) => {
     if (node.type === AST_NODE_TYPES.TSTypeQuery) {
         return handleTypeQuery(node);
     }
@@ -495,12 +503,12 @@ const trySpecial: TTryDispatch = (node) => {
     return undefined;
 };
 
-const dispatchNode: TCanonical = (node) => {
-    const compound: TMaybeString = tryCompound(node);
-    const special: TMaybeString =
-        compound ?? trySpecial(node);
-    return special ?? node.type;
-};
+const dispatchNode: TCanonical = (node) =>
+    tryComposite(node) ??
+    tryReference(node) ??
+    tryLiteral(node) ??
+    tryAdvanced(node) ??
+    node.type;
 
 const canonical: TCanonical = (node) => {
     const keyword: string | undefined =
