@@ -431,7 +431,7 @@ type THandleInfer = {
 };
 
 const handleInferType: THandleInfer = (node) =>
-    "infer " + node.typeParameter.key.name;
+    "infer " + node.typeParameter.name.name;
 
 const canonical: TCanonical = (node) => {
     const keyword: string | undefined =
