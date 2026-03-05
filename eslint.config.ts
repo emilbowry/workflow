@@ -1,26 +1,31 @@
+import { defineConfig } from "eslint/config";
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import react from "eslint-plugin-react";
 import maxTotalDepth from "./rules/max-total-depth.js";
-import eslintComments
-    from "@eslint-community/eslint-plugin-eslint-comments";
-import restrictReturnCount
-    from "./rules/restrict-return-count.js";
-import requireSeperateFunctionType
-    from "./rules/require-extracted-function-type.js";
+import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
+import restrictReturnCount from "./rules/restrict-return-count.js";
+import requireSeperateFunctionType from "./rules/require-extracted-function-type.js";
 
-export default tseslint.config(
+export default defineConfig(
+    {
+        ignores: [
+            "dist/",
+            "rules/",
+            "vite.config.ts",
+            // "eslint.config.ts",
+        ],
+    },
+
     eslint.configs.recommended,
     ...tseslint.configs.strictTypeChecked,
-    //   ...tseslint.configs.recommended,
 
     {
         languageOptions: {
             parserOptions: {
                 projectService: true,
-                tsconfigRootDir:
-                    import.meta.dirname,
+                tsconfigRootDir: import.meta.dirname,
             },
         },
         plugins: {
@@ -37,11 +42,15 @@ export default tseslint.config(
             "eslint-comments": eslintComments,
         },
         rules: {
-            // ── Complexity / readability ──
-            // "max-depth": ["error", 3],
+            "@typescript-eslint/ban-tslint-comment": "error",
             "eslint-comments/no-use": ["error", { allow: [] }],
             "arrow-body-style": ["error", "as-needed"],
-            // ignoreRestArgs: ["error", true],
+            "@typescript-eslint/array-type": [
+                "error",
+                {
+                    default: "generic",
+                },
+            ],
             "@typescript-eslint/no-explicit-any": [
                 "error",
                 {
@@ -63,7 +72,11 @@ export default tseslint.config(
             ],
             "max-lines-per-function": [
                 "error",
-                { max: 40, skipBlankLines: false, skipComments: false },
+                {
+                    max: 40,
+                    skipBlankLines: false,
+                    skipComments: false,
+                },
             ],
             complexity: ["error", 5],
             "@typescript-eslint/typedef": [
@@ -74,11 +87,16 @@ export default tseslint.config(
             ],
             "func-style": ["error", "expression"],
             "prefer-arrow-callback": "error",
-            // "@typescript-eslint/prefer-function-type": "error",
+            "@typescript-eslint/consistent-type-assertions": [
+                "error",
+                {
+                    assertionStyle: "never",
+                },
+            ],
+            "@typescript-eslint/no-unsafe-type-assertion": "error",
             "@typescript-eslint/no-confusing-void-expression": [
                 "error",
                 {
-                    // ignoreVoidOperator: true,
                     ignoreArrowShorthand: true,
                 },
             ],
@@ -86,7 +104,6 @@ export default tseslint.config(
                 "error",
                 {
                     min: 3,
-                    // Common exceptions for loops/math/standard libs
                     exceptions: [
                         "id",
                         "i",
@@ -102,22 +119,12 @@ export default tseslint.config(
                         "el",
                         "e",
                     ],
-                    // Don't enforce on property names
-                    // from APIs you don't control
                     properties: "never",
                 },
             ],
         },
     },
 
-    {
-        ignores: [
-            "dist/",
-            "rules/",
-            "vite.config.ts",
-            "eslint.config.ts",
-        ],
-    },
     {
         files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
         ...reactHooks.configs.flat.recommended,
