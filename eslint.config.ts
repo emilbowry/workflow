@@ -10,12 +10,7 @@ import requireSeperateFunctionType from "./rules/require-extracted-function-type
 
 export default defineConfig(
     {
-        ignores: [
-            "dist/",
-            "rules/",
-            "vite.config.ts",
-            // "eslint.config.ts",
-        ],
+        ignores: ["dist/", "rules/", "vite.config.ts", "eslint.config.ts"],
     },
 
     eslint.configs.recommended,
@@ -42,7 +37,93 @@ export default defineConfig(
             "eslint-comments": eslintComments,
         },
         rules: {
+            "@typescript-eslint/ban-ts-comment": "error",
+            "@typescript-eslint/consistent-generic-constructors": [
+                "error",
+                "type-annotation",
+            ],
+            "@typescript-eslint/array-type": [
+                "error",
+                {
+                    default: "generic", // still allows tuples
+                },
+            ],
+            // "@typescript-eslint/consistent-indexed-object-style": [
+            //     "error",
+            //     "record",
+            // ], // maybe add
             "@typescript-eslint/ban-tslint-comment": "error",
+            // "@typescript-eslint/consistent-type-assertions": [
+            //     "error",
+            //     {
+            //         assertionStyle: "as",
+            //         objectLiteralTypeAssertions: "never",
+            //     },
+            // ],
+            "@typescript-eslint/consistent-type-imports": [
+                "error",
+                {
+                    prefer: "type-imports",
+                },
+            ],
+            "max-params": "off",
+            // "@typescript-eslint/max-params": [ // would prefer min params as 2 not max
+            //   "error",
+            //   {
+            //     "countVoidThis": false,
+            //     "max": 1
+            //   }
+            // ]
+
+            // "@typescript-eslint/naming-convention": [
+            //     "error",
+            //     // {
+            //     //     selector: "typeParameter",
+            //     //     format: ["PascalCase"],
+            //     //     prefix: ["T"],
+            //     // },
+            //     {
+            //         selector: "type",
+            //         format: ["PascalCase"],
+            //         custom: {
+            //             regex: "T[A-Z]",
+            //             match: false,
+            //         },
+            //     },
+            //     {
+            //         selector: "interface",
+            //         format: ["PascalCase"],
+            //         custom: {
+            //             regex: "^I[A-Z]",
+            //             match: false,
+            //         },
+            //     },
+            //     {
+            //         selector: "enum",
+            //         format: ["PascalCase"],
+            //         custom: {
+            //             regex: "^E[A-Z]",
+            //             match: false,
+            //         },
+            //     },
+            //     {
+            //         selector: "variable",
+            //         types: ["boolean"],
+            //         format: ["camelCase"], // eh violates my snake_case rule for variables
+            //         prefix: ["is"],
+            //     },
+            //     // typeAlias is a selector, we can ban it here
+            // ],
+            "@typescript-eslint/no-deprecated": "error",
+            // "@typescript-eslint/naming-convention": [
+            //     "error",
+
+            // ],
+            "@typescript-eslint/no-duplicate-type-constituents": "error",
+            "@typescript-eslint/method-signature-style": ["error", "property"],
+            "@typescript-eslint/explicit-function-return-type": "error",
+            "@typescript-eslint/consistent-type-exports": "error",
+            "@typescript-eslint/consistent-type-definitions": ["error", "type"],
             "eslint-comments/no-use": ["error", { allow: [] }],
             "arrow-body-style": ["error", "as-needed"],
             "@typescript-eslint/array-type": [
@@ -57,6 +138,17 @@ export default defineConfig(
                     ignoreRestArgs: true,
                 },
             ],
+            //  "@typescript-eslint/no-redundant-type-constituents": "error",
+
+            /* 
+
+            Explain no-shadow
+
+            "no-shadow": "off",
+                "@typescript-eslint/no-shadow": "error",
+
+            */
+            "@typescript-eslint/no-unnecessary-condition": "error",
             "local/restrict-return-count": ["error", 1],
             "local/max-total-depth": ["error", 3],
             "local/require-extracted-function-type": "error",
