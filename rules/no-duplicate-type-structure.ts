@@ -410,9 +410,8 @@ type THandleMapped = {
 
 const handleMappedType: THandleMapped = (node) => {
     const paramName: string = node.key.name;
-    const constraint: string = node.constraint ?
-        canonical(node.constraint)
-    :   "unknown";
+    const constraint: string =
+        canonical(node.constraint);
     const val: string = node.typeAnnotation ?
         canonical(node.typeAnnotation)
     :   "any";
