@@ -90,8 +90,10 @@ const handleCallSignature: THandleCallSig = (member) => {
     return "(" + params + "):" + ret;
 };
 
+type TIndexParam = TSESTree.TSIndexSignature["parameters"][0];
+
 type THandleIndexParam = {
-    (param: TSESTree.TSIndexSignature["parameters"][0]): string;
+    (param: TIndexParam): string;
 };
 
 const handleIndexParam: THandleIndexParam = (param) =>
@@ -406,7 +408,7 @@ const dispatchNode: TCanonical = (node) =>
     node.type;
 
 const canonical: TCanonical = (node) => {
-    const keyword: string | undefined = KEYWORD_MAP.get(node.type);
+    const keyword: TMaybeString = KEYWORD_MAP.get(node.type);
     return keyword ?? dispatchNode(node);
 };
 
@@ -460,6 +462,8 @@ const reportDuplicates: TReportDuplicates = (context, file) => {
     }
 };
 
+type TMaybeEntries = Array<TEntry> | undefined;
+
 type TRecordAlias = {
     (file: string, node: TSESTree.TSTypeAliasDeclaration): void;
 };
@@ -468,7 +472,7 @@ const recordAlias: TRecordAlias = (file, node) => {
     const key: string = canonical(node.typeAnnotation);
     const name: string = node.id.name;
     const newEntry: TEntry = { file, name, node };
-    const existing: Array<TEntry> | undefined = seen.get(key);
+    const existing: TMaybeEntries = seen.get(key);
     if (existing) {
         existing.push(newEntry);
     } else {
