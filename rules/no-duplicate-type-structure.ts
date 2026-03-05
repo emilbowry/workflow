@@ -345,16 +345,19 @@ type TTryDispatch = {
 };
 
 const tryComposite: TTryDispatch = (node) => {
-    if (node.type === AST_NODE_TYPES.TSTypeLiteral) {
-        return handleTypeLiteral(node);
+    let result: TMaybeString = undefined;
+    switch (node.type) {
+    case AST_NODE_TYPES.TSTypeLiteral:
+        result = handleTypeLiteral(node);
+        break;
+    case AST_NODE_TYPES.TSUnionType:
+        result = handleUnionType(node);
+        break;
+    case AST_NODE_TYPES.TSIntersectionType:
+        result = handleIntersectionType(node);
+        break;
     }
-    if (node.type === AST_NODE_TYPES.TSUnionType) {
-        return handleUnionType(node);
-    }
-    if (node.type === AST_NODE_TYPES.TSIntersectionType) {
-        return handleIntersectionType(node);
-    }
-    return undefined;
+    return result;
 };
 
 const tryReference: TTryDispatch = (node) => {
