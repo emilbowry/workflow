@@ -97,7 +97,9 @@ type THandleIndexParam = {
 };
 
 const handleIndexParam: THandleIndexParam = (param) =>
-    annotationToString(param.typeAnnotation, "any");
+    param.type === AST_NODE_TYPES.Identifier ?
+        annotationToString(param.typeAnnotation, "any")
+        :   "any";
 
 type THandleIndexSig = {
     (member: TSESTree.TSIndexSignature): string;
