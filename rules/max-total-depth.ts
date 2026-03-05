@@ -3,7 +3,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { ESLintUtils } from "@typescript-eslint/utils";
 
 const INDENT_SIZE: number = 4;
-
+type A = { a: string; b: string };
 const MSG: string =
     "Indentation depth ({{depth}}) " +
     "exceeds maximum of {{max}}. " +
