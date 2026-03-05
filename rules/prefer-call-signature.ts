@@ -53,9 +53,9 @@ const meta: TMeta = {
     type: "suggestion",
 };
 const collapse =
-    <A extends unknown[], R>(f: (...args: A) => () => R): ((...args: A) => R) =>
-    (...args) =>
-        f(...args)();
+    <A extends Array<unknown>, R>(f: (...args: A) => () => R): ((...args: A) => R) =>
+        (...args) =>
+            f(...args)();
 const rule: TRule = ESLintUtils.RuleCreator.withoutDocs({
     create,
     meta,
