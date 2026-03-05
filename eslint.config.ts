@@ -47,8 +47,7 @@ export default defineConfig(
                     "prefer-call-signature": preferCallSignature,
                     "max-type-nesting": maxTypeNesting,
                     "no-single-field-type": noSingleFieldType,
-                    "no-duplicate-type-structure":
-                        noDuplicateTypeStructure,
+                    "no-duplicate-type-structure": noDuplicateTypeStructure,
                     "no-nested-function": noNestedFunction,
                 },
             },

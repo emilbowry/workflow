@@ -1,10 +1,12 @@
 # Post-Mortem: no-duplicate-type-structure.ts Lint Cleanup
 
 ## Starting State
+
 - **317 eslint errors**, 0 warnings
 - Single file, ~320 lines of deeply nested if-chains with string literal comparisons
 
 ## Final State
+
 - **39 eslint errors** (88% reduction)
 - 8 commits, incremental and verifiable
 
@@ -34,12 +36,12 @@
 
 ## Remaining Work (23 errors)
 
-| Errors | Rule | Fix |
-|--------|------|-----|
-| 13 | `indent` | Auto-fixable with `--fix` once return-count is resolved |
-| 6 | `restrict-return-count` | `tryReference`(5), `tryAdvanced`(5), `tryLiteral`(4), `tryComposite`(4), `canonicalMember`(5), `handleTypeReference`(2). Convert to ternary chains. |
-| 3 | `require-extracted-function-type` | Extract 3 inline type annotations to named aliases |
-| 1 | `no-unsafe-argument` | Fix `handleIndexParam` type compatibility |
+| Errors | Rule                              | Fix                                                                                                                                                 |
+| ------ | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13     | `indent`                          | Auto-fixable with `--fix` once return-count is resolved                                                                                             |
+| 6      | `restrict-return-count`           | `tryReference`(5), `tryAdvanced`(5), `tryLiteral`(4), `tryComposite`(4), `canonicalMember`(5), `handleTypeReference`(2). Convert to ternary chains. |
+| 3      | `require-extracted-function-type` | Extract 3 inline type annotations to named aliases                                                                                                  |
+| 1      | `no-unsafe-argument`              | Fix `handleIndexParam` type compatibility                                                                                                           |
 
 ## Commit Log
 

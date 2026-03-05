@@ -1,10 +1,12 @@
 # Post-Mortem 2: no-duplicate-type-structure.ts Final Cleanup
 
 ## Starting State
+
 - **23 eslint errors**, 0 warnings
 - Carried over from post-mortem 1 (which went 317 -> 23)
 
 ## Final State
+
 - **0 eslint errors**
 - 6 commits, incremental with lint verification between each
 
@@ -15,20 +17,23 @@
 **`eslint --fix` on the original if-chains.** With no ternary conversions in play, the 13 indent auto-fixes applied cleanly with zero new errors. The key insight: `--fix` only causes problems when the indentation it produces is deep enough to trigger `max-total-depth` — which only happens with nested ternaries, not if-chains.
 
 **Switch + `let` + single return.** The pattern for dispatch functions:
+
 ```ts
 let result: TMaybeString = undefined;
 switch (node.type) {
-case AST_NODE_TYPES.X:
-    result = handler(node);
-    break;
+    case AST_NODE_TYPES.X:
+        result = handler(node);
+        break;
 }
 return result;
 ```
+
 Satisfies `restrict-return-count` (1 return), avoids `max-total-depth` (case bodies at depth 2-3), and TypeScript narrows inside each case block for free.
 
 ## What Didn't Work
 
 **Ternary chains.** Attempted three times:
+
 1. With `experimentalTernaries: true` in prettier — prettier and eslint disagreed on `:` alignment (expected 8, found 4)
 2. Without `experimentalTernaries` — prettier used 2-space ternary nesting despite `tabWidth: 4` (expected 12, found 10)
 3. Without prettier — `eslint --fix` produced correct indentation but nested ternaries hit `max-total-depth` (depth 4-5 on 5-branch chains)

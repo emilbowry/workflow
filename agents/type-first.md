@@ -123,4 +123,5 @@ export { StatusBadge, UserCard };
 - Types live in a separate file because they are shared contracts
 
 # Important
-Any atomic change needs to be commited. This should at the largest scale a single file change. 
+
+Any atomic change needs to be commited. This should at the largest scale a single file change.

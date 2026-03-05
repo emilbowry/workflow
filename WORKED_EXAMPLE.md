@@ -67,9 +67,10 @@ type TStateHook<T> = {
 type TUseStateHook<T> = {
     (): TStateHook<T>;
 };
-
 ```
+
 This is far clearer, and generalisable, and means we do not have nested functions that are not the trivial PA case:
+
 ```ts
 const incrementBetter: TSetStateApplication<number> = (setCount) => () =>
     setCount((count) => count + 1);
@@ -85,8 +86,8 @@ const useBadHook: TBadHook_v1 = () => {
     const increment = () => setCount((count) => count + 1);
     return { count, increment };
 };
-
 ```
+
 The latter is bad because, we reasonably expect to sometimes see other functions like increment, as such it is far better to abstract
 
 ``

@@ -91,7 +91,7 @@ Done by types until complete (I want)
 - It shall state what files need to be created or modified.
 - It shall have comments comprised of post mortem analysis, if something went wrong or it spawned new issues/restructured the planning during implmentation.
 - It may have additional properties
-  <!-- - It may have alternative approaches to execution -->
+    <!-- - It may have alternative approaches to execution -->
 
 2. **Creation Process**
    Unlike implementation, I would like issue creation to be strictly linear, to be rigourous this is more efficient.
@@ -118,12 +118,11 @@ const fn: TFn = (stage) => ...
 - There shall be no isomorphic types, for all types this shall pass:
 
 ```ts
-type TExtensionallyEqual<T, U> =
-    T extends U ?
-        U extends T ?
-            "Fail"
-        :   "Pass"
-    :   "Pass";
+type TExtensionallyEqual<T, U> = T extends U
+    ? U extends T
+        ? "Fail"
+        : "Pass"
+    : "Pass";
 ```
 
 Patterns like this are not allowed:
@@ -161,9 +160,13 @@ For example:
   We can express this as:
 
 ```ts
-type TBuildArray<T, N extends number, Current extends T[]> =
-    Current["length"] extends N ? [...Current, ...T[]]
-    :   TBuildArray<T, N, [...Current, T]>;
+type TBuildArray<
+    T,
+    N extends number,
+    Current extends T[],
+> = Current["length"] extends N
+    ? [...Current, ...T[]]
+    : TBuildArray<T, N, [...Current, T]>;
 
 type TStage = {
     first: 1;

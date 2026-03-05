@@ -114,35 +114,36 @@ When a lookup value depends on a parameter (not just static), build the map insi
 ​```tsx
 // ❌ complexity 7 — chained ternaries with a nested conditional
 const getWorkflowMode: (
-    user: IUser | null,
-    stage: TInspectionStage,
+user: IUser | null,
+stage: TInspectionStage,
 ) => TWorkflowMode = (user, stage) =>
-    user?.role === "rework" ? "rework"
-    : user?.role === "quality" ? "verification"
-    : user?.role === "admin" ?
-        stage === "awaiting_verification" ? "verification" : "rework"
-    : "inspection";
+user?.role === "rework" ? "rework"
+: user?.role === "quality" ? "verification"
+: user?.role === "admin" ?
+stage === "awaiting_verification" ? "verification" : "rework"
+: "inspection";
 
 // ✅ complexity 1 — map builder + single fallback expression
 const getAdminPhase: (stage: TInspectionStage) => TWorkflowMode = (stage) =>
-    stage === "awaiting_verification" ? "verification" : "rework";
+stage === "awaiting_verification" ? "verification" : "rework";
 
 const buildRoleMap: (
-    stage: TInspectionStage,
+stage: TInspectionStage,
 ) => Partial<Record<string, TWorkflowMode>> = (stage) => ({
-    rework: "rework",
-    quality: "verification",
-    admin: getAdminPhase(stage),
+rework: "rework",
+quality: "verification",
+admin: getAdminPhase(stage),
 });
 
 const getWorkflowMode: (
-    user: IUser | null,
-    stage: TInspectionStage,
+user: IUser | null,
+stage: TInspectionStage,
 ) => TWorkflowMode = (user, stage) =>
-    buildRoleMap(stage)[user?.role ?? ""] ?? "inspection";
+buildRoleMap(stage)[user?.role ?? ""] ?? "inspection";
 ​```
 
 Key points for parameterized maps:
+
 - Extract the dynamic value into its own function (`getAdminPhase`)
 - Use a `buildXxxMap` function that takes the parameter and returns a `Partial<Record<string, T>>`
 - The main function becomes a single-expression lookup with `?? fallback`
