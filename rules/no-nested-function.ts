@@ -54,12 +54,13 @@ type TFindAncestorFnParamCount = {
     (current: TMaybeNode): number;
 };
 
+const ancestorCount: TFnParamCount = (current) =>
+    fnParamCount(current) >= 0
+        ? fnParamCount(current)
+        : findAncestorFnParamCount(current.parent);
+
 const findAncestorFnParamCount: TFindAncestorFnParamCount = (current) =>
-    current === undefined || current === null
-        ? -1
-        : fnParamCount(current) >= 0
-            ? fnParamCount(current)
-            : findAncestorFnParamCount(current.parent);
+    current === undefined || current === null ? -1 : ancestorCount(current);
 
 type TParentIsParameterized = {
     (node: TSESTree.Node): boolean;
