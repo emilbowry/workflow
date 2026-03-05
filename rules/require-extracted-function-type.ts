@@ -1,147 +1,59 @@
-import {
-    AST_NODE_TYPES,
-    ESLintUtils,
-} from "@typescript-eslint/utils";
-import type {
-    TSESTree,
-} from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
-type TRecord = Record<string, unknown>;
+import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-type TIsRecord =
-    (val: unknown) => val is TRecord;
-
-type TPredicate =
-    (val: unknown) => boolean;
-
-type TCollect = (
-    node: unknown,
-    refs: Array<unknown>,
-) => void;
-
-type TVisitRecord = (
-    node: TRecord,
-    refs: Array<unknown>,
-) => void;
-
-type THasType = (
-    node: TSESTree.TSFunctionType,
-) => boolean;
-
-type TCheckAnnotation = (
-    ann: TSESTree.TypeNode,
-) => boolean;
-
-const SKIP_KEYS: Set<string> = new Set([
-    "parent", "loc", "range",
-    "start", "end",
-]);
-
-const MSG: string =
-    "Inline function type must be " +
-    "extracted to a named type alias.";
+const MSG: string = "Inline type must be extracted " + "to a named type alias.";
 
 const DESC: string =
-    "Require inline TSFunctionType " +
-    "annotations to be extracted " +
-    "as named type aliases.";
+    "Require type annotations to be " + "keywords or named references.";
 
-const isRecord: TIsRecord =
-    (val): val is TRecord =>
-        typeof val === "object" &&
-        val !== null &&
-        !Array.isArray(val);
+type TIsAllowed = {
+    (node: TSESTree.TypeNode): boolean;
+};
 
-const isTSType: TPredicate = (type) =>
-    typeof type === "string" &&
-    type.startsWith("TS");
+const isAllowed: TIsAllowed = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeReference ||
+    node.type.endsWith("Keyword");
 
-const isVisitable: TPredicate = (val) =>
-    val !== null &&
-    val !== undefined &&
-    typeof val === "object";
+type TRule = ESLintUtils.RuleModule<"extractType">;
 
-const visitKeys: TVisitRecord = (
-    node,
-    refs,
-) => {
-    for (const key of Object.keys(node)) {
-        if (SKIP_KEYS.has(key)) continue;
-        const val: unknown = node[key];
-        if (isVisitable(val)) {
-            collectTypeNodes(val, refs);
-        }
+type TReport = {
+    (node: TSESTree.TSTypeAnnotation): void;
+};
+
+type TContext = Parameters<TRule["create"]>[0];
+
+type TMakeReport = {
+    (context: TContext): TReport;
+};
+
+const makeReport: TMakeReport = (context) => (node) => {
+    const inner: TSESTree.TypeNode = node.typeAnnotation;
+    if (!isAllowed(inner)) {
+        context.report({
+            messageId: "extractType",
+            node,
+        });
     }
 };
 
-const collectTypeNodes: TCollect = (
-    node,
-    refs,
-) => {
-    if (isRecord(node)) {
-        if (isTSType(node["type"])) {
-            refs.push(node);
-        }
-        visitKeys(node, refs);
-    } else if (Array.isArray(node)) {
-        for (const item of node) {
-            collectTypeNodes(item, refs);
-        }
-    }
+type TCreate = TRule["create"];
+
+const create: TCreate = (context) => {
+    const handler: TReport = makeReport(context);
+    return {
+        TSTypeAnnotation: handler,
+    };
 };
 
-const hasAnyType: THasType = (
-    funcTypeNode,
-) => {
-    const refs: Array<unknown> = [];
-    collectTypeNodes(funcTypeNode, refs);
-    return refs.length > 0;
-};
-
-const shouldExtract: TCheckAnnotation =
-    (ann) =>
-        ann.type ===
-            AST_NODE_TYPES
-                .TSFunctionType &&
-        hasAnyType(ann);
-
-type TRule =
-    ESLintUtils.RuleModule<"extractType">;
-
-const rule: TRule =
-    ESLintUtils.RuleCreator.withoutDocs({
-        meta: {
-            type: "suggestion",
-            docs: { description: DESC },
-            schema: [],
-            messages: { extractType: MSG },
-        },
-        create(context) {
-            return {
-                VariableDeclarator(
-                    node,
-                ): void {
-                    const wrapper:
-                        | TSESTree.TSTypeAnnotation
-                        | undefined =
-                        node.id
-                            .typeAnnotation;
-                    if (
-                        wrapper &&
-                        shouldExtract(
-                            wrapper
-                                .typeAnnotation,
-                        )
-                    ) {
-                        context.report({
-                            node: wrapper,
-                            messageId:
-                                "extractType",
-                        });
-                    }
-                },
-            };
-        },
-    });
+const rule: TRule = ESLintUtils.RuleCreator.withoutDocs({
+    create,
+    meta: {
+        docs: { description: DESC },
+        messages: { extractType: MSG },
+        schema: [],
+        type: "suggestion",
+    },
+});
 
 export default rule;

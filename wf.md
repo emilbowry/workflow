@@ -91,7 +91,7 @@ Done by types until complete (I want)
 - It shall state what files need to be created or modified.
 - It shall have comments comprised of post mortem analysis, if something went wrong or it spawned new issues/restructured the planning during implmentation.
 - It may have additional properties
-      <!-- - It may have alternative approaches to execution -->
+  <!-- - It may have alternative approaches to execution -->
 
 2. **Creation Process**
    Unlike implementation, I would like issue creation to be strictly linear, to be rigourous this is more efficient.
@@ -244,3 +244,8 @@ Good: { id: string; email: string | undefined } (The record always has 2 fieldsâ
 
 - There shall be no interfaces, the Identity of that type is unstable.
 
+I want the opposite to the:
+
+```
+"@typescript-eslint/prefer-function-type": "error"
+```

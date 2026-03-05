@@ -3,3 +3,5 @@ dist/
 .env
 .env.local
 *.log
+rules/.DS_Store
+.DS_Store

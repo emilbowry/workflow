@@ -6,11 +6,23 @@ import react from "eslint-plugin-react";
 import maxTotalDepth from "./rules/max-total-depth.js";
 import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import restrictReturnCount from "./rules/restrict-return-count.js";
-import requireSeperateFunctionType from "./rules/require-extracted-function-type.js";
+import requireSeperateFunctionType from "./rules/require-extracted-function-type.ts";
+import preferCallSignature from "./rules/prefer-call-signature.ts";
+import maxTypeNesting from "./rules/max-type-nesting.ts";
+import noSingleFieldType from "./rules/no-single-field-type.ts";
+import noDuplicateTypeStructure from "./rules/no-duplicate-type-structure.ts";
+import noNestedFunction from "./rules/no-nested-function.ts";
+import functional from "eslint-plugin-functional";
 
 export default defineConfig(
     {
-        ignores: ["dist/", "rules/", "vite.config.ts", "eslint.config.ts"],
+        ignores: [
+            "dist/",
+            "vite.config.ts",
+            "eslint.config.ts",
+            "wf.ts",
+            "src/tr.ts",
+        ],
     },
 
     eslint.configs.recommended,
@@ -32,9 +44,16 @@ export default defineConfig(
                     "restrict-return-count": restrictReturnCount,
                     "require-extracted-function-type":
                         requireSeperateFunctionType,
+                    "prefer-call-signature": preferCallSignature,
+                    "max-type-nesting": maxTypeNesting,
+                    "no-single-field-type": noSingleFieldType,
+                    "no-duplicate-type-structure":
+                        noDuplicateTypeStructure,
+                    "no-nested-function": noNestedFunction,
                 },
             },
             "eslint-comments": eslintComments,
+            functional: functional,
         },
         rules: {
             "@typescript-eslint/ban-ts-comment": "error",
@@ -150,8 +169,15 @@ export default defineConfig(
             */
             "@typescript-eslint/no-unnecessary-condition": "error",
             "local/restrict-return-count": ["error", 1],
+            indent: ["error", 4, { SwitchCase: 1 }],
             "local/max-total-depth": ["error", 3],
             "local/require-extracted-function-type": "error",
+            "local/prefer-call-signature": "error",
+            "local/max-type-nesting": ["error", 1],
+            "local/no-single-field-type": "error",
+            "local/no-duplicate-type-structure": "error",
+            "local/no-nested-function": "error",
+            "functional/no-let": "error",
             "max-len": [
                 "error",
                 {

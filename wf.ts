@@ -16,15 +16,24 @@
 // // //     notes: string;
 // // //     images: string[];
 // // //     priority: TPriority;
-// // //     editor_ids: TMinEditors<TStage[T]>; // really it is a dependant type on the stage index mapping, we always have at least index + 1 editors since each stage shall append at least one editor id. It isnt generic over TStage, it is a dependant type but inconvenient to illustrate that
+// // //     editor_ids: TMinEditors<TStage[T]>;
+// // really it is a dependant type on the stage index mapping, we alwa
+// ys have at least index + 1 editors since each stage shall append
+// at least one editor id.
+//  It isnt generic over TStage, it is a dependant ty
+// pe but inconvenient to illustrate that
 // // // };
 
 // // // type TWorkItemIdentifiers = {
-// // //     readonly id: string; // technically redundant since we cannot physically set two work items to the same exact location so location is a sufficient identifier by the physics, but makes look ups easier
+// // //     readonly id: string; // technically redundant
+// since we cannot physically set two work items to the same exact lo
+// cation so location is a sufficient identifier by the physics, but
+//  makes look ups easier
 // // //     readonly location: TCartesian;
 // // // };
 
-// // // type TWorkItem<T extends keyof TStage> = TWorkData<T> & TWorkItemIdentifiers;
+// // // type TWorkItem<T extends keyof TStage> = TWorkData<T> & TW
+// orkItemIdentifiers;
 // // // type TWorkProcess = {
 // // //     [S in keyof TStage]: {
 // // //         readonly stage: S;
