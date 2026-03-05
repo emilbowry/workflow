@@ -137,19 +137,24 @@ type TCanonicalMember = {
 };
 
 const canonicalMember: TCanonicalMember = (member) => {
-    if (member.type === AST_NODE_TYPES.TSPropertySignature) {
-        return handlePropertySignature(member);
+    let result: string;
+    switch (member.type) {
+    case AST_NODE_TYPES.TSPropertySignature:
+        result = handlePropertySignature(member);
+        break;
+    case AST_NODE_TYPES.TSCallSignatureDeclaration:
+        result = handleCallSignature(member);
+        break;
+    case AST_NODE_TYPES.TSIndexSignature:
+        result = handleIndexSignature(member);
+        break;
+    case AST_NODE_TYPES.TSMethodSignature:
+        result = handleMethodSignature(member);
+        break;
+    default:
+        result = handleConstructSignature(member);
     }
-    if (member.type === AST_NODE_TYPES.TSCallSignatureDeclaration) {
-        return handleCallSignature(member);
-    }
-    if (member.type === AST_NODE_TYPES.TSIndexSignature) {
-        return handleIndexSignature(member);
-    }
-    if (member.type === AST_NODE_TYPES.TSMethodSignature) {
-        return handleMethodSignature(member);
-    }
-    return handleConstructSignature(member);
+    return result;
 };
 
 type TKeywordMap = Map<string, string>;
