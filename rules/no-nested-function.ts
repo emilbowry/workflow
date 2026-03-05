@@ -13,7 +13,9 @@
     thunk layer between them is a valid PA boundary.
     An IIFE thunk collapses by 1 → T ≅ T.
 
-    const collapse = <A extends unknown[], R>( f: (...args: A) => () => R ): (...args: A) => R => (...args) => f(...args)();
+    const collapse = 
+    <A extends unknown[], R>( f: (...args: A) => () => R ):    
+        (...args: A) => R => (...args) => f(...args)();
 */
 
 import type { TSESTree } from "@typescript-eslint/utils";

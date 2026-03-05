@@ -52,10 +52,7 @@ const meta: TMeta = {
     schema: [],
     type: "suggestion",
 };
-const collapse =
-    <A extends Array<unknown>, R>(f: (...args: A) => () => R): ((...args: A) => R) =>
-        (...args) =>
-            f(...args)();
+
 const rule: TRule = ESLintUtils.RuleCreator.withoutDocs({
     create,
     meta,
