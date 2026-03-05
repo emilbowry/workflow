@@ -44,8 +44,8 @@ const keyName: TKeyName = (key) =>
     key.type === AST_NODE_TYPES.Identifier
         ? key.name
         : key.type === AST_NODE_TYPES.Literal
-            ? String(key.value)
-            : key.type;
+          ? String(key.value)
+          : key.type;
 
 type THandleIdentifierParam = {
     (param: TSESTree.Identifier): string;
@@ -69,8 +69,8 @@ const canonicalParam: TCanonicalParam = (param) =>
     param.type === AST_NODE_TYPES.Identifier
         ? handleIdentifierParam(param)
         : param.type === AST_NODE_TYPES.RestElement
-            ? handleRestParam(param)
-            : param.type;
+          ? handleRestParam(param)
+          : param.type;
 
 type THandleProperty = {
     (member: TSESTree.TSPropertySignature): string;
@@ -136,30 +136,34 @@ const handleConstructSignature: THandleConstructSig = (member) => {
     return "new(" + params + "):" + ret;
 };
 
+type TMaybeString = string | undefined;
+
 type TCanonicalMember = {
     (member: TSESTree.TypeElement): string;
 };
 
-const canonicalMember: TCanonicalMember = (member) => {
-    let result: string;
-    switch (member.type) {
-        case AST_NODE_TYPES.TSPropertySignature:
-            result = handlePropertySignature(member);
-            break;
-        case AST_NODE_TYPES.TSCallSignatureDeclaration:
-            result = handleCallSignature(member);
-            break;
-        case AST_NODE_TYPES.TSIndexSignature:
-            result = handleIndexSignature(member);
-            break;
-        case AST_NODE_TYPES.TSMethodSignature:
-            result = handleMethodSignature(member);
-            break;
-        default:
-            result = handleConstructSignature(member);
-    }
-    return result;
+type TTryMember = {
+    (member: TSESTree.TypeElement): TMaybeString;
 };
+
+const tryPropertyOrCall: TTryMember = (member) =>
+    member.type === AST_NODE_TYPES.TSPropertySignature
+        ? handlePropertySignature(member)
+        : member.type === AST_NODE_TYPES.TSCallSignatureDeclaration
+          ? handleCallSignature(member)
+          : undefined;
+
+const tryIndexOrMethod: TTryMember = (member) =>
+    member.type === AST_NODE_TYPES.TSIndexSignature
+        ? handleIndexSignature(member)
+        : member.type === AST_NODE_TYPES.TSMethodSignature
+          ? handleMethodSignature(member)
+          : undefined;
+
+const canonicalMember: TCanonicalMember = (member) =>
+    tryPropertyOrCall(member) ??
+    tryIndexOrMethod(member) ??
+    handleConstructSignature(member);
 
 type TKeywordMap = Map<string, string>;
 
@@ -220,8 +224,8 @@ const typeNameToString: TTypeNameToString = (typeName) =>
     typeName.type === AST_NODE_TYPES.Identifier
         ? typeName.name
         : typeName.type === AST_NODE_TYPES.TSQualifiedName
-            ? qualifiedToString(typeName)
-            : typeName.type;
+          ? qualifiedToString(typeName)
+          : typeName.type;
 
 type THandleTypeRef = {
     (node: TSESTree.TSTypeReference): string;
@@ -279,8 +283,8 @@ const handleLiteralValue: THandleLiteralValue = (literal) =>
     literal.type === AST_NODE_TYPES.Literal
         ? String(literal.value)
         : literal.type === AST_NODE_TYPES.UnaryExpression
-            ? literal.operator + unaryArgValue(literal.argument)
-            : "template";
+          ? literal.operator + unaryArgValue(literal.argument)
+          : "template";
 
 type THandleLiteralType = {
     (node: TSESTree.TSLiteralType): string;
@@ -350,8 +354,6 @@ type THandleInfer = {
 const handleInferType: THandleInfer = (node) =>
     "infer " + node.typeParameter.name.name;
 
-type TMaybeString = string | undefined;
-
 type TTryDispatch = {
     (node: TSESTree.TypeNode): TMaybeString;
 };
@@ -361,77 +363,65 @@ type TTryDispatch = {
 
     They all are structurely identical and the type is identical
 */
-const tryComposite: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
-    // unhappy with let's in general.
-    // this is a bypass of the indent + line length
-    switch (node.type) {
-        case AST_NODE_TYPES.TSTypeLiteral:
-            result = handleTypeLiteral(node);
-            break;
-        case AST_NODE_TYPES.TSUnionType:
-            result = handleUnionType(node);
-            break;
-        case AST_NODE_TYPES.TSIntersectionType:
-            result = handleIntersectionType(node);
-            break;
-    }
-    return result;
-};
+const tryLiteralOrUnion: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeLiteral
+        ? handleTypeLiteral(node)
+        : node.type === AST_NODE_TYPES.TSUnionType
+          ? handleUnionType(node)
+          : undefined;
 
-const tryReference: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
-    switch (node.type) {
-        case AST_NODE_TYPES.TSTypeReference:
-            result = handleTypeReference(node);
-            break;
-        case AST_NODE_TYPES.TSFunctionType:
-            result = handleFunctionType(node);
-            break;
-        case AST_NODE_TYPES.TSArrayType:
-            result = handleArrayType(node);
-            break;
-        case AST_NODE_TYPES.TSTypeOperator:
-            result = handleTypeOperator(node);
-            break;
-    }
-    return result;
-};
+const tryComposite: TTryDispatch = (node) =>
+    tryLiteralOrUnion(node) ??
+    (node.type === AST_NODE_TYPES.TSIntersectionType
+        ? handleIntersectionType(node)
+        : undefined);
 
-const tryLiteral: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
-    switch (node.type) {
-        case AST_NODE_TYPES.TSLiteralType:
-            result = handleLiteralType(node);
-            break;
-        case AST_NODE_TYPES.TSTupleType:
-            result = handleTupleType(node);
-            break;
-        case AST_NODE_TYPES.TSIndexedAccessType:
-            result = handleIndexedAccessType(node);
-            break;
-    }
-    return result;
-};
+const tryRefOrFunction: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeReference
+        ? handleTypeReference(node)
+        : node.type === AST_NODE_TYPES.TSFunctionType
+          ? handleFunctionType(node)
+          : undefined;
 
-const tryAdvanced: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
-    switch (node.type) {
-        case AST_NODE_TYPES.TSTypeQuery:
-            result = handleTypeQuery(node);
-            break;
-        case AST_NODE_TYPES.TSConditionalType:
-            result = handleConditionalType(node);
-            break;
-        case AST_NODE_TYPES.TSMappedType:
-            result = handleMappedType(node);
-            break;
-        case AST_NODE_TYPES.TSInferType:
-            result = handleInferType(node);
-            break;
-    }
-    return result;
-};
+const tryArrayOrOperator: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSArrayType
+        ? handleArrayType(node)
+        : node.type === AST_NODE_TYPES.TSTypeOperator
+          ? handleTypeOperator(node)
+          : undefined;
+
+const tryReference: TTryDispatch = (node) =>
+    tryRefOrFunction(node) ?? tryArrayOrOperator(node);
+
+const tryLiteralOrTuple: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSLiteralType
+        ? handleLiteralType(node)
+        : node.type === AST_NODE_TYPES.TSTupleType
+          ? handleTupleType(node)
+          : undefined;
+
+const tryLiteral: TTryDispatch = (node) =>
+    tryLiteralOrTuple(node) ??
+    (node.type === AST_NODE_TYPES.TSIndexedAccessType
+        ? handleIndexedAccessType(node)
+        : undefined);
+
+const tryQueryOrConditional: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeQuery
+        ? handleTypeQuery(node)
+        : node.type === AST_NODE_TYPES.TSConditionalType
+          ? handleConditionalType(node)
+          : undefined;
+
+const tryMappedOrInfer: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSMappedType
+        ? handleMappedType(node)
+        : node.type === AST_NODE_TYPES.TSInferType
+          ? handleInferType(node)
+          : undefined;
+
+const tryAdvanced: TTryDispatch = (node) =>
+    tryQueryOrConditional(node) ?? tryMappedOrInfer(node);
 
 // conveniantly exactly has a cyclomatic complexity of 5
 const dispatchNode: TCanonical = (node) =>
@@ -458,13 +448,19 @@ type TContext = Parameters<TRule["create"]>[0];
 
 const seen: Map<string, Array<TEntry>> = new Map();
 
+type TFormatEntry = {
+    (entry: TEntry): string;
+};
+
+const formatEntry: TFormatEntry = (entry) =>
+    entry.name + " (" + entry.file + ")";
+
 type TFormatNames = {
     (entries: Array<TEntry>): string;
 };
 
 const formatNames: TFormatNames = (entries) =>
-    entries.map((entry) => entry.name + " (" + entry.file + ")").join(", ");
-// unhapy with this, why is it not extracted
+    entries.map(formatEntry).join(", ");
 
 type TReportEntry = {
     (context: TContext, file: string, entry: TEntry, names: string): void;
@@ -518,11 +514,22 @@ type TClearFile = {
     (file: string): void;
 };
 
+type TIsNotFromFile = {
+    (file: string, entry: TEntry): boolean;
+};
+
+const isNotFromFile: TIsNotFromFile = (file, entry) => entry.file !== file;
+
+type TFilterEntries = {
+    (file: string, entries: Array<TEntry>): Array<TEntry>;
+};
+
+const filterEntries: TFilterEntries = (file, entries) =>
+    entries.filter(isNotFromFile.bind(undefined, file));
+
 const clearFile: TClearFile = (file) => {
     for (const [key, entries] of seen) {
-        const kept: Array<TEntry> = entries.filter(
-            (e) => e.file !== file,
-        );
+        const kept: Array<TEntry> = filterEntries(file, entries);
         if (kept.length === 0) {
             seen.delete(key);
         } else {
@@ -537,12 +544,8 @@ const create: TCreate = (context) => {
     const file: string = context.filename;
     clearFile(file);
     return {
-        "Program:exit"(): void {
-            reportDuplicates(context, file);
-        },
-        TSTypeAliasDeclaration(node): void {
-            recordAlias(file, node);
-        },
+        "Program:exit": reportDuplicates.bind(undefined, context, file),
+        TSTypeAliasDeclaration: recordAlias.bind(undefined, file),
     };
 };
 
