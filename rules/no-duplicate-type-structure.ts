@@ -42,15 +42,12 @@ type TKeyName = {
     (key: TSESTree.PropertyName): string;
 };
 
-const keyName: TKeyName = (key) => {
-    if (key.type === AST_NODE_TYPES.Identifier) {
-        return key.name;
-    }
-    if (key.type === AST_NODE_TYPES.Literal) {
-        return String(key.value);
-    }
-    return key.type;
-};
+const keyName: TKeyName = (key) =>
+    key.type === AST_NODE_TYPES.Identifier ?
+        key.name
+    : key.type === AST_NODE_TYPES.Literal ?
+        String(key.value)
+    :   key.type;
 
 type THandleIdentifierParam = {
     (param: TSESTree.Identifier): string;
@@ -72,15 +69,12 @@ type TCanonicalParam = {
     (param: TSESTree.Parameter): string;
 };
 
-const canonicalParam: TCanonicalParam = (param) => {
-    if (param.type === AST_NODE_TYPES.Identifier) {
-        return handleIdentifierParam(param);
-    }
-    if (param.type === AST_NODE_TYPES.RestElement) {
-        return handleRestParam(param);
-    }
-    return param.type;
-};
+const canonicalParam: TCanonicalParam = (param) =>
+    param.type === AST_NODE_TYPES.Identifier ?
+        handleIdentifierParam(param)
+    : param.type === AST_NODE_TYPES.RestElement ?
+        handleRestParam(param)
+    :   param.type;
 
 type THandleProperty = {
     (member: TSESTree.TSPropertySignature): string;
@@ -245,28 +239,23 @@ type TTypeNameToString = {
     (typeName: TTypeName): string;
 };
 
+type TQualifiedToString = {
+    (node: TSESTree.TSQualifiedName): string;
+};
+
+const qualifiedToString: TQualifiedToString = (node) =>
+    node.left.type === AST_NODE_TYPES.Identifier ?
+        node.left.name + "." + node.right.name
+    :   node.type;
+
 const typeNameToString: TTypeNameToString =
-    (typeName) => {
-        if (
-            typeName.type === AST_NODE_TYPES.Identifier
-        ) {
-            return typeName.name;
-        }
-        if (
-            typeName.type ===
-            AST_NODE_TYPES.TSQualifiedName
-        ) {
-            return (
-                typeName.left.type ===
-                    AST_NODE_TYPES.Identifier ?
-                    typeName.left.name +
-                    "." +
-                    typeName.right.name
-                :   typeName.type
-            );
-        }
-        return typeName.type;
-    };
+    (typeName) =>
+        typeName.type === AST_NODE_TYPES.Identifier ?
+            typeName.name
+        : typeName.type ===
+              AST_NODE_TYPES.TSQualifiedName ?
+            qualifiedToString(typeName)
+        :   typeName.type;
 
 type THandleTypeRef = {
     (node: TSESTree.TSTypeReference): string;
@@ -332,21 +321,14 @@ type THandleLiteralValue = {
 };
 
 const handleLiteralValue: THandleLiteralValue =
-    (literal) => {
-        if (literal.type === AST_NODE_TYPES.Literal) {
-            return String(literal.value);
-        }
-        if (
-            literal.type ===
-            AST_NODE_TYPES.UnaryExpression
-        ) {
-            return (
-                literal.operator +
-                unaryArgValue(literal.argument)
-            );
-        }
-        return "template";
-    };
+    (literal) =>
+        literal.type === AST_NODE_TYPES.Literal ?
+            String(literal.value)
+        : literal.type ===
+              AST_NODE_TYPES.UnaryExpression ?
+            literal.operator +
+            unaryArgValue(literal.argument)
+        :   "template";
 
 type THandleLiteralType = {
     (node: TSESTree.TSLiteralType): string;
