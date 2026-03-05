@@ -514,11 +514,28 @@ const recordAlias: TRecordAlias = (file, node) => {
     }
 };
 
+type TClearFile = {
+    (file: string): void;
+};
+
+const clearFile: TClearFile = (file) => {
+    for (const [key, entries] of seen) {
+        const kept: Array<TEntry> = entries.filter(
+            (e) => e.file !== file,
+        );
+        if (kept.length === 0) {
+            seen.delete(key);
+        } else {
+            seen.set(key, kept);
+        }
+    }
+};
+
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
-    seen.clear();
     const file: string = context.filename;
+    clearFile(file);
     return {
         "Program:exit"(): void {
             reportDuplicates(context, file);
