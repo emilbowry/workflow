@@ -194,13 +194,7 @@ const canonicalMember: TCanonicalMember = (member) => {
     ) {
         return handleMethodSignature(member);
     }
-    if (
-        member.type ===
-        AST_NODE_TYPES.TSConstructSignatureDeclaration
-    ) {
-        return handleConstructSignature(member);
-    }
-    return member.type;
+    return handleConstructSignature(member);
 };
 
 type TKeywordMap = Record<string, string>;
