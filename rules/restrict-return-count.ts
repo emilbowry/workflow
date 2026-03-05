@@ -23,10 +23,9 @@ type TStackOp = {
 };
 
 const increment: TStackOp = (stack) => {
-    if (stack.length === 0) {
-        return;
+    if (stack.length > 0) {
+        stack[stack.length - 1]++;
     }
-    stack[stack.length - 1]++;
 };
 
 const push: TStackOp = (stack) => {
@@ -54,14 +53,13 @@ type TReportIfExceeded = {
 };
 
 const reportIfExceeded: TReportIfExceeded = (context, node, count, max) => {
-    if (count <= max) {
-        return;
+    if (count > max) {
+        context.report({
+            data: makeData(count, max),
+            messageId: "tooManyReturns",
+            node,
+        });
     }
-    context.report({
-        data: makeData(count, max),
-        messageId: "tooManyReturns",
-        node,
-    });
 };
 
 type TPop = {
@@ -75,10 +73,9 @@ type TPop = {
 
 const pop: TPop = (stack, context, node, max) => {
     const count: TMaybeCount = stack.pop();
-    if (count === undefined) {
-        return;
+    if (count !== undefined) {
+        reportIfExceeded(context, node, count, max);
     }
-    reportIfExceeded(context, node, count, max);
 };
 
 type TNodeHandler = {
@@ -99,13 +96,11 @@ type TIsFinalReturn = {
 
 const isFinalReturn: TIsFinalReturn = (node) => {
     const parent: TSESTree.Node = node.parent;
-    if (parent.type !== AST_NODE_TYPES.BlockStatement) {
-        return false;
-    }
-    if (!FUNCTION_TYPES.has(parent.parent.type)) {
-        return false;
-    }
-    return parent.body[parent.body.length - 1] === node;
+    const result: boolean =
+        parent.type === AST_NODE_TYPES.BlockStatement &&
+        FUNCTION_TYPES.has(parent.parent.type) &&
+        parent.body[parent.body.length - 1] === node;
+    return result;
 };
 
 type TReportEarly = {
@@ -113,18 +108,37 @@ type TReportEarly = {
 };
 
 const reportEarlyReturn: TReportEarly = (context, node) => {
-    if (isFinalReturn(node)) {
-        return;
+    if (!isFinalReturn(node)) {
+        context.report({
+            messageId: "earlyReturn",
+            node,
+        });
     }
-    context.report({
-        messageId: "earlyReturn",
-        node,
-    });
 };
 
 type TReturnHandler = {
     (node: TSESTree.ReturnStatement): void;
 };
+
+type TMakeExitHandler = {
+    (stack: Array<number>, context: TContext, max: number): TNodeHandler;
+};
+
+const makeExitHandler: TMakeExitHandler = (stack, context, max) =>
+    (
+        () => (node: TSESTree.Node) =>
+            pop(stack, context, node, max)
+    )();
+
+type TMakeReturnHandler = {
+    (stack: Array<number>, context: TContext): TReturnHandler;
+};
+
+const makeReturnHandler: TMakeReturnHandler = (stack, context) =>
+    (() => (node: TSESTree.ReturnStatement) => {
+        increment(stack);
+        reportEarlyReturn(context, node);
+    })();
 
 type TCreate = TRule["create"];
 
@@ -134,12 +148,9 @@ const create: TCreate = (context) => {
 
     const onEnter: TNodeHandler = () => push(stack);
 
-    const onExit: TNodeHandler = (node) => pop(stack, context, node, max);
+    const onExit: TNodeHandler = makeExitHandler(stack, context, max);
 
-    const onReturn: TReturnHandler = (node) => {
-        increment(stack);
-        reportEarlyReturn(context, node);
-    };
+    const onReturn: TReturnHandler = makeReturnHandler(stack, context);
 
     return {
         ArrowFunctionExpression: onEnter,

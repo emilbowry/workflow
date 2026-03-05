@@ -30,7 +30,11 @@ type TMakeHandler = {
     (context: TContext): THandler;
 };
 
-const makeHandler: TMakeHandler = (context) => (node) => {
+type THandleNode = {
+    (context: TContext, node: TSESTree.TSTypeAliasDeclaration): void;
+};
+
+const handleNode: THandleNode = (context, node) => {
     const ann: TSESTree.TypeNode = node.typeAnnotation;
     if (shouldReport(ann)) {
         context.report({
@@ -39,6 +43,12 @@ const makeHandler: TMakeHandler = (context) => (node) => {
         });
     }
 };
+
+const makeHandler: TMakeHandler = (context) =>
+    (
+        () => (node: TSESTree.TSTypeAliasDeclaration) =>
+            handleNode(context, node)
+    )();
 
 type TCreate = TRule["create"];
 

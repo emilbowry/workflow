@@ -25,22 +25,36 @@ type TCheck = {
 const check: TCheck = (context, node) => {
     const isFn: boolean =
         node.typeAnnotation.type === AST_NODE_TYPES.TSFunctionType;
-    if (!isFn) {
-        return;
+    if (isFn) {
+        context.report({
+            messageId: "useCallSignature",
+            node: node.typeAnnotation,
+        });
     }
-    context.report({
-        messageId: "useCallSignature",
-        node: node.typeAnnotation,
-    });
 };
+
+type THandler = {
+    (node: TNode): void;
+};
+
+type TMakeHandler = {
+    (checkFn: TCheck, context: TContext): THandler;
+};
+
+const makeHandler: TMakeHandler = (checkFn, context) =>
+    (
+        () => (node: TNode) =>
+            checkFn(context, node)
+    )();
 
 type TCreate = TRule["create"];
 
-const create: TCreate = (context) => ({
-    TSTypeAliasDeclaration(node): void {
-        check(context, node);
-    },
-});
+const create: TCreate = (context) => {
+    const handler: THandler = makeHandler(check, context);
+    return {
+        TSTypeAliasDeclaration: handler,
+    };
+};
 
 type TMeta = TRule["meta"];
 
