@@ -197,22 +197,22 @@ const canonicalMember: TCanonicalMember = (member) => {
     return handleConstructSignature(member);
 };
 
-type TKeywordMap = Record<string, string>;
+type TKeywordMap = Map<string, string>;
 
-const KEYWORD_MAP: TKeywordMap = {
-    [AST_NODE_TYPES.TSAnyKeyword]: "any",
-    [AST_NODE_TYPES.TSBigIntKeyword]: "bigint",
-    [AST_NODE_TYPES.TSBooleanKeyword]: "boolean",
-    [AST_NODE_TYPES.TSNeverKeyword]: "never",
-    [AST_NODE_TYPES.TSNullKeyword]: "null",
-    [AST_NODE_TYPES.TSNumberKeyword]: "number",
-    [AST_NODE_TYPES.TSObjectKeyword]: "object",
-    [AST_NODE_TYPES.TSStringKeyword]: "string",
-    [AST_NODE_TYPES.TSSymbolKeyword]: "symbol",
-    [AST_NODE_TYPES.TSUndefinedKeyword]: "undefined",
-    [AST_NODE_TYPES.TSUnknownKeyword]: "unknown",
-    [AST_NODE_TYPES.TSVoidKeyword]: "void",
-};
+const KEYWORD_MAP: TKeywordMap = new Map([
+    [AST_NODE_TYPES.TSAnyKeyword, "any"],
+    [AST_NODE_TYPES.TSBigIntKeyword, "bigint"],
+    [AST_NODE_TYPES.TSBooleanKeyword, "boolean"],
+    [AST_NODE_TYPES.TSNeverKeyword, "never"],
+    [AST_NODE_TYPES.TSNullKeyword, "null"],
+    [AST_NODE_TYPES.TSNumberKeyword, "number"],
+    [AST_NODE_TYPES.TSObjectKeyword, "object"],
+    [AST_NODE_TYPES.TSStringKeyword, "string"],
+    [AST_NODE_TYPES.TSSymbolKeyword, "symbol"],
+    [AST_NODE_TYPES.TSUndefinedKeyword, "undefined"],
+    [AST_NODE_TYPES.TSUnknownKeyword, "unknown"],
+    [AST_NODE_TYPES.TSVoidKeyword, "void"],
+]);
 
 type THandleTypeLiteral = {
     (node: TSESTree.TSTypeLiteral): string;
@@ -433,12 +433,7 @@ type THandleInfer = {
 const handleInferType: THandleInfer = (node) =>
     "infer " + node.typeParameter.name.name;
 
-const canonical: TCanonical = (node) => {
-    const keyword: string | undefined =
-        KEYWORD_MAP[node.type];
-    if (keyword) {
-        return keyword;
-    }
+const dispatchNode: TCanonical = (node) => {
     if (node.type === AST_NODE_TYPES.TSTypeLiteral) {
         return handleTypeLiteral(node);
     }
@@ -488,6 +483,12 @@ const canonical: TCanonical = (node) => {
         return handleInferType(node);
     }
     return node.type;
+};
+
+const canonical: TCanonical = (node) => {
+    const keyword: string | undefined =
+        KEYWORD_MAP.get(node.type);
+    return keyword ?? dispatchNode(node);
 };
 
 type TEntry = {
