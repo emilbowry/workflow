@@ -219,11 +219,11 @@ type THandleTypeRef = {
 
 const handleTypeReference: THandleTypeRef = (node) => {
     const name: string = typeNameToString(node.typeName);
-    if (!node.typeArguments || node.typeArguments.params.length === 0) {
-        return name;
-    }
-    const args: string = node.typeArguments.params.map(canonical).join(",");
-    return name + "<" + args + ">";
+    const args: string =
+        node.typeArguments && node.typeArguments.params.length > 0 ?
+            node.typeArguments.params.map(canonical).join(",")
+            :   "";
+    return args ? name + "<" + args + ">" : name;
 };
 
 type THandleFnType = {
