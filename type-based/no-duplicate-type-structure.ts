@@ -113,24 +113,18 @@ const handleConstructSignature: THandleConstructSig = (member) => {
 type TCanonicalMember = (member: TSESTree.TypeElement) => string;
 
 const canonicalMember: TCanonicalMember = (member) => {
-    let result: string;
     switch (member.type) {
         case AST_NODE_TYPES.TSPropertySignature:
-            result = handlePropertySignature(member);
-            break;
+            return handlePropertySignature(member);
         case AST_NODE_TYPES.TSCallSignatureDeclaration:
-            result = handleCallSignature(member);
-            break;
+            return handleCallSignature(member);
         case AST_NODE_TYPES.TSIndexSignature:
-            result = handleIndexSignature(member);
-            break;
+            return handleIndexSignature(member);
         case AST_NODE_TYPES.TSMethodSignature:
-            result = handleMethodSignature(member);
-            break;
+            return handleMethodSignature(member);
         default:
-            result = handleConstructSignature(member);
+            return handleConstructSignature(member);
     }
-    return result;
 };
 
 type TKeywordMap = Map<string, string>;
@@ -296,75 +290,59 @@ type TTryDispatch = (node: TSESTree.TypeNode) => TMaybeString;
     They all are structurely identical and the type is identical
 */
 const tryComposite: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
-    // unhappy with let's in general.
-    // this is a bypass of the indent + line length
     switch (node.type) {
         case AST_NODE_TYPES.TSTypeLiteral:
-            result = handleTypeLiteral(node);
-            break;
+            return handleTypeLiteral(node);
         case AST_NODE_TYPES.TSUnionType:
-            result = handleUnionType(node);
-            break;
+            return handleUnionType(node);
         case AST_NODE_TYPES.TSIntersectionType:
-            result = handleIntersectionType(node);
-            break;
+            return handleIntersectionType(node);
+        default:
+            return undefined;
     }
-    return result;
 };
 
 const tryReference: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
     switch (node.type) {
         case AST_NODE_TYPES.TSTypeReference:
-            result = handleTypeReference(node);
-            break;
+            return handleTypeReference(node);
         case AST_NODE_TYPES.TSFunctionType:
-            result = handleFunctionType(node);
-            break;
+            return handleFunctionType(node);
         case AST_NODE_TYPES.TSArrayType:
-            result = handleArrayType(node);
-            break;
+            return handleArrayType(node);
         case AST_NODE_TYPES.TSTypeOperator:
-            result = handleTypeOperator(node);
-            break;
+            return handleTypeOperator(node);
+        default:
+            return undefined;
     }
-    return result;
 };
 
 const tryLiteral: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
     switch (node.type) {
         case AST_NODE_TYPES.TSLiteralType:
-            result = handleLiteralType(node);
-            break;
+            return handleLiteralType(node);
         case AST_NODE_TYPES.TSTupleType:
-            result = handleTupleType(node);
-            break;
+            return handleTupleType(node);
         case AST_NODE_TYPES.TSIndexedAccessType:
-            result = handleIndexedAccessType(node);
-            break;
+            return handleIndexedAccessType(node);
+        default:
+            return undefined;
     }
-    return result;
 };
 
 const tryAdvanced: TTryDispatch = (node) => {
-    let result: TMaybeString = undefined;
     switch (node.type) {
         case AST_NODE_TYPES.TSTypeQuery:
-            result = handleTypeQuery(node);
-            break;
+            return handleTypeQuery(node);
         case AST_NODE_TYPES.TSConditionalType:
-            result = handleConditionalType(node);
-            break;
+            return handleConditionalType(node);
         case AST_NODE_TYPES.TSMappedType:
-            result = handleMappedType(node);
-            break;
+            return handleMappedType(node);
         case AST_NODE_TYPES.TSInferType:
-            result = handleInferType(node);
-            break;
+            return handleInferType(node);
+        default:
+            return undefined;
     }
-    return result;
 };
 
 // conveniantly exactly has a cyclomatic complexity of 5
