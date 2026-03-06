@@ -1,6 +1,6 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { ESLintUtils } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 const DEGENERATE_MSG: string =
     "Degenerate generic: type alias " + "body is just the type parameter.";
@@ -25,15 +25,44 @@ type TCheckNode = {
     (context: TContext, node: TSESTree.TSTypeAliasDeclaration): void;
 };
 
-type THasTypeParams = {
+type TNodePredicate = {
     (node: TSESTree.TSTypeAliasDeclaration): boolean;
 };
 
-const hasTypeParams: THasTypeParams = (node) =>
+const hasTypeParams: TNodePredicate = (node) =>
     node.typeParameters !== undefined && node.typeParameters.params.length > 0;
 
+type TGetParamName = {
+    (params: ReadonlyArray<TSESTree.TSTypeParameter>): string;
+};
+
+const getParamName: TGetParamName = (params) =>
+    params.length === 1 ? params[0].name.name : "";
+
+type TGetRefName = {
+    (body: TSESTree.TypeNode): string;
+};
+
+type TRefIdentName = {
+    (ref: TSESTree.TSTypeReference): string;
+};
+
+const refIdentName: TRefIdentName = (ref) =>
+    ref.typeName.type === AST_NODE_TYPES.Identifier ? ref.typeName.name : "";
+
+const getRefName: TGetRefName = (body) =>
+    body.type === AST_NODE_TYPES.TSTypeReference ? refIdentName(body) : "";
+
+const isDegenerate: TNodePredicate = (node) => {
+    const params: ReadonlyArray<TSESTree.TSTypeParameter> =
+        node.typeParameters?.params ?? [];
+    const firstParam: string = getParamName(params);
+    const refName: string = getRefName(node.typeAnnotation);
+    return firstParam !== "" && refName === firstParam;
+};
+
 const checkNode: TCheckNode = (context, node) => {
-    if (hasTypeParams(node)) {
+    if (hasTypeParams(node) && isDegenerate(node)) {
         context.report({
             messageId: "degenerateGeneric",
             node,
