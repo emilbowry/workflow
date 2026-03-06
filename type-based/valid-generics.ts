@@ -1,4 +1,12 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TCanonical,
+    TCheckNode,
+    TCreate,
+    THandler,
+    TMakeHandler,
+    TRefIdentName,
+} from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -15,15 +23,6 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"degenerateGeneric" | "homogeneousGeneric">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
-type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
-
-type TCheckNode = (
-    context: TContext,
-    node: TSESTree.TSTypeAliasDeclaration,
-) => void;
-
 type TNodePredicate = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
 
 const hasTypeParams: TNodePredicate = (node) =>
@@ -37,14 +36,10 @@ type TIsBodyAParam = (
 const isBodyAParam: TIsBodyAParam = (paramNames, bodyName) =>
     bodyName !== "" && paramNames.includes(bodyName);
 
-type TGetRefName = (body: TSESTree.TypeNode) => string;
-
-type TRefIdentName = (ref: TSESTree.TSTypeReference) => string;
-
 const refIdentName: TRefIdentName = (ref) =>
     ref.typeName.type === AST_NODE_TYPES.Identifier ? ref.typeName.name : "";
 
-const getRefName: TGetRefName = (body) =>
+const getRefName: TCanonical = (body) =>
     body.type === AST_NODE_TYPES.TSTypeReference ? refIdentName(body) : "";
 
 type TGetParamNames = (
@@ -64,7 +59,7 @@ const isDegenerate: TNodePredicate = (node) => {
     return isBodyAParam(paramNames, bodyName);
 };
 
-const argToName: TGetRefName = (arg) =>
+const argToName: TCanonical = (arg) =>
     arg.type === AST_NODE_TYPES.TSTypeReference &&
     arg.typeName.type === AST_NODE_TYPES.Identifier
         ? arg.typeName.name
@@ -99,7 +94,7 @@ const isHomogeneous: TNodePredicate = (node) => {
     return paramsMatch(paramNames, argNames);
 };
 
-const checkNode: TCheckNode = (context, node) => {
+const checkNode: TCheckNode<TRule> = (context, node) => {
     if (hasTypeParams(node) && isDegenerate(node)) {
         context.report({
             messageId: "degenerateGeneric",
@@ -114,17 +109,13 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type TMakeHandler = (check: TCheckNode, context: TContext) => THandler;
-
-const makeHandler: TMakeHandler = (check, context) =>
+const makeHandler: TMakeHandler<TRule> = (check, context) =>
     (
         () => (node: TSESTree.TSTypeAliasDeclaration) =>
             check(context, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(checkNode, context);
     return {
         TSTypeAliasDeclaration: handler,

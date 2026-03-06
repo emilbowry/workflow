@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { TContext, TMeta, TNodeHandler } from "./type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -34,8 +35,6 @@ const increment: TStackOp = (stack) => {
 
 type TState = [number, TStack];
 
-type TContext = Parameters<TRule["create"]>[0];
-
 type TEnter = (state: TState) => void;
 
 const enter: TEnter = (state) => {
@@ -47,7 +46,7 @@ const exit: TEnter = (state) => {
 };
 
 type TReport = (
-    ctx: TContext,
+    ctx: TContext<TRule>,
     node: TSESTree.Node,
     count: number,
     max: number,
@@ -64,7 +63,11 @@ const report: TReport = (ctx, node, count, max) => {
     });
 };
 
-type TCheck = (state: TState, ctx: TContext, node: TSESTree.Node) => void;
+type TCheck = (
+    state: TState,
+    ctx: TContext<TRule>,
+    node: TSESTree.Node,
+) => void;
 
 const check: TCheck = (state, ctx, node) => {
     if (state[1].length > 0) {
@@ -77,12 +80,10 @@ const check: TCheck = (state, ctx, node) => {
     }
 };
 
-type TNodeHandler = (node: TSESTree.Node) => void;
-
 type TMakeHandler = (
     check: TCheck,
     state: TState,
-    ctx: TContext,
+    ctx: TContext<TRule>,
 ) => TNodeHandler;
 
 const makeHandler: TMakeHandler = (check, state, ctx) =>
@@ -91,9 +92,7 @@ const makeHandler: TMakeHandler = (check, state, ctx) =>
             check(state, ctx, node)
     )();
 
-type TMeta = TRule["meta"];
-
-const meta: TMeta = {
+const meta: TMeta<TRule> = {
     docs: {
         description: DESC,
     },

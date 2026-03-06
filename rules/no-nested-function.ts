@@ -19,6 +19,7 @@
 */
 
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { TContext, TCreate, TMeta } from "./rules.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -36,8 +37,6 @@ const DESC: string =
     "without a thunk PA boundary.";
 
 type TRule = ESLintUtils.RuleModule<"nestedFunction">;
-
-type TContext = Parameters<TRule["create"]>[0];
 
 type TFunctionNode =
     | TSESTree.ArrowFunctionExpression
@@ -95,8 +94,6 @@ const makeHandler: TMakeHandler = (checkNode, context) =>
             checkNode(context, node)
     )();
 
-type TCreate = TRule["create"];
-
 const create: TCreate = (context) => {
     const handler: THandler = makeHandler(checkNode, context);
     return {
@@ -105,8 +102,6 @@ const create: TCreate = (context) => {
         FunctionExpression: handler,
     };
 };
-
-type TMeta = TRule["meta"];
 
 const META: TMeta = {
     docs: { description: DESC },

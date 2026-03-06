@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { TContext, TCreate, THandler, TMeta } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -14,11 +15,9 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"useCallSignature">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
 type TNode = TSESTree.TSTypeAliasDeclaration;
 
-type TCheck = (context: TContext, node: TNode) => void;
+type TCheck = (context: TContext<TRule>, node: TNode) => void;
 
 const check: TCheck = (context, node) => {
     const isFn: boolean =
@@ -31,9 +30,7 @@ const check: TCheck = (context, node) => {
     }
 };
 
-type THandler = (node: TNode) => void;
-
-type TMakeHandler = (checkFn: TCheck, context: TContext) => THandler;
+type TMakeHandler = (checkFn: TCheck, context: TContext<TRule>) => THandler;
 
 const makeHandler: TMakeHandler = (checkFn, context) =>
     (
@@ -41,18 +38,14 @@ const makeHandler: TMakeHandler = (checkFn, context) =>
             checkFn(context, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(check, context);
     return {
         TSTypeAliasDeclaration: handler,
     };
 };
 
-type TMeta = TRule["meta"];
-
-const meta: TMeta = {
+const meta: TMeta<TRule> = {
     docs: { description: DESC },
     messages: {
         useCallSignature: MSG,

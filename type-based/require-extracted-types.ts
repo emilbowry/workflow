@@ -1,4 +1,9 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TContext,
+    TCreate,
+    TTypeNodePredicate,
+} from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -7,9 +12,7 @@ const MSG: string = "Inline type must be extracted " + "to a named type alias.";
 const DESC: string =
     "Require type annotations to be " + "keywords or named references.";
 
-type TIsAllowed = (node: TSESTree.TypeNode) => boolean;
-
-const isAllowed: TIsAllowed = (node) =>
+const isAllowed: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSTypeReference ||
     node.type.endsWith("Keyword");
 
@@ -17,9 +20,10 @@ type TRule = ESLintUtils.RuleModule<"extractType">;
 
 type TReport = (node: TSESTree.TSTypeAnnotation) => void;
 
-type TContext = Parameters<TRule["create"]>[0];
-
-type TCheckNode = (context: TContext, node: TSESTree.TSTypeAnnotation) => void;
+type TCheckNode = (
+    context: TContext<TRule>,
+    node: TSESTree.TSTypeAnnotation,
+) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     const inner: TSESTree.TypeNode = node.typeAnnotation;
@@ -31,7 +35,7 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type TMakeReport = (checkFn: TCheckNode, context: TContext) => TReport;
+type TMakeReport = (checkFn: TCheckNode, context: TContext<TRule>) => TReport;
 
 const makeReport: TMakeReport = (checkFn, context) =>
     (
@@ -39,9 +43,7 @@ const makeReport: TMakeReport = (checkFn, context) =>
             checkFn(context, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: TReport = makeReport(checkNode, context);
     return {
         TSTypeAnnotation: handler,

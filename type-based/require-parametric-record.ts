@@ -1,4 +1,10 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TCheckNode,
+    TCreate,
+    THandler,
+    TMakeHandler,
+} from "./type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -20,8 +26,6 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"nonParametricRecord">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
 const PARAMETRIC: RegExp =
     /type\s+\w+<(\w+)\s+extends\s+[^>]+>\s*=\s*Record<\1,\s*\w+<\1>>/;
 
@@ -29,12 +33,7 @@ type TIsValid = (src: string) => boolean;
 
 const isValid: TIsValid = (src) => PARAMETRIC.test(src);
 
-type TCheckNode = (
-    context: TContext,
-    node: TSESTree.TSTypeAliasDeclaration,
-) => void;
-
-const checkNode: TCheckNode = (context, node) => {
+const checkNode: TCheckNode<TRule> = (context, node) => {
     const src: string = context.sourceCode.getText(node);
     if (src.includes("Record<") && !isValid(src)) {
         context.report({
@@ -44,19 +43,13 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
-
-type TMakeHandler = (checkNode: TCheckNode, context: TContext) => THandler;
-
-const makeHandler: TMakeHandler = (checkNode, context) =>
+const makeHandler: TMakeHandler<TRule> = (checkNode, context) =>
     (
         () => (node: TSESTree.TSTypeAliasDeclaration) =>
             checkNode(context, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(checkNode, context);
     return {
         TSTypeAliasDeclaration: handler,

@@ -1,4 +1,11 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TCheckNode,
+    TCreate,
+    THandler,
+    TMakeHandler,
+    TTypeNodePredicate,
+} from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -9,16 +16,10 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"objectLiteral">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
-type TIsTypeLiteral = (node: TSESTree.TypeNode) => boolean;
-
-const isTypeLiteral: TIsTypeLiteral = (node) =>
+const isTypeLiteral: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral;
 
-type TCheckNode = (ctx: TContext, n: TSESTree.TSTypeAliasDeclaration) => void;
-
-const checkNode: TCheckNode = (context, node) => {
+const checkNode: TCheckNode<TRule> = (context, node) => {
     if (isTypeLiteral(node.typeAnnotation)) {
         context.report({
             messageId: "objectLiteral",
@@ -27,19 +28,13 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
-
-type TMakeHandler = (checkNode: TCheckNode, context: TContext) => THandler;
-
-const makeHandler: TMakeHandler = (checkNode, context) =>
+const makeHandler: TMakeHandler<TRule> = (checkNode, context) =>
     (
         () => (node: TSESTree.TSTypeAliasDeclaration) =>
             checkNode(context, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(checkNode, context);
     return {
         TSTypeAliasDeclaration: handler,

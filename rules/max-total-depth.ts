@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { TContext, TCreate, TMeta } from "./rules.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -12,8 +13,6 @@ const MSG: string =
 const DESC: string = "Enforce a maximum indentation " + "depth for all code.";
 
 type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
-
-type TContext = Parameters<TRule["create"]>[0];
 
 type TMatch = null | RegExpMatchArray;
 
@@ -129,8 +128,6 @@ const makeProgramHandler: TMakeProgramHandler = (checkLines, context, max) =>
             checkLines(context, node, max)
     )();
 
-type TCreate = TRule["create"];
-
 const create: TCreate = (context) => {
     const max: number = context.options[0];
     const handler: TProgramHandler = makeProgramHandler(
@@ -140,8 +137,6 @@ const create: TCreate = (context) => {
     );
     return { "Program:exit": handler };
 };
-
-type TMeta = TRule["meta"];
 
 type TSchema = TMeta["schema"];
 

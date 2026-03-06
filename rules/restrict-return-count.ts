@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { TContext, TCreate, TMeta } from "./rules.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -15,8 +16,6 @@ const EARLY_MSG: string =
     "of the function body.";
 
 type TRule = ESLintUtils.RuleModule<"earlyReturn" | "tooManyReturns", [number]>;
-
-type TContext = Parameters<TRule["create"]>[0];
 
 type TStackOp = (stack: Array<number>) => void;
 
@@ -141,8 +140,6 @@ const makeOnReturn: TMakeReturnHandler = (handler, stack, context) =>
             handler(stack, context, node)
     )();
 
-type TCreate = TRule["create"];
-
 const create: TCreate = (context) => {
     const max: number = context.options[0];
     const stack: Array<number> = [];
@@ -171,8 +168,6 @@ type TSchemaValue<T extends TSchemaKey> = T extends "minimum" ? number : string;
 type TSchema = { [K in TSchemaKey]: TSchemaValue<K> };
 
 const SCHEMA: Array<TSchema> = [{ minimum: 1, type: "integer" }];
-
-type TMeta = TRule["meta"];
 
 const META: TMeta = {
     docs: { description: DESC },

@@ -1,4 +1,12 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TCanonical,
+    TContext,
+    TCreate,
+    THandler,
+    TMeta,
+    TRefIdentName,
+} from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -8,8 +16,6 @@ const DESC: string =
     "Disallow multiple type " +
     "aliases with identical " +
     "structure across the project.";
-
-type TCanonical = (node: TSESTree.TypeNode) => string;
 
 type TMaybeAnn = TSESTree.TSTypeAnnotation | undefined;
 
@@ -181,9 +187,7 @@ const typeNameToString: TTypeNameToString = (typeName) =>
             ? qualifiedToString(typeName)
             : typeName.type;
 
-type THandleTypeRef = (node: TSESTree.TSTypeReference) => string;
-
-const handleTypeReference: THandleTypeRef = (node) => {
+const handleTypeReference: TRefIdentName = (node) => {
     const name: string = typeNameToString(node.typeName);
     const args: string =
         node.typeArguments && node.typeArguments.params.length > 0
@@ -357,8 +361,6 @@ type TEntry = [string, string, TSESTree.TSTypeAliasDeclaration];
 
 type TRule = ESLintUtils.RuleModule<"duplicateStructure">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
 const seen: Map<string, Array<TEntry>> = new Map();
 
 type TFormatEntry = (entry: TEntry) => string;
@@ -371,7 +373,7 @@ const formatNames: TFormatNames = (entries) =>
     entries.map(formatEntry).join(", ");
 
 type TReportEntry = (
-    context: TContext,
+    context: TContext<TRule>,
     file: string,
     entry: TEntry,
     names: string,
@@ -387,7 +389,7 @@ const reportEntry: TReportEntry = (context, file, entry, names) => {
     }
 };
 
-type TReportDuplicates = (context: TContext, file: string) => void;
+type TReportDuplicates = (context: TContext<TRule>, file: string) => void;
 
 const reportDuplicates: TReportDuplicates = (context, file) => {
     for (const entries of seen.values()) {
@@ -446,7 +448,10 @@ const clearFile: TClearFile = (file) => {
 
 type TExitHandler = () => void;
 
-type TMakeExitHandler = (context: TContext, file: string) => TExitHandler;
+type TMakeExitHandler = (
+    context: TContext<TRule>,
+    file: string,
+) => TExitHandler;
 
 const makeExitHandler: TMakeExitHandler = (context, file) =>
     (
@@ -454,9 +459,7 @@ const makeExitHandler: TMakeExitHandler = (context, file) =>
             reportDuplicates(context, file)
     )();
 
-type TAliasHandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
-
-type TMakeAliasHandler = (file: string) => TAliasHandler;
+type TMakeAliasHandler = (file: string) => THandler;
 
 const makeAliasHandler: TMakeAliasHandler = (file) =>
     (
@@ -464,22 +467,18 @@ const makeAliasHandler: TMakeAliasHandler = (file) =>
             recordAlias(file, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const file: string = context.filename;
     clearFile(file);
     const exitHandler: TExitHandler = makeExitHandler(context, file);
-    const aliasHandler: TAliasHandler = makeAliasHandler(file);
+    const aliasHandler: THandler = makeAliasHandler(file);
     return {
         "Program:exit": exitHandler,
         TSTypeAliasDeclaration: aliasHandler,
     };
 };
 
-type TMeta = TRule["meta"];
-
-const meta: TMeta = {
+const meta: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { duplicateStructure: MSG },
     schema: [],
