@@ -222,6 +222,13 @@ export default defineConfig(
                 },
             ],
             "@typescript-eslint/no-unsafe-type-assertion": "error",
+            "no-warning-comments": [
+                "error",
+                {
+                    terms: ["prettier-ignore"],
+                    location: "anywhere",
+                },
+            ],
             "no-restricted-syntax": [
                 "error",
                 {
