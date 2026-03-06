@@ -7,12 +7,13 @@ import maxTotalDepth from "./rules/max-total-depth.js";
 import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import restrictReturnCount from "./rules/restrict-return-count.js";
 import requireSeperateFunctionType from "./type-based/require-extracted-types.ts";
-import preferCallSignature from "./type-based/prefer-call-signature.ts";
+// import preferCallSignature from "./type-based/prefer-call-signature.ts";
 import maxTypeNesting from "./type-based/max-type-nesting.ts";
 import noSingleFieldType from "./type-based/no-single-field-type.ts";
 import noDuplicateTypeStructure from "./type-based/no-duplicate-type-structure.ts";
 import noNestedFunction from "./rules/no-nested-function.ts";
 import requireParametricRecord from "./type-based/require-parametric-record.ts";
+import validGenerics from "./type-based/valid-generics.ts";
 import functional from "eslint-plugin-functional";
 
 export default defineConfig(
@@ -45,12 +46,13 @@ export default defineConfig(
                     "restrict-return-count": restrictReturnCount,
                     "require-extracted-function-type":
                         requireSeperateFunctionType,
-                    "prefer-call-signature": preferCallSignature,
+                    // "prefer-call-signature": preferCallSignature,
                     "max-type-nesting": maxTypeNesting,
                     "no-single-field-type": noSingleFieldType,
                     "no-duplicate-type-structure": noDuplicateTypeStructure,
                     "no-nested-function": noNestedFunction,
                     "require-parametric-record": requireParametricRecord,
+                    "valid-generics": validGenerics,
                 },
             },
             "eslint-comments": eslintComments,
@@ -62,6 +64,8 @@ export default defineConfig(
                 "error",
                 "type-annotation",
             ],
+            "@typescript-eslint/prefer-function-type": "error",
+
             "@typescript-eslint/array-type": [
                 "error",
                 {
@@ -173,12 +177,13 @@ export default defineConfig(
             indent: ["error", 4, { SwitchCase: 1 }],
             "local/max-total-depth": ["error", 3],
             "local/require-extracted-function-type": "error",
-            "local/prefer-call-signature": "error",
+            // "local/prefer-call-signature": "error",
             "local/max-type-nesting": ["error", 1],
             "local/no-single-field-type": "error",
             "local/no-duplicate-type-structure": "error",
             "local/no-nested-function": "error",
             "local/require-parametric-record": "error",
+            "local/valid-generics": "error",
             "functional/no-let": "error",
             "max-len": [
                 "error",
@@ -214,6 +219,13 @@ export default defineConfig(
                 },
             ],
             "@typescript-eslint/no-unsafe-type-assertion": "error",
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector: "TSTypePredicate",
+                    message: "Type predicates (is) are not allowed.",
+                },
+            ],
             "@typescript-eslint/no-confusing-void-expression": [
                 "error",
                 {
