@@ -16,7 +16,6 @@ type TIsTypeLiteral = (node: TSESTree.TypeNode) => boolean;
 const isTypeLiteral: TIsTypeLiteral = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral;
 
-// prettier-ignore
 type TCheckNode = (ctx: TContext, n: TSESTree.TSTypeAliasDeclaration) => void;
 
 const checkNode: TCheckNode = (context, node) => {
