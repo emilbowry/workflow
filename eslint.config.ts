@@ -14,6 +14,7 @@ import noDuplicateTypeStructure from "./type-based/no-duplicate-type-structure.t
 import noNestedFunction from "./rules/no-nested-function.ts";
 import requireParametricRecord from "./type-based/require-parametric-record.ts";
 import validGenerics from "./type-based/valid-generics.ts";
+import enforceRecordType from "./type-based/enforce-record-type.ts";
 import functional from "eslint-plugin-functional";
 
 export default defineConfig(
@@ -53,6 +54,7 @@ export default defineConfig(
                     "no-nested-function": noNestedFunction,
                     "require-parametric-record": requireParametricRecord,
                     "valid-generics": validGenerics,
+                    "enforce-record-type": enforceRecordType,
                 },
             },
             "eslint-comments": eslintComments,
