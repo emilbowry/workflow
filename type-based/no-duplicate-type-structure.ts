@@ -355,10 +355,6 @@ const canonical: TCanonical = (node) => {
 
 type TEntry = [string, string, TSESTree.TSTypeAliasDeclaration];
 
-const ENTRY_FILE: 0 = 0;
-const ENTRY_NAME: 1 = 1;
-const ENTRY_NODE: 2 = 2;
-
 type TRule = ESLintUtils.RuleModule<"duplicateStructure">;
 
 type TContext = Parameters<TRule["create"]>[0];
@@ -368,9 +364,7 @@ const seen: Map<string, Array<TEntry>> = new Map();
 type TFormatNames = (entries: Array<TEntry>) => string;
 
 const formatNames: TFormatNames = (entries) =>
-    entries
-        .map((entry) => entry[ENTRY_NAME] + " (" + entry[ENTRY_FILE] + ")")
-        .join(", ");
+    entries.map((entry) => entry[1] + " (" + entry[0] + ")").join(", ");
 // unhapy with this, why is it not extracted
 
 type TReportEntry = (
@@ -381,11 +375,11 @@ type TReportEntry = (
 ) => void;
 
 const reportEntry: TReportEntry = (context, file, entry, names) => {
-    if (entry[ENTRY_FILE] === file) {
+    if (entry[0] === file) {
         context.report({
             data: { names },
             messageId: "duplicateStructure",
-            node: entry[ENTRY_NODE],
+            node: entry[2],
         });
     }
 };
@@ -427,9 +421,7 @@ type TClearFile = (file: string) => void;
 
 const clearFile: TClearFile = (file) => {
     for (const [key, entries] of seen) {
-        const kept: Array<TEntry> = entries.filter(
-            (e) => e[ENTRY_FILE] !== file,
-        );
+        const kept: Array<TEntry> = entries.filter((e) => e[0] !== file);
         if (kept.length === 0) {
             seen.delete(key);
         } else {
