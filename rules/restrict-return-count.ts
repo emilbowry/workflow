@@ -18,9 +18,7 @@ type TRule = ESLintUtils.RuleModule<"earlyReturn" | "tooManyReturns", [number]>;
 
 type TContext = Parameters<TRule["create"]>[0];
 
-type TStackOp = {
-    (stack: Array<number>): void;
-};
+type TStackOp = (stack: Array<number>) => void;
 
 const increment: TStackOp = (stack) => {
     if (stack.length === 0) {
@@ -35,43 +33,38 @@ const push: TStackOp = (stack) => {
 
 type TMaybeCount = number | undefined;
 
-type TReportData = {
-    count: string;
-    max: string;
-};
+type TReportTuple = readonly [string, string];
 
-type TMakeData = {
-    (count: number, max: number): TReportData;
-};
+type TMakeData = (count: number, max: number) => TReportTuple;
 
-const makeData: TMakeData = (count, max) => ({
-    count: String(count),
-    max: String(max),
-});
+const makeData: TMakeData = (count, max) =>
+    [String(count), String(max)] as const;
 
-type TReportIfExceeded = {
-    (context: TContext, node: TSESTree.Node, count: number, max: number): void;
-};
+type TReportIfExceeded = (
+    context: TContext,
+    node: TSESTree.Node,
+    count: number,
+    max: number,
+) => void;
 
 const reportIfExceeded: TReportIfExceeded = (context, node, count, max) => {
     if (count <= max) {
         return;
     }
+    const reportData: TReportTuple = makeData(count, max);
     context.report({
-        data: makeData(count, max),
+        data: { count: reportData[0], max: reportData[1] },
         messageId: "tooManyReturns",
         node,
     });
 };
 
-type TPop = {
-    (
-        stack: Array<number>,
-        context: TContext,
-        node: TSESTree.Node,
-        max: number,
-    ): void;
-};
+type TPop = (
+    stack: Array<number>,
+    context: TContext,
+    node: TSESTree.Node,
+    max: number,
+) => void;
 
 const pop: TPop = (stack, context, node, max) => {
     const count: TMaybeCount = stack.pop();
@@ -81,9 +74,7 @@ const pop: TPop = (stack, context, node, max) => {
     reportIfExceeded(context, node, count, max);
 };
 
-type TNodeHandler = {
-    (node: TSESTree.Node): void;
-};
+type TNodeHandler = (node: TSESTree.Node) => void;
 
 type TFunctionNodeTypes = Set<string>;
 
@@ -93,9 +84,7 @@ const FUNCTION_TYPES: TFunctionNodeTypes = new Set([
     AST_NODE_TYPES.FunctionExpression,
 ]);
 
-type TIsFinalReturn = {
-    (node: TSESTree.ReturnStatement): boolean;
-};
+type TIsFinalReturn = (node: TSESTree.ReturnStatement) => boolean;
 
 const isFinalReturn: TIsFinalReturn = (node) => {
     const parent: TSESTree.Node = node.parent;
@@ -108,9 +97,7 @@ const isFinalReturn: TIsFinalReturn = (node) => {
     return parent.body[parent.body.length - 1] === node;
 };
 
-type TReportEarly = {
-    (context: TContext, node: TSESTree.ReturnStatement): void;
-};
+type TReportEarly = (context: TContext, node: TSESTree.ReturnStatement) => void;
 
 const reportEarlyReturn: TReportEarly = (context, node) => {
     if (isFinalReturn(node)) {
@@ -122,9 +109,7 @@ const reportEarlyReturn: TReportEarly = (context, node) => {
     });
 };
 
-type TReturnHandler = {
-    (node: TSESTree.ReturnStatement): void;
-};
+type TReturnHandler = (node: TSESTree.ReturnStatement) => void;
 
 type TCreate = TRule["create"];
 
@@ -152,10 +137,11 @@ const create: TCreate = (context) => {
     };
 };
 
-type TSchema = {
-    minimum: number;
-    type: string;
-};
+type TSchemaKey = "minimum" | "type";
+
+type TSchemaValue<T extends TSchemaKey> = T extends "minimum" ? number : string;
+
+type TSchema = { [K in TSchemaKey]: TSchemaValue<K> };
 
 const SCHEMA: Array<TSchema> = [{ minimum: 1, type: "integer" }];
 
