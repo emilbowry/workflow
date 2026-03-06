@@ -1,127 +1,132 @@
 # Type-Driven Linting: Transport-Aware Coherence Checking
 
+> All rules operate on **type definitions and function signatures only**. No implementation analysis. These lints run on skeleton files (types + stubs) before any implementation exists.
+
 ## The Problem
 
-TypeScript catches local type errors: missing fields, wrong argument types, incomplete exhaustiveness. What it does not catch is **coherence across types that are implicitly related**. When `Status` and `Phase` are in bijective correspondence — mediated by a chain of functions across several files — changing `Status` produces no error at `Phase` or at the intermediate steps until something breaks at runtime.
+TypeScript catches local type errors: missing fields, wrong argument types. What it does not catch is **coherence across types that are implicitly related**. When `TStatus` and `TPhase` are in correspondence — connected by a chain of function signatures across several files — changing `TStatus` produces no error at `TPhase` until someone implements the mapping and it fails.
 
-The gap is not in local checking. It is in the absence of a **global coherence graph** over type relationships.
+The gap is not in local checking. It is in the absence of a **global coherence graph** over type relationships, derivable purely from type definitions and signatures.
 
 ## Core Idea
 
 Maintain a graph where:
 - **Nodes** are discriminated types (unions, enums, literal unions)
-- **Edges** are witnessed transports: paths through the program where the inhabitants of one type determine the inhabitants of another
+- **Edges** are witnessed transports: function signatures whose domain and codomain connect discriminated types
 
-When any node changes (variant added, removed, renamed), propagate alerts along all edges. The alert fires at the type declaration site, not at the usage site. You see "you changed `Status` — `Phase` is transported from `Status` via `statusToDTO → parseResponse → toPhase`" before you even open those files.
-
-## Why This Is Not Exhaustiveness Checking
-
-Exhaustiveness checking is local: "this switch on `Status` doesn't handle `archived`." That fires when you try to compile the switch. Transport checking is global: "you added `archived` to `Status`, and `Status` is in correspondence with `Phase` through a 3-file chain — `Phase` and the chain likely need updating." That fires when you change the type definition, before you touch any consuming code.
-
-The difference matters because:
-1. The switch might be in a file you don't know about
-2. The correspondence might not go through a single switch — it might be implicit in a series of field mappings
-3. There might be no single function `Status → Phase` at all
+When any node changes (variant added, removed, renamed), propagate alerts along all edges. The alert fires at the **type declaration site**, before any implementation exists.
 
 ---
 
-## Level 1: Local Rules (What TypeScript Already Does or Nearly Does)
+## Level 1: Type-Level Local Rules
 
-These are standard and included for completeness. They form the base the transport rules build on.
+These operate on individual type definitions.
 
-### 1.1 Exhaustive Discrimination
+### 1.1 Cardinality Consistency in Records
 
-Every `switch`/`if-else` chain on a discriminated union must handle all variants. TypeScript enforces this with `never` in the default branch. The linter should enforce that the `never` check is present (not just that the code compiles).
+`Record<TStatus, T>` must have an entry for every `TStatus` member. This is structural, checked by TypeScript. The linter should flag `Partial<Record<TStatus, T>>` where partiality is unjustified — if the function signature promises a total map, the type should reflect that.
 
-### 1.2 Record Completeness
+### 1.2 Literal Preservation
 
-`Record<Status, T>` must have an entry for every `Status` member. TypeScript enforces this structurally. The linter should flag `Partial<Record<Status, T>>` where the partiality is not justified (i.e., every branch is actually covered at runtime, the `Partial` is just avoiding the obligation).
+Literal unions and template literal types must not be widened. Covered in the type-analyser rules (weakening §1.1–§1.6). A type `TStatus = "pending" | "active"` must not appear as `string` in any signature that consumes or produces it.
 
-### 1.3 Literal Preservation
+### 1.3 Discriminant Field Consistency
 
-`as const`, literal unions, and template literal types must not be widened. Covered extensively in the type-analyser rules (weakening §1.1–§1.6).
+For discriminated unions using a tag field:
+```ts
+type TEvent =
+  | { kind: "click"; x: number; y: number }
+  | { kind: "keypress"; key: string }
+```
+
+The discriminant field (`kind`) must use literal types, never `string`. Every variant must have the discriminant field. These are structural checks on the type definition itself.
 
 ---
 
 ## Level 2: Transport Detection
 
-A **transport** from type `A` to type `B` is a witnessed correspondence: the program contains a path where each inhabitant of `A` determines a specific inhabitant of `B`.
+A **transport** from type `A` to type `B` is a witnessed correspondence: a function signature (or chain of signatures) whose types connect `A` to `B`.
 
 ### 2.1 What Counts as a Transport
 
-A transport is witnessed when:
+Transports are detected entirely from type signatures and type definitions:
 
-1. **Explicit map**: A function or record maps every variant of `A` to a specific variant of `B`.
+1. **Direct signature**: A function type takes `A` and returns `B` (or a type containing `B`).
    ```ts
-   const statusToPhase: Record<TStatus, TPhase> = { ... }
+   type TMapStatus = (status: TStatus) => TPhase
+   ```
+   This signature alone witnesses a transport `TStatus → TPhase`. We do not inspect the body. The signature promises that every inhabitant of `TStatus` produces a `TPhase`.
+
+2. **Record type**: A `Record<A, B>` type witnesses a transport from `A` to `B`.
+   ```ts
+   type TStatusPhaseMap = Record<TStatus, TPhase>
    ```
 
-2. **Switch/conditional chain**: A switch on `A` produces values that construct `B`.
+3. **Composite signature chain**: No single signature maps `A → B`, but a chain of signatures composes to do so.
    ```ts
-   switch (status) {
-     case "pending": return { phase: "intake" };
-     case "active": return { phase: "processing" };
-     ...
+   type TToDTO = (status: TStatus) => TStatusDTO
+   type TSerialize = (dto: TStatusDTO) => TAPIResponse
+   type TParse = (response: TAPIResponse) => TPhase
+   ```
+   The composition `TParse . TSerialize . TToDTO` witnesses `TStatus → TPhase`. This is detectable purely from the signature types — follow the codomain of one into the domain of the next.
+
+4. **Parametric witness**: A generic type that structurally connects `A` and `B`.
+   ```ts
+   type TMapping<S extends TStatus> = {
+     status: S;
+     phase: TStatusToPhase[S];  // indexed access type
    }
    ```
-
-3. **Composite path**: No single function maps `A → B`, but the composition of several functions does. `A → DTO → APIResponse → parsed → B` where at each step the discriminant of `A` determines the discriminant at the next type.
-
-4. **Implicit field correspondence**: Two types share no explicit mapping function, but their discriminant fields take the same values or values in systematic correspondence (e.g., `TStatus = "pending" | "active"` and `TPhase = "intake" | "processing"` where `pending ↔ intake` is established by data flow, not by a named function).
-
-Case 3 and 4 are where the real value is. Cases 1 and 2 are already partially caught by exhaustiveness.
+   The indexed access type `TStatusToPhase[S]` witnesses that `TStatus` determines `TPhase` at the type level.
 
 ### 2.2 Transport Classification
 
-Not all transports are bijections. The linter should classify:
+Classify from cardinalities and type structure alone:
 
-- **Isomorphism** (bijection): `|A| = |B|`, every variant of `A` maps to a unique variant of `B` and vice versa. Changing either side requires changing the other.
+- **Isomorphism**: `|A| = |B|` and the connecting signature is bijective in type (domain and codomain are both the full union). Changes propagate both ways.
 
-- **Retraction** (surjection): `|A| > |B|`, multiple variants of `A` collapse to the same variant of `B`. Adding a variant to `A` requires deciding which `B` it maps to. Removing a variant from `B` requires handling all `A` variants that mapped to it.
+- **Retraction** (many-to-one): `|A| > |B|`. The signature maps `A → B` but `B` has fewer variants. Adding a variant to `A` requires deciding which `B` it maps to.
 
-- **Section** (injection): `|A| < |B|`, `A` maps into `B` but not all of `B` is covered. Adding a variant to `B` is safe (doesn't affect `A`). Adding a variant to `A` requires extending `B`.
+- **Section** (one-to-many): `|A| < |B|`. The signature maps `A` into `B` but not all of `B` is in the image. Adding a variant to `A` requires extending `B`.
 
-The classification determines the propagation direction:
-- Isomorphism: changes propagate both ways
-- Retraction: changes to `A` propagate to `B`; changes to `B` propagate to `A`
-- Section: changes to `A` propagate to `B`; changes to `B` may not affect `A`
+The classification is determined by comparing the cardinalities of the union types — no implementation needed.
 
-### 2.3 Detecting Implicit Transports
+**Cardinality alone is necessary but not sufficient.** Two types with `|A| = |B| = 3` might not be isomorphic in intent. The linter flags the cardinality relationship; the developer confirms the correspondence. The point is surfacing the relationship, not proving it.
 
-The hard case. No explicit `A → B` function exists. The correspondence is spread across files.
+### 2.3 Detecting Transports from Signatures
 
-**Method: discriminant flow analysis.**
+The algorithm operates on the type dependency graph:
 
-1. Identify all discriminated types (literal unions, string enums, types with a discriminant field).
-2. For each discriminant value (e.g., `"pending"`), trace its flow through the program: where is it pattern-matched, what does each branch produce, and what type does the output inhabit?
-3. When the discriminant values of `A` flow through transformations and ultimately determine the construction of values in type `B`, record the transport `A → B` with the intermediate path.
+1. **Index all discriminated types**: scan for `type T = "a" | "b" | ...`, types with literal discriminant fields, and `keyof` types.
 
-This is abstract interpretation over the discriminant lattice. We track which variant of `A` leads to which variant of `B`, ignoring the payload — only the discriminant flow matters.
+2. **Index all function signatures**: for each function type, record `(domain types, codomain types)`. A function `(a: A, b: B) => C` creates candidate edges `A → C` and `B → C`.
 
-**Concrete signals the linter looks for:**
+3. **Filter to discriminated pairs**: only keep edges where both the source and target are (or contain) discriminated types. `(status: TStatus) => number` is not a transport. `(status: TStatus) => TPhase` is.
 
-- A `switch(a.status)` where each branch sets a field that is typed as `TPhase` — even if `TPhase` is not mentioned in the switch, only its inhabitants appear as literals
-- A chain of functions `f(g(h(x)))` where `x: A` and the return type eventually feeds into a position typed as `B`, and both `A` and `B` are discriminated
-- A record/map keyed by `A`'s variants whose values are `B`'s variants (even if typed as `Record<string, string>` — the actual keys and values witness the transport)
+4. **Compose chains**: if `A → B` and `B → C` are both witnessed, `A → C` is a composite transport. Compute the transitive closure.
+
+5. **Classify each edge** by comparing cardinalities.
+
+All of this is purely structural analysis of type definitions and function type signatures.
 
 ### 2.4 What the Linter Reports
 
-When a transport `A → B` (via path `p`) is detected and `A` changes:
+When a transport `A → B` (via signature chain `p`) is detected and `A` changes:
 
 ```
 warning: Type `TStatus` changed (added variant "archived").
   `TStatus` has a witnessed transport to `TPhase` via:
-    src/api/mapStatus.ts:14  →  statusToDTO
-    src/api/client.ts:87     →  parseResponse
-    src/domain/phase.ts:23   →  toPhase
-  `TPhase` and the transport chain likely need updating.
+    src/types/api.types.ts:14    TToDTO:      TStatus → TStatusDTO
+    src/types/api.types.ts:22    TSerialize:  TStatusDTO → TAPIResponse
+    src/types/domain.types.ts:8  TParse:      TAPIResponse → TPhase
+  `TPhase` and the connecting signatures likely need updating.
 ```
 
-The key properties:
-- Fires at the **declaration site** of `TStatus`, not at the usage sites
-- Shows the **full chain**, not just "something uses TStatus"
+Key properties:
+- Fires at the **declaration site** of `TStatus`, not at usage sites
+- Shows the **full signature chain**, naming each type in the path
 - Names the **target type**, so you know what else needs to change
-- Fires **before** any exhaustiveness error, because it operates on the type graph, not on function bodies
+- Operates entirely on types — fires before any implementation exists
 
 ---
 
@@ -129,18 +134,16 @@ The key properties:
 
 ### 3.1 Layers as Fibers
 
-A typical application has layers: domain, API, DTO, UI state, view model. Each layer has its own types, and types at different layers are often in transport with types at other layers.
+A typical application has layers: domain, API, DTO, UI state, view model. Each layer has its own types. Types representing the same concept at different layers form a **fiber**.
 
 The fiber structure is:
 - **Base space**: the set of domain concepts (Status, User, Permission, ...)
 - **Fiber over a concept**: the set of types representing that concept at each layer (TStatus, TStatusDTO, TStatusResponse, TStatusViewModel, ...)
-- **Transport maps**: the functions/chains connecting types in the same fiber
+- **Transport maps**: the function signatures connecting types in the same fiber
 
 ### 3.2 Coherence Obligation
 
-For each fiber (each domain concept across layers), the transport maps must be coherent: if `A` changes, every type in the fiber and every transport map in the fiber must be updated consistently.
-
-The linter tracks fibers and reports at the fiber level:
+For each fiber, the transport signatures impose coherence: if `A` changes, every type in the fiber must be checked for consistency.
 
 ```
 warning: Fiber "Status" has 4 types across 3 layers:
@@ -156,55 +159,42 @@ warning: Fiber "Status" has 4 types across 3 layers:
 
 ### 3.3 Detecting Fibers
 
-Fibers are not declared. They are inferred from:
+Fibers are inferred from type-level information:
 
-1. **Naming conventions**: `TStatus`, `TStatusDTO`, `TStatusResponse` are likely in the same fiber. This is a heuristic but a strong one.
+1. **Naming conventions**: `TStatus`, `TStatusDTO`, `TStatusResponse` share a root. Heuristic but strong.
 
-2. **Transport evidence**: if a transport `A → B` exists, `A` and `B` are in the same fiber regardless of naming.
+2. **Signature evidence**: if a function signature connects `A` and `B` (and both are discriminated), they are in the same fiber regardless of naming.
 
-3. **Co-occurrence in mapping functions**: if a single function takes `A` and returns `B`, or destructures `A` to construct `B`, they are in the same fiber.
+3. **Type-level references**: if `B` is defined in terms of `A` (e.g., `type TStatusDTO = { status: TStatus; timestamp: number }`), they are in the same fiber.
 
-4. **Transitive closure**: if `A` transports to `B` and `B` transports to `C`, all three are in the same fiber. The fiber is the connected component in the transport graph.
+4. **Transitive closure**: the fiber is the connected component in the transport graph. If `A → B` and `B → C` are witnessed by signatures, all three are in the same fiber.
 
-### 3.4 Cross-Fiber Alerts
+### 3.4 Cross-Fiber Dependencies
 
-Some changes affect multiple fibers. Adding a new `TStatus` variant may require:
-- New `TStatusDTO` variant (Status fiber)
-- New `TPermission` variant if status-based permissions exist (Permission fiber)
-- New `TStatusColor` entry (UI fiber)
+Some signatures connect types in different fibers:
+```ts
+type TGetPermissions = (status: TStatus) => TPermission[]
+```
 
-The transport graph captures this: `TStatus → TPermission` is a cross-fiber edge. The linter reports cross-fiber impacts separately from intra-fiber ones, because they are less obvious and more likely to be missed.
+This creates a cross-fiber edge: Status fiber → Permission fiber. The linter reports these separately because they represent less obvious dependencies.
 
 ---
 
 ## Implementation Strategy
 
-### Phase 1: Static Transport Graph Construction
+### Phase 1: Type Graph Construction
 
-Build the transport graph from the AST without running the program.
+Build the transport graph from type definitions and signatures only.
 
-1. **Index all discriminated types**: scan for `type T = "a" | "b" | ...` and types with literal discriminant fields.
-2. **Index all mapping sites**: `Record<T, U>`, switches on discriminated types, conditional chains that branch on discriminants.
-3. **Build edges**: for each mapping site, record `(source type, target type, location, classification)`.
-4. **Transitive closure**: compute fibers as connected components.
+1. **Index all discriminated types** across all `.types.ts` / `.d.ts` files.
+2. **Index all function type signatures**: named function types, type aliases for function types, method signatures in type definitions.
+3. **Build edges**: for each signature, if both domain and codomain contain discriminated types, record the edge.
+4. **Compute fibers**: connected components of the transport graph, augmented by naming heuristics and type-level references.
 
-This handles cases 1 and 2 from §2.1 (explicit maps and switches).
+### Phase 2: Change Detection
 
-### Phase 2: Discriminant Flow Analysis
-
-For case 3 (composite paths):
-
-1. For each discriminant type `A`, identify all sites where `A` is pattern-matched or destructured.
-2. At each site, track what the discriminant value flows into: a field assignment, a function argument, a return value.
-3. Follow the flow until it reaches a position typed as another discriminated type `B`.
-4. Record the composite transport `A → B` with intermediate steps.
-
-This is dataflow analysis restricted to discriminant positions. It does not need full abstract interpretation — only tracking which literal values flow where.
-
-### Phase 3: Change Detection and Alerting
-
-1. On file save (or pre-commit), diff the transport graph against its previous state.
-2. For each changed node, walk all edges and report affected types and paths.
+1. On type definition change, diff the transport graph against its previous state.
+2. For each changed node, walk all edges and report affected types and signature chains.
 3. Classify alerts by fiber (intra-fiber vs cross-fiber) and by transport type (iso/retraction/section).
 
 ---
@@ -213,18 +203,17 @@ This is dataflow analysis restricted to discriminant positions. It does not need
 
 The type-analyser agent (§5.2 Isomorphic Types) already detects when two types are structurally identical. Transport detection generalises this:
 
-- §5.2 catches `A ≅ B` when they have the same fields. Transport detection catches `A ≅ B` when they have different fields but their discriminant spaces are in correspondence.
-- §5.3 (Near-Isomorphisms) hints at transports where one type is a retraction of another. Transport detection makes this precise.
-- §1.3 (Silent Semantic Breakage) catches when a union has members the implementation doesn't handle. Transport detection catches when a union change means a *different* union at a different layer needs updating too.
-- §4.2 (Convention-Enforced Consistency) catches parallel structures kept in sync by naming. Fiber detection automates this — the "convention" is replaced by a witnessed transport.
+- §5.2 catches `A ≅ B` when they have the same fields. Transport detection catches correspondence when `A` and `B` have different structures but their discriminant spaces are related.
+- §5.3 (Near-Isomorphisms) hints at retractions. Transport detection classifies these precisely by cardinality.
+- §4.2 (Convention-Enforced Consistency) catches parallel structures kept in sync by naming. Fiber detection automates this — the convention is replaced by a witnessed signature chain.
 
 ## Relation to Type-First Workflow
 
-In the type-first workflow (skeleton → analysis → implementation), transport detection adds a new checkpoint:
+In the type-first workflow (skeleton → analysis → implementation), transport detection operates at the **skeleton phase**:
 
-- **Phase 1 (Skeleton)**: define types. The transport graph is empty or has only edges within the new types.
-- **Phase 2 (Analysis)**: the type-analyser runs. Transport detection adds: "these new types form a fiber with existing types X, Y, Z — are the transports intentional?"
-- **Phase 3 (Implementation)**: as implementation proceeds, new transport edges are created by the mapping code. The linter continuously validates that fibers remain coherent.
-- **Ongoing**: when any type in a fiber changes, the linter immediately surfaces all affected types and paths. No introspection needed, no subtle divergence.
+- **Skeleton**: define types and function signatures. The transport graph is built immediately.
+- **Analysis**: the type-analyser runs. Transport detection adds: "these new types form a fiber with existing types X, Y, Z — the signatures promise a transport. Are the cardinalities consistent?"
+- **Pre-implementation check**: before any code is written, the linter verifies that every fiber is coherent — no type has changed without its fiber partners being updated.
+- **Ongoing**: when any type in a fiber changes, the linter immediately surfaces all affected types and signatures. The inconsistency is caught at the moment of the type change, not when someone eventually tries to implement the mapping.
 
-The goal: **the moment a type changes, you see every type that needs to change with it, and the exact code path that connects them.**
+The goal: **the moment a type changes, you see every type that needs to change with it — derived entirely from type definitions and function signatures, before any implementation exists.**
