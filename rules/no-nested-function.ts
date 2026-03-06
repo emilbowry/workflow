@@ -24,8 +24,11 @@ import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 const MSG: string =
     "Nested function definition. " +
-    "Extract to a top-level function " +
-    "or use partial application.";
+    "Extract to a top-level " +
+    "function or use partial " +
+    "application: " +
+    "(fn, ...p) => () => fn(...p) " +
+    "or IIFE (() => (x) => work)()";
 
 const DESC: string =
     "Disallow function definitions " +
@@ -43,9 +46,7 @@ type TFunctionNode =
 
 type TMaybeNode = TSESTree.Node | undefined;
 
-type TFnParamCount = {
-    (node: TSESTree.Node): number;
-};
+type TFnParamCount = (node: TSESTree.Node) => number;
 
 const fnParamCount: TFnParamCount = (node) => {
     let count: number = -1;
@@ -59,9 +60,7 @@ const fnParamCount: TFnParamCount = (node) => {
     return count;
 };
 
-type TParentIsParameterized = {
-    (node: TSESTree.Node): boolean;
-};
+type TParentIsParameterized = (node: TSESTree.Node) => boolean;
 
 const parentIsParameterized: TParentIsParameterized = (node) => {
     let current: TMaybeNode = node.parent;
@@ -73,16 +72,12 @@ const parentIsParameterized: TParentIsParameterized = (node) => {
     return result > 0;
 };
 
-type TFunctionPredicate = {
-    (node: TFunctionNode): boolean;
-};
+type TFunctionPredicate = (node: TFunctionNode) => boolean;
 
 const shouldReport: TFunctionPredicate = (node) =>
     node.params.length > 0 && parentIsParameterized(node);
 
-type TCheckNode = {
-    (context: TContext, node: TFunctionNode): void;
-};
+type TCheckNode = (context: TContext, node: TFunctionNode) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (shouldReport(node)) {
@@ -93,13 +88,9 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type THandler = {
-    (node: TFunctionNode): void;
-};
+type THandler = (node: TFunctionNode) => void;
 
-type TMakeHandler = {
-    (checkNode: TCheckNode, context: TContext): THandler;
-};
+type TMakeHandler = (checkNode: TCheckNode, context: TContext) => THandler;
 
 const makeHandler: TMakeHandler = (checkNode, context) =>
     (
