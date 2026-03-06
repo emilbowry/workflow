@@ -11,7 +11,8 @@ const MSG: string =
 
 const DESC: string =
     "Enforce a maximum number " +
-    "of type literals per " +
+    "of nested type constructs " +
+    "(literals and tuples) per " +
     "type alias declaration.";
 
 type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
