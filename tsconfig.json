@@ -19,5 +19,5 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/*", "rules/*", "rules/no-nested-function.ts", "type-based/require-extracted-function-type.ts", "type-based/no-single-field-type.ts", "type-based/max-type-nesting.ts", "type-based/prefer-call-signature.ts", "type-based/no-duplicate-type-structure.ts", "type-based/require-parametric-record.ts", "type-based/valid-generics.ts"]
+  "include": ["src/*", "rules/*", "rules/no-nested-function.ts", "type-based/require-extracted-function-type.ts", "type-based/no-single-field-type.ts", "type-based/max-type-nesting.ts", "type-based/prefer-call-signature.ts", "type-based/no-duplicate-type-structure.ts", "type-based/require-parametric-record.ts", "type-based/valid-generics.ts", "type-based/enforce-record-type.ts"]
 }
