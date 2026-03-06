@@ -112,7 +112,9 @@ const create: TCreate = (context) => {
 
 type TMeta = TRule["meta"];
 
-const schema: TMeta["schema"] = [{ minimum: 1, type: "integer" }];
+type TSchema = TMeta["schema"];
+
+const schema: TSchema = [{ minimum: 1, type: "integer" }];
 
 const meta: TMeta = {
     docs: { description: DESC },
