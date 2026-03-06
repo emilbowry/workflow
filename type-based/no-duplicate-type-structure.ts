@@ -361,11 +361,14 @@ type TContext = Parameters<TRule["create"]>[0];
 
 const seen: Map<string, Array<TEntry>> = new Map();
 
+type TFormatEntry = (entry: TEntry) => string;
+
+const formatEntry: TFormatEntry = (entry) => entry[1] + " (" + entry[0] + ")";
+
 type TFormatNames = (entries: Array<TEntry>) => string;
 
 const formatNames: TFormatNames = (entries) =>
-    entries.map((entry) => entry[1] + " (" + entry[0] + ")").join(", ");
-// unhapy with this, why is it not extracted
+    entries.map(formatEntry).join(", ");
 
 type TReportEntry = (
     context: TContext,
@@ -417,11 +420,22 @@ const recordAlias: TRecordAlias = (file, node) => {
     }
 };
 
+type TEntryPredicate = (e: TEntry) => boolean;
+
+type TMakeFileFilter = (file: string) => TEntryPredicate;
+
+const makeFileFilter: TMakeFileFilter = (file) =>
+    (
+        () => (e: TEntry) =>
+            e[0] !== file
+    )();
+
 type TClearFile = (file: string) => void;
 
 const clearFile: TClearFile = (file) => {
+    const keep: TEntryPredicate = makeFileFilter(file);
     for (const [key, entries] of seen) {
-        const kept: Array<TEntry> = entries.filter((e) => e[0] !== file);
+        const kept: Array<TEntry> = entries.filter(keep);
         if (kept.length === 0) {
             seen.delete(key);
         } else {
@@ -430,18 +444,36 @@ const clearFile: TClearFile = (file) => {
     }
 };
 
+type TExitHandler = () => void;
+
+type TMakeExitHandler = (context: TContext, file: string) => TExitHandler;
+
+const makeExitHandler: TMakeExitHandler = (context, file) =>
+    (
+        () => () =>
+            reportDuplicates(context, file)
+    )();
+
+type TAliasHandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
+
+type TMakeAliasHandler = (file: string) => TAliasHandler;
+
+const makeAliasHandler: TMakeAliasHandler = (file) =>
+    (
+        () => (node: TSESTree.TSTypeAliasDeclaration) =>
+            recordAlias(file, node)
+    )();
+
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
     const file: string = context.filename;
     clearFile(file);
+    const exitHandler: TExitHandler = makeExitHandler(context, file);
+    const aliasHandler: TAliasHandler = makeAliasHandler(file);
     return {
-        "Program:exit"(): void {
-            reportDuplicates(context, file);
-        },
-        TSTypeAliasDeclaration(node): void {
-            recordAlias(file, node);
-        },
+        "Program:exit": exitHandler,
+        TSTypeAliasDeclaration: aliasHandler,
     };
 };
 
