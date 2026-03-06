@@ -81,6 +81,21 @@ const checkLine: TCheckLine = (context, node, max, line, idx) => {
     }
 };
 
+type TLineHandler = (line: string, idx: number) => void;
+
+type TMakeLineHandler = (
+    checkLine: TCheckLine,
+    context: TContext,
+    node: TSESTree.Program,
+    max: number,
+) => TLineHandler;
+
+const makeLineHandler: TMakeLineHandler = (checkLine, context, node, max) =>
+    (
+        () => (line: string, idx: number) =>
+            checkLine(context, node, max, line, idx)
+    )();
+
 type TCheckLines = (
     context: TContext,
     node: TSESTree.Program,
@@ -91,20 +106,39 @@ const checkLines: TCheckLines = (context, node, max) => {
     const sourceCode: TSourceCode = context.sourceCode;
     const text: string = sourceCode.getText();
     const lines: Array<string> = text.split("\n");
-    lines.forEach((line, idx) => {
-        checkLine(context, node, max, line, idx);
-    });
+    const handler: TLineHandler = makeLineHandler(
+        checkLine,
+        context,
+        node,
+        max,
+    );
+    lines.forEach(handler);
 };
+
+type TProgramHandler = (node: TSESTree.Program) => void;
+
+type TMakeProgramHandler = (
+    checkLines: TCheckLines,
+    context: TContext,
+    max: number,
+) => TProgramHandler;
+
+const makeProgramHandler: TMakeProgramHandler = (checkLines, context, max) =>
+    (
+        () => (node: TSESTree.Program) =>
+            checkLines(context, node, max)
+    )();
 
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
     const max: number = context.options[0];
-    return {
-        "Program:exit"(node: TSESTree.Program): void {
-            checkLines(context, node, max);
-        },
-    };
+    const handler: TProgramHandler = makeProgramHandler(
+        checkLines,
+        context,
+        max,
+    );
+    return { "Program:exit": handler };
 };
 
 type TMeta = TRule["meta"];
