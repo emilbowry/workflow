@@ -66,13 +66,10 @@ type TCheckLine = (
 ) => void;
 
 const checkLine: TCheckLine = (context, node, max, line, idx) => {
-    const isEmpty: boolean = line.trim() === "";
-    if (isEmpty) {
-        return;
-    }
+    const hasContent: boolean = line.trim() !== "";
     const leading: string = getLeading(line);
     const depth: number = getDepth(leading);
-    const tooDeep: boolean = depth > max;
+    const tooDeep: boolean = hasContent && depth > max;
     if (tooDeep) {
         const pair: TReportData = makeData(depth, max);
         context.report({
