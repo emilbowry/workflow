@@ -186,6 +186,7 @@ export default defineConfig(
             "local/no-nested-function": "error",
             "local/require-parametric-record": "error",
             "local/valid-generics": "error",
+            "local/enforce-record-type": "error",
             "functional/no-let": "error",
             "max-len": [
                 "error",
