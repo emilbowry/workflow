@@ -13,24 +13,23 @@ type TRule = ESLintUtils.RuleModule<"singleField">;
 
 type TContext = Parameters<TRule["create"]>[0];
 
-type TShouldReport = {
-    (node: TSESTree.TypeNode): boolean;
-};
+type TShouldReport = (node: TSESTree.TypeNode) => boolean;
 
 const shouldReport: TShouldReport = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral &&
     node.members.length === 1 &&
     node.members[0].type !== AST_NODE_TYPES.TSCallSignatureDeclaration;
 
-type THandler = {
-    (node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
 
-type TMakeHandler = {
-    (context: TContext): THandler;
-};
+type TMakeHandler = (context: TContext) => THandler;
 
-const makeHandler: TMakeHandler = (context) => (node) => {
+type THandleNode = (
+    context: TContext,
+    node: TSESTree.TSTypeAliasDeclaration,
+) => void;
+
+const handleNode: THandleNode = (context, node) => {
     const ann: TSESTree.TypeNode = node.typeAnnotation;
     if (shouldReport(ann)) {
         context.report({
@@ -39,6 +38,8 @@ const makeHandler: TMakeHandler = (context) => (node) => {
         });
     }
 };
+
+const makeHandler: TMakeHandler = (context) => handleNode.bind(null, context);
 
 type TCreate = TRule["create"];
 
