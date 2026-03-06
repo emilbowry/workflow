@@ -31,13 +31,24 @@ const check: TCheck = (context, node) => {
     }
 };
 
+type THandler = (node: TNode) => void;
+
+type TMakeHandler = (checkFn: TCheck, context: TContext) => THandler;
+
+const makeHandler: TMakeHandler = (checkFn, context) =>
+    (
+        () => (node: TNode) =>
+            checkFn(context, node)
+    )();
+
 type TCreate = TRule["create"];
 
-const create: TCreate = (context) => ({
-    TSTypeAliasDeclaration(node): void {
-        check(context, node);
-    },
-});
+const create: TCreate = (context) => {
+    const handler: THandler = makeHandler(check, context);
+    return {
+        TSTypeAliasDeclaration: handler,
+    };
+};
 
 type TMeta = TRule["meta"];
 
