@@ -48,29 +48,26 @@ type TMaybeNode = TSESTree.Node | undefined;
 
 type TFnParamCount = (node: TSESTree.Node) => number;
 
-const fnParamCount: TFnParamCount = (node) => {
-    let count: number = -1;
-    switch (node.type) {
-        case AST_NODE_TYPES.ArrowFunctionExpression:
-        case AST_NODE_TYPES.FunctionDeclaration:
-        case AST_NODE_TYPES.FunctionExpression:
-            count = node.params.length;
-            break;
-    }
-    return count;
-};
+const fnParamCount: TFnParamCount = (node) =>
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionDeclaration ||
+    node.type === AST_NODE_TYPES.FunctionExpression
+        ? node.params.length
+        : -1;
 
 type TParentIsParameterized = (node: TSESTree.Node) => boolean;
 
-const parentIsParameterized: TParentIsParameterized = (node) => {
-    let current: TMaybeNode = node.parent;
-    let result: number = -1;
-    while (current && result < 0) {
-        result = fnParamCount(current);
-        current = current.parent;
-    }
-    return result > 0;
-};
+type TFindParentParamCount = (node: TMaybeNode) => number;
+
+const findParentParamCount: TFindParentParamCount = (node) =>
+    !node
+        ? -1
+        : fnParamCount(node) >= 0
+            ? fnParamCount(node)
+            : findParentParamCount(node.parent);
+
+const parentIsParameterized: TParentIsParameterized = (node) =>
+    findParentParamCount(node.parent) > 0;
 
 type TFunctionPredicate = (node: TFunctionNode) => boolean;
 
