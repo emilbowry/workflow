@@ -19,9 +19,7 @@ type TMatch = null | RegExpMatchArray;
 
 type TSourceCode = TContext["sourceCode"];
 
-type TStringToNumber = {
-    (input: string): number;
-};
+type TStringToNumber = (input: string) => number;
 
 const getTabDepth: TStringToNumber = (leading) => {
     const matches: TMatch = leading.match(/\t/g);
@@ -36,42 +34,22 @@ const getDepth: TStringToNumber = (leading) => {
     return hasTab ? getTabDepth(leading) : spaceDepth;
 };
 
-type TReportData = {
-    depth: string;
-    max: string;
-};
+type TReportData = [string, string];
 
-type TMakeData = {
-    (depth: number, max: number): TReportData;
-};
+type TMakeData = (depth: number, max: number) => TReportData;
 
-const makeData: TMakeData = (depth, max) => ({
-    depth: String(depth),
-    max: String(max),
-});
+const makeData: TMakeData = (depth, max) => [String(depth), String(max)];
 
-type TPosition = {
-    column: number;
-    line: number;
-};
+type TLoc = TSESTree.SourceLocation;
 
-type TLoc = {
-    end: TPosition;
-    start: TPosition;
-};
-
-type TMakeLoc = {
-    (lineNum: number, len: number): TLoc;
-};
+type TMakeLoc = (lineNum: number, len: number) => TLoc;
 
 const makeLoc: TMakeLoc = (lineNum, len) => ({
     end: { column: len, line: lineNum },
     start: { column: 0, line: lineNum },
 });
 
-type TGetLeading = {
-    (line: string): string;
-};
+type TGetLeading = (line: string) => string;
 
 const getLeading: TGetLeading = (line) => {
     const match: TMatch = line.match(/^(\s*)/);
@@ -79,15 +57,13 @@ const getLeading: TGetLeading = (line) => {
     return match === null ? empty : match[1];
 };
 
-type TCheckLine = {
-    (
-        context: TContext,
-        node: TSESTree.Program,
-        max: number,
-        line: string,
-        idx: number,
-    ): void;
-};
+type TCheckLine = (
+    context: TContext,
+    node: TSESTree.Program,
+    max: number,
+    line: string,
+    idx: number,
+) => void;
 
 const checkLine: TCheckLine = (context, node, max, line, idx) => {
     const isEmpty: boolean = line.trim() === "";
@@ -98,8 +74,9 @@ const checkLine: TCheckLine = (context, node, max, line, idx) => {
     const depth: number = getDepth(leading);
     const tooDeep: boolean = depth > max;
     if (tooDeep) {
+        const pair: TReportData = makeData(depth, max);
         context.report({
-            data: makeData(depth, max),
+            data: { depth: pair[0], max: pair[1] },
             loc: makeLoc(idx + 1, line.length),
             messageId: "tooDeep",
             node,
@@ -107,9 +84,11 @@ const checkLine: TCheckLine = (context, node, max, line, idx) => {
     }
 };
 
-type TCheckLines = {
-    (context: TContext, node: TSESTree.Program, max: number): void;
-};
+type TCheckLines = (
+    context: TContext,
+    node: TSESTree.Program,
+    max: number,
+) => void;
 
 const checkLines: TCheckLines = (context, node, max) => {
     const sourceCode: TSourceCode = context.sourceCode;
@@ -131,16 +110,9 @@ const create: TCreate = (context) => {
     };
 };
 
-type TSchemaType = "integer" | "number";
-
-type TSchema = {
-    minimum: number;
-    type: TSchemaType;
-};
-
-const schema: Array<TSchema> = [{ minimum: 1, type: "integer" }];
-
 type TMeta = TRule["meta"];
+
+const schema: TMeta["schema"] = [{ minimum: 1, type: "integer" }];
 
 const meta: TMeta = {
     docs: { description: DESC },
