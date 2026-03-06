@@ -24,24 +24,20 @@ type TMakeHandler = {
     (context: TContext): THandler;
 };
 
-const makeHandler: TMakeHandler =
-    (context) => (node) => {
-        const src: string =
-            context.sourceCode.getText(node);
-        if (!src.includes("Record<")) {
-            return;
-        }
+const makeHandler: TMakeHandler = (context) => (node) => {
+    const src: string = context.sourceCode.getText(node);
+    if (src.includes("Record<")) {
         context.report({
             messageId: "nonParametricRecord",
             node,
         });
-    };
+    }
+};
 
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
-    const handler: THandler =
-        makeHandler(context);
+    const handler: THandler = makeHandler(context);
     return {
         TSTypeAliasDeclaration: handler,
     };
