@@ -6,12 +6,13 @@ import react from "eslint-plugin-react";
 import maxTotalDepth from "./rules/max-total-depth.js";
 import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import restrictReturnCount from "./rules/restrict-return-count.js";
-import requireSeperateFunctionType from "./rules/require-extracted-function-type.ts";
-import preferCallSignature from "./rules/prefer-call-signature.ts";
-import maxTypeNesting from "./rules/max-type-nesting.ts";
-import noSingleFieldType from "./rules/no-single-field-type.ts";
-import noDuplicateTypeStructure from "./rules/no-duplicate-type-structure.ts";
+import requireSeperateFunctionType from "./type-based/require-extracted-types.ts";
+import preferCallSignature from "./type-based/prefer-call-signature.ts";
+import maxTypeNesting from "./type-based/max-type-nesting.ts";
+import noSingleFieldType from "./type-based/no-single-field-type.ts";
+import noDuplicateTypeStructure from "./type-based/no-duplicate-type-structure.ts";
 import noNestedFunction from "./rules/no-nested-function.ts";
+import requireParametricRecord from "./type-based/require-parametric-record.ts";
 import functional from "eslint-plugin-functional";
 
 export default defineConfig(
@@ -47,9 +48,9 @@ export default defineConfig(
                     "prefer-call-signature": preferCallSignature,
                     "max-type-nesting": maxTypeNesting,
                     "no-single-field-type": noSingleFieldType,
-                    "no-duplicate-type-structure":
-                        noDuplicateTypeStructure,
+                    "no-duplicate-type-structure": noDuplicateTypeStructure,
                     "no-nested-function": noNestedFunction,
+                    "require-parametric-record": requireParametricRecord,
                 },
             },
             "eslint-comments": eslintComments,
@@ -177,6 +178,7 @@ export default defineConfig(
             "local/no-single-field-type": "error",
             "local/no-duplicate-type-structure": "error",
             "local/no-nested-function": "error",
+            "local/require-parametric-record": "error",
             "functional/no-let": "error",
             "max-len": [
                 "error",
