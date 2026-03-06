@@ -29,12 +29,13 @@ type TNodePredicate = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
 const hasTypeParams: TNodePredicate = (node) =>
     node.typeParameters !== undefined && node.typeParameters.params.length > 0;
 
-type TGetParamName = (
-    params: ReadonlyArray<TSESTree.TSTypeParameter>,
-) => string;
+type TIsBodyAParam = (
+    paramNames: ReadonlyArray<string>,
+    bodyName: string,
+) => boolean;
 
-const getParamName: TGetParamName = (params) =>
-    params.length === 1 ? params[0].name.name : "";
+const isBodyAParam: TIsBodyAParam = (paramNames, bodyName) =>
+    bodyName !== "" && paramNames.includes(bodyName);
 
 type TGetRefName = (body: TSESTree.TypeNode) => string;
 
@@ -46,12 +47,21 @@ const refIdentName: TRefIdentName = (ref) =>
 const getRefName: TGetRefName = (body) =>
     body.type === AST_NODE_TYPES.TSTypeReference ? refIdentName(body) : "";
 
+type TGetParamNames = (
+    node: TSESTree.TSTypeAliasDeclaration,
+) => ReadonlyArray<string>;
+
+type TParamToName = (param: TSESTree.TSTypeParameter) => string;
+
+const paramToName: TParamToName = (param) => param.name.name;
+
+const getParamNames: TGetParamNames = (node) =>
+    (node.typeParameters?.params ?? []).map(paramToName);
+
 const isDegenerate: TNodePredicate = (node) => {
-    const params: ReadonlyArray<TSESTree.TSTypeParameter> =
-        node.typeParameters?.params ?? [];
-    const firstParam: string = getParamName(params);
-    const refName: string = getRefName(node.typeAnnotation);
-    return firstParam !== "" && refName === firstParam;
+    const paramNames: ReadonlyArray<string> = getParamNames(node);
+    const bodyName: string = getRefName(node.typeAnnotation);
+    return isBodyAParam(paramNames, bodyName);
 };
 
 const argToName: TGetRefName = (arg) =>
@@ -66,17 +76,6 @@ type TGetTypeArgNames = (
 
 const getTypeArgNames: TGetTypeArgNames = (ref) =>
     (ref.typeArguments?.params ?? []).map(argToName);
-
-type TGetParamNames = (
-    node: TSESTree.TSTypeAliasDeclaration,
-) => ReadonlyArray<string>;
-
-type TParamToName = (param: TSESTree.TSTypeParameter) => string;
-
-const paramToName: TParamToName = (param) => param.name.name;
-
-const getParamNames: TGetParamNames = (node) =>
-    (node.typeParameters?.params ?? []).map(paramToName);
 
 type TParamsMatch = (
     paramNames: ReadonlyArray<string>,
