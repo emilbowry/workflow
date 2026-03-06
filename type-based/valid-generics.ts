@@ -17,35 +17,28 @@ type TRule = ESLintUtils.RuleModule<"degenerateGeneric" | "homogeneousGeneric">;
 
 type TContext = Parameters<TRule["create"]>[0];
 
-type THandler = {
-    (node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
 
-type TCheckNode = {
-    (context: TContext, node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type TCheckNode = (
+    context: TContext,
+    node: TSESTree.TSTypeAliasDeclaration,
+) => void;
 
-type TNodePredicate = {
-    (node: TSESTree.TSTypeAliasDeclaration): boolean;
-};
+type TNodePredicate = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
 
 const hasTypeParams: TNodePredicate = (node) =>
     node.typeParameters !== undefined && node.typeParameters.params.length > 0;
 
-type TGetParamName = {
-    (params: ReadonlyArray<TSESTree.TSTypeParameter>): string;
-};
+type TGetParamName = (
+    params: ReadonlyArray<TSESTree.TSTypeParameter>,
+) => string;
 
 const getParamName: TGetParamName = (params) =>
     params.length === 1 ? params[0].name.name : "";
 
-type TGetRefName = {
-    (body: TSESTree.TypeNode): string;
-};
+type TGetRefName = (body: TSESTree.TypeNode) => string;
 
-type TRefIdentName = {
-    (ref: TSESTree.TSTypeReference): string;
-};
+type TRefIdentName = (ref: TSESTree.TSTypeReference) => string;
 
 const refIdentName: TRefIdentName = (ref) =>
     ref.typeName.type === AST_NODE_TYPES.Identifier ? ref.typeName.name : "";
@@ -61,38 +54,41 @@ const isDegenerate: TNodePredicate = (node) => {
     return firstParam !== "" && refName === firstParam;
 };
 
-type TGetTypeArgNames = {
-    (ref: TSESTree.TSTypeReference): ReadonlyArray<string>;
-};
+const argToName: TGetRefName = (arg) =>
+    arg.type === AST_NODE_TYPES.TSTypeReference &&
+    arg.typeName.type === AST_NODE_TYPES.Identifier
+        ? arg.typeName.name
+        : "";
+
+type TGetTypeArgNames = (
+    ref: TSESTree.TSTypeReference,
+) => ReadonlyArray<string>;
 
 const getTypeArgNames: TGetTypeArgNames = (ref) =>
-    (ref.typeArguments?.params ?? []).map((arg: TSESTree.TypeNode) =>
-        arg.type === AST_NODE_TYPES.TSTypeReference &&
-        arg.typeName.type === AST_NODE_TYPES.Identifier
-            ? arg.typeName.name
-            : "",
-    );
+    (ref.typeArguments?.params ?? []).map(argToName);
 
-type TGetParamNames = {
-    (node: TSESTree.TSTypeAliasDeclaration): ReadonlyArray<string>;
-};
+type TGetParamNames = (
+    node: TSESTree.TSTypeAliasDeclaration,
+) => ReadonlyArray<string>;
+
+type TParamToName = (param: TSESTree.TSTypeParameter) => string;
+
+const paramToName: TParamToName = (param) => param.name.name;
 
 const getParamNames: TGetParamNames = (node) =>
-    (node.typeParameters?.params ?? []).map(
-        (param: TSESTree.TSTypeParameter) => param.name.name,
-    );
+    (node.typeParameters?.params ?? []).map(paramToName);
 
-type TParamsMatch = {
-    (
-        paramNames: ReadonlyArray<string>,
-        argNames: ReadonlyArray<string>,
-    ): boolean;
-};
+type TParamsMatch = (
+    paramNames: ReadonlyArray<string>,
+    argNames: ReadonlyArray<string>,
+) => boolean;
+
+const SEP: string = "\0";
 
 const paramsMatch: TParamsMatch = (paramNames, argNames) =>
     paramNames.length > 0 &&
     paramNames.length === argNames.length &&
-    paramNames.every((name: string, idx: number) => name === argNames[idx]);
+    paramNames.join(SEP) === argNames.join(SEP);
 
 const isHomogeneous: TNodePredicate = (node) => {
     const body: TSESTree.TypeNode = node.typeAnnotation;
@@ -119,9 +115,7 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type TMakeHandler = {
-    (check: TCheckNode, context: TContext): THandler;
-};
+type TMakeHandler = (check: TCheckNode, context: TContext) => THandler;
 
 const makeHandler: TMakeHandler = (check, context) =>
     (
