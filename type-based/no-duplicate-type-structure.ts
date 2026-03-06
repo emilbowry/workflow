@@ -353,8 +353,11 @@ const canonical: TCanonical = (node) => {
     return keyword ?? dispatchNode(node);
 };
 
-type TEntry = Record<"file" | "name", string> &
-    Record<"node", TSESTree.TSTypeAliasDeclaration>;
+type TEntry = [string, string, TSESTree.TSTypeAliasDeclaration];
+
+const ENTRY_FILE: 0 = 0;
+const ENTRY_NAME: 1 = 1;
+const ENTRY_NODE: 2 = 2;
 
 type TRule = ESLintUtils.RuleModule<"duplicateStructure">;
 
@@ -365,7 +368,9 @@ const seen: Map<string, Array<TEntry>> = new Map();
 type TFormatNames = (entries: Array<TEntry>) => string;
 
 const formatNames: TFormatNames = (entries) =>
-    entries.map((entry) => entry.name + " (" + entry.file + ")").join(", ");
+    entries
+        .map((entry) => entry[ENTRY_NAME] + " (" + entry[ENTRY_FILE] + ")")
+        .join(", ");
 // unhapy with this, why is it not extracted
 
 type TReportEntry = (
@@ -376,11 +381,11 @@ type TReportEntry = (
 ) => void;
 
 const reportEntry: TReportEntry = (context, file, entry, names) => {
-    if (entry.file === file) {
+    if (entry[ENTRY_FILE] === file) {
         context.report({
             data: { names },
             messageId: "duplicateStructure",
-            node: entry.node,
+            node: entry[ENTRY_NODE],
         });
     }
 };
@@ -409,7 +414,7 @@ type TRecordAlias = (
 const recordAlias: TRecordAlias = (file, node) => {
     const key: string = canonical(node.typeAnnotation);
     const name: string = node.id.name;
-    const newEntry: TEntry = { file, name, node };
+    const newEntry: TEntry = [file, name, node];
     const existing: TMaybeEntries = seen.get(key);
     if (existing) {
         existing.push(newEntry);
@@ -422,7 +427,9 @@ type TClearFile = (file: string) => void;
 
 const clearFile: TClearFile = (file) => {
     for (const [key, entries] of seen) {
-        const kept: Array<TEntry> = entries.filter((e) => e.file !== file);
+        const kept: Array<TEntry> = entries.filter(
+            (e) => e[ENTRY_FILE] !== file,
+        );
         if (kept.length === 0) {
             seen.delete(key);
         } else {
