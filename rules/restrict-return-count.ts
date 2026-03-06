@@ -111,6 +111,42 @@ const reportEarlyReturn: TReportEarly = (context, node) => {
 
 type TReturnHandler = (node: TSESTree.ReturnStatement) => void;
 
+type THandleReturn = (
+    stack: Array<number>,
+    context: TContext,
+    node: TSESTree.ReturnStatement,
+) => void;
+
+const handleReturn: THandleReturn = (stack, context, node) => {
+    increment(stack);
+    reportEarlyReturn(context, node);
+};
+
+type TMakeNodeHandler = (
+    handler: TPop,
+    stack: Array<number>,
+    context: TContext,
+    max: number,
+) => TNodeHandler;
+
+const makeOnExit: TMakeNodeHandler = (handler, stack, context, max) =>
+    (
+        () => (node: TSESTree.Node) =>
+            handler(stack, context, node, max)
+    )();
+
+type TMakeReturnHandler = (
+    handler: THandleReturn,
+    stack: Array<number>,
+    context: TContext,
+) => TReturnHandler;
+
+const makeOnReturn: TMakeReturnHandler = (handler, stack, context) =>
+    (
+        () => (node: TSESTree.ReturnStatement) =>
+            handler(stack, context, node)
+    )();
+
 type TCreate = TRule["create"];
 
 const create: TCreate = (context) => {
@@ -119,12 +155,9 @@ const create: TCreate = (context) => {
 
     const onEnter: TNodeHandler = () => push(stack);
 
-    const onExit: TNodeHandler = (node) => pop(stack, context, node, max);
+    const onExit: TNodeHandler = makeOnExit(pop, stack, context, max);
 
-    const onReturn: TReturnHandler = (node) => {
-        increment(stack);
-        reportEarlyReturn(context, node);
-    };
+    const onReturn: TReturnHandler = makeOnReturn(handleReturn, stack, context);
 
     return {
         ArrowFunctionExpression: onEnter,
