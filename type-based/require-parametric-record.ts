@@ -25,15 +25,14 @@ type TContext = Parameters<TRule["create"]>[0];
 const PARAMETRIC: RegExp =
     /type\s+\w+<(\w+)\s+extends\s+[^>]+>\s*=\s*Record<\1,\s*\w+<\1>>/;
 
-type TIsValid = {
-    (src: string): boolean;
-};
+type TIsValid = (src: string) => boolean;
 
 const isValid: TIsValid = (src) => PARAMETRIC.test(src);
 
-type TCheckNode = {
-    (context: TContext, node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type TCheckNode = (
+    context: TContext,
+    node: TSESTree.TSTypeAliasDeclaration,
+) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     const src: string = context.sourceCode.getText(node);
@@ -45,13 +44,9 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type THandler = {
-    (node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
 
-type TMakeHandler = {
-    (checkNode: TCheckNode, context: TContext): THandler;
-};
+type TMakeHandler = (checkNode: TCheckNode, context: TContext) => THandler;
 
 const makeHandler: TMakeHandler = (checkNode, context) =>
     (
