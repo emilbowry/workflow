@@ -61,10 +61,59 @@ const isDegenerate: TNodePredicate = (node) => {
     return firstParam !== "" && refName === firstParam;
 };
 
+type TGetTypeArgNames = {
+    (ref: TSESTree.TSTypeReference): ReadonlyArray<string>;
+};
+
+const getTypeArgNames: TGetTypeArgNames = (ref) =>
+    (ref.typeArguments?.params ?? []).map((arg: TSESTree.TypeNode) =>
+        arg.type === AST_NODE_TYPES.TSTypeReference &&
+        arg.typeName.type === AST_NODE_TYPES.Identifier
+            ? arg.typeName.name
+            : "",
+    );
+
+type TGetParamNames = {
+    (node: TSESTree.TSTypeAliasDeclaration): ReadonlyArray<string>;
+};
+
+const getParamNames: TGetParamNames = (node) =>
+    (node.typeParameters?.params ?? []).map(
+        (param: TSESTree.TSTypeParameter) => param.name.name,
+    );
+
+type TParamsMatch = {
+    (
+        paramNames: ReadonlyArray<string>,
+        argNames: ReadonlyArray<string>,
+    ): boolean;
+};
+
+const paramsMatch: TParamsMatch = (paramNames, argNames) =>
+    paramNames.length > 0 &&
+    paramNames.length === argNames.length &&
+    paramNames.every((name: string, idx: number) => name === argNames[idx]);
+
+const isHomogeneous: TNodePredicate = (node) => {
+    const body: TSESTree.TypeNode = node.typeAnnotation;
+    const paramNames: ReadonlyArray<string> = getParamNames(node);
+    const argNames: ReadonlyArray<string> =
+        body.type === AST_NODE_TYPES.TSTypeReference
+            ? getTypeArgNames(body)
+            : [];
+    return paramsMatch(paramNames, argNames);
+};
+
 const checkNode: TCheckNode = (context, node) => {
     if (hasTypeParams(node) && isDegenerate(node)) {
         context.report({
             messageId: "degenerateGeneric",
+            node,
+        });
+    }
+    if (hasTypeParams(node) && isHomogeneous(node)) {
+        context.report({
+            messageId: "homogeneousGeneric",
             node,
         });
     }
