@@ -4,10 +4,10 @@ import { ESLintUtils } from "@typescript-eslint/utils";
 
 const MSG: string =
     "Type alias contains " +
-    "{{count}} type literals, " +
-    "maximum allowed is " +
-    "{{max}}. Extract to " +
-    "named types.";
+    "{{count}} nested type " +
+    "constructs, maximum " +
+    "allowed is {{max}}. " +
+    "Extract to named types.";
 
 const DESC: string =
     "Enforce a maximum number " +
