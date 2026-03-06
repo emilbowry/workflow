@@ -21,10 +21,9 @@ type TContext = Parameters<TRule["create"]>[0];
 type TStackOp = (stack: Array<number>) => void;
 
 const increment: TStackOp = (stack) => {
-    if (stack.length === 0) {
-        return;
+    if (stack.length > 0) {
+        stack[stack.length - 1]++;
     }
-    stack[stack.length - 1]++;
 };
 
 const push: TStackOp = (stack) => {
@@ -48,15 +47,14 @@ type TReportIfExceeded = (
 ) => void;
 
 const reportIfExceeded: TReportIfExceeded = (context, node, count, max) => {
-    if (count <= max) {
-        return;
+    if (count > max) {
+        const reportData: TReportTuple = makeData(count, max);
+        context.report({
+            data: { count: reportData[0], max: reportData[1] },
+            messageId: "tooManyReturns",
+            node,
+        });
     }
-    const reportData: TReportTuple = makeData(count, max);
-    context.report({
-        data: { count: reportData[0], max: reportData[1] },
-        messageId: "tooManyReturns",
-        node,
-    });
 };
 
 type TPop = (
@@ -68,10 +66,9 @@ type TPop = (
 
 const pop: TPop = (stack, context, node, max) => {
     const count: TMaybeCount = stack.pop();
-    if (count === undefined) {
-        return;
+    if (count !== undefined) {
+        reportIfExceeded(context, node, count, max);
     }
-    reportIfExceeded(context, node, count, max);
 };
 
 type TNodeHandler = (node: TSESTree.Node) => void;
@@ -88,25 +85,22 @@ type TIsFinalReturn = (node: TSESTree.ReturnStatement) => boolean;
 
 const isFinalReturn: TIsFinalReturn = (node) => {
     const parent: TSESTree.Node = node.parent;
-    if (parent.type !== AST_NODE_TYPES.BlockStatement) {
-        return false;
-    }
-    if (!FUNCTION_TYPES.has(parent.parent.type)) {
-        return false;
-    }
-    return parent.body[parent.body.length - 1] === node;
+    return (
+        parent.type === AST_NODE_TYPES.BlockStatement &&
+        FUNCTION_TYPES.has(parent.parent.type) &&
+        parent.body[parent.body.length - 1] === node
+    );
 };
 
 type TReportEarly = (context: TContext, node: TSESTree.ReturnStatement) => void;
 
 const reportEarlyReturn: TReportEarly = (context, node) => {
-    if (isFinalReturn(node)) {
-        return;
+    if (!isFinalReturn(node)) {
+        context.report({
+            messageId: "earlyReturn",
+            node,
+        });
     }
-    context.report({
-        messageId: "earlyReturn",
-        node,
-    });
 };
 
 type TReturnHandler = (node: TSESTree.ReturnStatement) => void;
