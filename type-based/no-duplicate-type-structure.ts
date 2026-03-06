@@ -9,36 +9,26 @@ const DESC: string =
     "aliases with identical " +
     "structure across the project.";
 
-type TCanonical = {
-    (node: TSESTree.TypeNode): string;
-};
+type TCanonical = (node: TSESTree.TypeNode) => string;
 
 type TMaybeAnn = TSESTree.TSTypeAnnotation | undefined;
 
-type TAnnotationToString = {
-    (ann: TMaybeAnn, fallback: string): string;
-};
+type TAnnotationToString = (ann: TMaybeAnn, fallback: string) => string;
 
 const annotationToString: TAnnotationToString = (ann, fallback) =>
     ann ? canonical(ann.typeAnnotation) : fallback;
 
-type TReturnTypeToString = {
-    (ret: TMaybeAnn): string;
-};
+type TReturnTypeToString = (ret: TMaybeAnn) => string;
 
 const returnTypeToString: TReturnTypeToString = (ret) =>
     annotationToString(ret, "void");
 
-type TParamsToString = {
-    (params: Array<TSESTree.Parameter>): string;
-};
+type TParamsToString = (params: Array<TSESTree.Parameter>) => string;
 
 const paramsToString: TParamsToString = (params) =>
     params.map(canonicalParam).join(",");
 
-type TKeyName = {
-    (key: TSESTree.PropertyName): string;
-};
+type TKeyName = (key: TSESTree.PropertyName) => string;
 
 const keyName: TKeyName = (key) =>
     key.type === AST_NODE_TYPES.Identifier
@@ -47,23 +37,17 @@ const keyName: TKeyName = (key) =>
             ? String(key.value)
             : key.type;
 
-type THandleIdentifierParam = {
-    (param: TSESTree.Identifier): string;
-};
+type THandleIdentifierParam = (param: TSESTree.Identifier) => string;
 
 const handleIdentifierParam: THandleIdentifierParam = (param) =>
     annotationToString(param.typeAnnotation, "any");
 
-type THandleRestParam = {
-    (param: TSESTree.RestElement): string;
-};
+type THandleRestParam = (param: TSESTree.RestElement) => string;
 
 const handleRestParam: THandleRestParam = (param) =>
     "..." + annotationToString(param.typeAnnotation, "any");
 
-type TCanonicalParam = {
-    (param: TSESTree.Parameter): string;
-};
+type TCanonicalParam = (param: TSESTree.Parameter) => string;
 
 const canonicalParam: TCanonicalParam = (param) =>
     param.type === AST_NODE_TYPES.Identifier
@@ -72,9 +56,7 @@ const canonicalParam: TCanonicalParam = (param) =>
             ? handleRestParam(param)
             : param.type;
 
-type THandleProperty = {
-    (member: TSESTree.TSPropertySignature): string;
-};
+type THandleProperty = (member: TSESTree.TSPropertySignature) => string;
 
 const handlePropertySignature: THandleProperty = (member) => {
     const key: string = keyName(member.key);
@@ -84,9 +66,7 @@ const handlePropertySignature: THandleProperty = (member) => {
     return key + opt + sep + ann;
 };
 
-type THandleCallSig = {
-    (member: TSESTree.TSCallSignatureDeclaration): string;
-};
+type THandleCallSig = (member: TSESTree.TSCallSignatureDeclaration) => string;
 
 const handleCallSignature: THandleCallSig = (member) => {
     const params: string = paramsToString(member.params);
@@ -96,18 +76,14 @@ const handleCallSignature: THandleCallSig = (member) => {
 
 type TIndexParam = TSESTree.TSIndexSignature["parameters"][0];
 
-type THandleIndexParam = {
-    (param: TIndexParam): string;
-};
+type THandleIndexParam = (param: TIndexParam) => string;
 
 const handleIndexParam: THandleIndexParam = (param) =>
     param.type === AST_NODE_TYPES.Identifier
         ? annotationToString(param.typeAnnotation, "any")
         : "any";
 
-type THandleIndexSig = {
-    (member: TSESTree.TSIndexSignature): string;
-};
+type THandleIndexSig = (member: TSESTree.TSIndexSignature) => string;
 
 const handleIndexSignature: THandleIndexSig = (member) => {
     const params: string = member.parameters.map(handleIndexParam).join(",");
@@ -115,9 +91,7 @@ const handleIndexSignature: THandleIndexSig = (member) => {
     return "[" + params + "]:" + val;
 };
 
-type THandleMethodSig = {
-    (member: TSESTree.TSMethodSignature): string;
-};
+type THandleMethodSig = (member: TSESTree.TSMethodSignature) => string;
 
 const handleMethodSignature: THandleMethodSig = (member) => {
     const key: string = keyName(member.key);
@@ -126,9 +100,9 @@ const handleMethodSignature: THandleMethodSig = (member) => {
     return key + "(" + params + "):" + ret;
 };
 
-type THandleConstructSig = {
-    (member: TSESTree.TSConstructSignatureDeclaration): string;
-};
+type THandleConstructSig = (
+    member: TSESTree.TSConstructSignatureDeclaration,
+) => string;
 
 const handleConstructSignature: THandleConstructSig = (member) => {
     const params: string = paramsToString(member.params);
@@ -136,9 +110,7 @@ const handleConstructSignature: THandleConstructSig = (member) => {
     return "new(" + params + "):" + ret;
 };
 
-type TCanonicalMember = {
-    (member: TSESTree.TypeElement): string;
-};
+type TCanonicalMember = (member: TSESTree.TypeElement) => string;
 
 const canonicalMember: TCanonicalMember = (member) => {
     let result: string;
@@ -178,38 +150,28 @@ const KEYWORD_MAP: TKeywordMap = new Map([
     [AST_NODE_TYPES.TSVoidKeyword, "void"],
 ]);
 
-type THandleTypeLiteral = {
-    (node: TSESTree.TSTypeLiteral): string;
-};
+type THandleTypeLiteral = (node: TSESTree.TSTypeLiteral) => string;
 
 const handleTypeLiteral: THandleTypeLiteral = (node) => {
     const members: string = node.members.map(canonicalMember).join(";");
     return "{" + members + "}";
 };
 
-type THandleUnion = {
-    (node: TSESTree.TSUnionType): string;
-};
+type THandleUnion = (node: TSESTree.TSUnionType) => string;
 
 const handleUnionType: THandleUnion = (node) =>
     node.types.map(canonical).join("|");
 
-type THandleIntersection = {
-    (node: TSESTree.TSIntersectionType): string;
-};
+type THandleIntersection = (node: TSESTree.TSIntersectionType) => string;
 
 const handleIntersectionType: THandleIntersection = (node) =>
     node.types.map(canonical).join("&");
 
 type TTypeName = TSESTree.TSTypeReference["typeName"];
 
-type TTypeNameToString = {
-    (typeName: TTypeName): string;
-};
+type TTypeNameToString = (typeName: TTypeName) => string;
 
-type TQualifiedToString = {
-    (node: TSESTree.TSQualifiedName): string;
-};
+type TQualifiedToString = (node: TSESTree.TSQualifiedName) => string;
 
 const qualifiedToString: TQualifiedToString = (node) =>
     node.left.type === AST_NODE_TYPES.Identifier
@@ -223,9 +185,7 @@ const typeNameToString: TTypeNameToString = (typeName) =>
             ? qualifiedToString(typeName)
             : typeName.type;
 
-type THandleTypeRef = {
-    (node: TSESTree.TSTypeReference): string;
-};
+type THandleTypeRef = (node: TSESTree.TSTypeReference) => string;
 
 const handleTypeReference: THandleTypeRef = (node) => {
     const name: string = typeNameToString(node.typeName);
@@ -236,9 +196,7 @@ const handleTypeReference: THandleTypeRef = (node) => {
     return args ? name + "<" + args + ">" : name;
 };
 
-type THandleFnType = {
-    (node: TSESTree.TSFunctionType): string;
-};
+type THandleFnType = (node: TSESTree.TSFunctionType) => string;
 
 const handleFunctionType: THandleFnType = (node) => {
     const params: string = paramsToString(node.params);
@@ -246,16 +204,12 @@ const handleFunctionType: THandleFnType = (node) => {
     return "(" + params + ")=>" + ret;
 };
 
-type THandleArrayType = {
-    (node: TSESTree.TSArrayType): string;
-};
+type THandleArrayType = (node: TSESTree.TSArrayType) => string;
 
 const handleArrayType: THandleArrayType = (node) =>
     canonical(node.elementType) + "[]";
 
-type THandleTypeOp = {
-    (node: TSESTree.TSTypeOperator): string;
-};
+type THandleTypeOp = (node: TSESTree.TSTypeOperator) => string;
 
 const handleTypeOperator: THandleTypeOp = (node) =>
     node.typeAnnotation
@@ -264,16 +218,12 @@ const handleTypeOperator: THandleTypeOp = (node) =>
 
 type TLiteralNode = TSESTree.TSLiteralType["literal"];
 
-type TUnaryArgValue = {
-    (arg: TSESTree.Expression): string;
-};
+type TUnaryArgValue = (arg: TSESTree.Expression) => string;
 
 const unaryArgValue: TUnaryArgValue = (arg) =>
     arg.type === AST_NODE_TYPES.Literal ? String(arg.value) : "unknown";
 
-type THandleLiteralValue = {
-    (literal: TLiteralNode): string;
-};
+type THandleLiteralValue = (literal: TLiteralNode) => string;
 
 const handleLiteralValue: THandleLiteralValue = (literal) =>
     literal.type === AST_NODE_TYPES.Literal
@@ -282,32 +232,24 @@ const handleLiteralValue: THandleLiteralValue = (literal) =>
             ? literal.operator + unaryArgValue(literal.argument)
             : "template";
 
-type THandleLiteralType = {
-    (node: TSESTree.TSLiteralType): string;
-};
+type THandleLiteralType = (node: TSESTree.TSLiteralType) => string;
 
 const handleLiteralType: THandleLiteralType = (node) =>
     handleLiteralValue(node.literal);
 
-type THandleTupleType = {
-    (node: TSESTree.TSTupleType): string;
-};
+type THandleTupleType = (node: TSESTree.TSTupleType) => string;
 
 const handleTupleType: THandleTupleType = (node) => {
     const elems: string = node.elementTypes.map(canonical).join(",");
     return "[" + elems + "]";
 };
 
-type THandleIndexAccess = {
-    (node: TSESTree.TSIndexedAccessType): string;
-};
+type THandleIndexAccess = (node: TSESTree.TSIndexedAccessType) => string;
 
 const handleIndexedAccessType: THandleIndexAccess = (node) =>
     canonical(node.objectType) + "[" + canonical(node.indexType) + "]";
 
-type THandleTypeQuery = {
-    (node: TSESTree.TSTypeQuery): string;
-};
+type THandleTypeQuery = (node: TSESTree.TSTypeQuery) => string;
 
 const handleTypeQuery: THandleTypeQuery = (node) => {
     const name: string =
@@ -317,9 +259,7 @@ const handleTypeQuery: THandleTypeQuery = (node) => {
     return "typeof " + name;
 };
 
-type THandleConditional = {
-    (node: TSESTree.TSConditionalType): string;
-};
+type THandleConditional = (node: TSESTree.TSConditionalType) => string;
 
 const handleConditionalType: THandleConditional = (node) =>
     canonical(node.checkType) +
@@ -330,9 +270,7 @@ const handleConditionalType: THandleConditional = (node) =>
     ":" +
     canonical(node.falseType);
 
-type THandleMapped = {
-    (node: TSESTree.TSMappedType): string;
-};
+type THandleMapped = (node: TSESTree.TSMappedType) => string;
 
 const handleMappedType: THandleMapped = (node) => {
     const paramName: string = node.key.name;
@@ -343,18 +281,14 @@ const handleMappedType: THandleMapped = (node) => {
     return "{[" + paramName + " in " + constraint + "]:" + val + "}";
 };
 
-type THandleInfer = {
-    (node: TSESTree.TSInferType): string;
-};
+type THandleInfer = (node: TSESTree.TSInferType) => string;
 
 const handleInferType: THandleInfer = (node) =>
     "infer " + node.typeParameter.name.name;
 
 type TMaybeString = string | undefined;
 
-type TTryDispatch = {
-    (node: TSESTree.TypeNode): TMaybeString;
-};
+type TTryDispatch = (node: TSESTree.TypeNode) => TMaybeString;
 
 /*
     To me the only reason this was used was to bypass the complexity issue
@@ -458,17 +392,18 @@ type TContext = Parameters<TRule["create"]>[0];
 
 const seen: Map<string, Array<TEntry>> = new Map();
 
-type TFormatNames = {
-    (entries: Array<TEntry>): string;
-};
+type TFormatNames = (entries: Array<TEntry>) => string;
 
 const formatNames: TFormatNames = (entries) =>
     entries.map((entry) => entry.name + " (" + entry.file + ")").join(", ");
 // unhapy with this, why is it not extracted
 
-type TReportEntry = {
-    (context: TContext, file: string, entry: TEntry, names: string): void;
-};
+type TReportEntry = (
+    context: TContext,
+    file: string,
+    entry: TEntry,
+    names: string,
+) => void;
 
 const reportEntry: TReportEntry = (context, file, entry, names) => {
     if (entry.file === file) {
@@ -480,9 +415,7 @@ const reportEntry: TReportEntry = (context, file, entry, names) => {
     }
 };
 
-type TReportDuplicates = {
-    (context: TContext, file: string): void;
-};
+type TReportDuplicates = (context: TContext, file: string) => void;
 
 const reportDuplicates: TReportDuplicates = (context, file) => {
     for (const entries of seen.values()) {
@@ -498,9 +431,10 @@ const reportDuplicates: TReportDuplicates = (context, file) => {
 
 type TMaybeEntries = Array<TEntry> | undefined;
 
-type TRecordAlias = {
-    (file: string, node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type TRecordAlias = (
+    file: string,
+    node: TSESTree.TSTypeAliasDeclaration,
+) => void;
 
 const recordAlias: TRecordAlias = (file, node) => {
     const key: string = canonical(node.typeAnnotation);
@@ -514,15 +448,11 @@ const recordAlias: TRecordAlias = (file, node) => {
     }
 };
 
-type TClearFile = {
-    (file: string): void;
-};
+type TClearFile = (file: string) => void;
 
 const clearFile: TClearFile = (file) => {
     for (const [key, entries] of seen) {
-        const kept: Array<TEntry> = entries.filter(
-            (e) => e.file !== file,
-        );
+        const kept: Array<TEntry> = entries.filter((e) => e.file !== file);
         if (kept.length === 0) {
             seen.delete(key);
         } else {
