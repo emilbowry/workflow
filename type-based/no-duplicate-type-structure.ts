@@ -358,11 +358,8 @@ const canonical: TCanonical = (node) => {
     return keyword ?? dispatchNode(node);
 };
 
-type TEntry = {
-    file: string;
-    name: string;
-    node: TSESTree.TSTypeAliasDeclaration;
-};
+type TEntry = Record<"file" | "name", string> &
+    Record<"node", TSESTree.TSTypeAliasDeclaration>;
 
 type TRule = ESLintUtils.RuleModule<"duplicateStructure">;
 
