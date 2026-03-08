@@ -9,16 +9,12 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 type TRule = ESLintUtils.RuleModule<"tooManyNested", [number]>;
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/max-type-nesting",
+    rule: "local/max-type-nesting",
     flags: field(
         "flags",
         "More than 1 nested type " +

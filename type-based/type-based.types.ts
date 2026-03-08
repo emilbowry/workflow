@@ -45,8 +45,7 @@ export type TLintKey =
     | "related"
     | "philosophy";
 
-export type TLintValue<T extends TLintKey> =
-    `<${T}>${string}</${T}>`;
+export type TLintValue<T extends TLintKey> = `<${T}>${string}</${T}>`;
 
 export type TLintMeta = {
     [K in TLintKey]: TLintValue<K>;
@@ -58,16 +57,11 @@ type TField = <T extends TLintKey>(
     ...args: [tag: T, value: string]
 ) => TLintValue<T>;
 
-export const field: TField = (tag, value) =>
-    `<${tag}>${value}</${tag}>`;
+export const field: TField = (tag, value) => `<${tag}>${value}</${tag}>`;
 
-type TLintMetaToMsg = (
-    ...args: [meta: TLintMeta]
-) => string;
+type TLintMetaToMsg = (...args: [meta: TLintMeta]) => string;
 
-export const lintMetaToMsg: TLintMetaToMsg = (
-    meta,
-) =>
+export const lintMetaToMsg: TLintMetaToMsg = (meta) =>
     "<lint_meta>" +
     meta.flags +
     meta.fix +

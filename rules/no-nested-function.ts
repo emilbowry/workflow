@@ -28,14 +28,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "../type-based/type-based.types";
+import { field, lintMetaToMsg } from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/no-nested-function",
+    rule: "local/no-nested-function",
     avoid: field(
         "avoid",
         "Closures capturing outer " +
@@ -137,8 +133,8 @@ const findParentParamCount: TFindParentParamCount = (node) =>
     !node
         ? -1
         : fnParamCount(node) >= 0
-            ? fnParamCount(node)
-            : findParentParamCount(node.parent);
+          ? fnParamCount(node)
+          : findParentParamCount(node.parent);
 
 const parentIsParameterized: TParentIsParameterized = (node) =>
     findParentParamCount(node.parent) > 0;

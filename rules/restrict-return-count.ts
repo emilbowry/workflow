@@ -11,14 +11,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "../type-based/type-based.types";
+import { field, lintMetaToMsg } from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/restrict-return-count",
+    rule: "local/restrict-return-count",
     avoid: field(
         "avoid",
         "Early returns / guard " +

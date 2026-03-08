@@ -11,14 +11,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/no-duplicate-type-structure",
+    rule: "local/no-duplicate-type-structure",
     flags: field(
         "flags",
         "Two or more type aliases " +
@@ -99,8 +95,8 @@ const keyName: TKeyName = (key) =>
     key.type === AST_NODE_TYPES.Identifier
         ? key.name
         : key.type === AST_NODE_TYPES.Literal
-            ? String(key.value)
-            : key.type;
+          ? String(key.value)
+          : key.type;
 
 type THandleIdentifierParam = (param: TSESTree.Identifier) => string;
 
@@ -118,8 +114,8 @@ const canonicalParam: TCanonicalParam = (param) =>
     param.type === AST_NODE_TYPES.Identifier
         ? handleIdentifierParam(param)
         : param.type === AST_NODE_TYPES.RestElement
-            ? handleRestParam(param)
-            : param.type;
+          ? handleRestParam(param)
+          : param.type;
 
 type THandleProperty = (member: TSESTree.TSPropertySignature) => string;
 
@@ -260,8 +256,8 @@ const typeNameToString: TTypeNameToString = (typeName) =>
     typeName.type === AST_NODE_TYPES.Identifier
         ? typeName.name
         : typeName.type === AST_NODE_TYPES.TSQualifiedName
-            ? qualifiedToString(typeName)
-            : typeName.type;
+          ? qualifiedToString(typeName)
+          : typeName.type;
 
 const handleTypeReference: TRefIdentName = (node) => {
     const name: string = typeNameToString(node.typeName);
@@ -305,8 +301,8 @@ const handleLiteralValue: THandleLiteralValue = (literal) =>
     literal.type === AST_NODE_TYPES.Literal
         ? String(literal.value)
         : literal.type === AST_NODE_TYPES.UnaryExpression
-            ? literal.operator + unaryArgValue(literal.argument)
-            : "template";
+          ? literal.operator + unaryArgValue(literal.argument)
+          : "template";
 
 type THandleLiteralType = (node: TSESTree.TSLiteralType) => string;
 

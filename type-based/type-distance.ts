@@ -9,14 +9,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/type-distance",
+    rule: "local/type-distance",
     avoid: field(
         "avoid",
         "Near-duplicate type aliases " +
@@ -89,8 +85,8 @@ const keyName: TKeyName = (key) =>
     key.type === AST_NODE_TYPES.Identifier
         ? key.name
         : key.type === AST_NODE_TYPES.Literal
-            ? String(key.value)
-            : key.type;
+          ? String(key.value)
+          : key.type;
 
 type TCanonicalType = (node: TSESTree.TypeNode) => string;
 
@@ -98,10 +94,10 @@ const canonicalType: TCanonicalType = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
         ? handleTypeLiteral(node)
         : node.type === AST_NODE_TYPES.TSUnionType
-            ? node.types.map(canonicalType).join("|")
-            : node.type === AST_NODE_TYPES.TSIntersectionType
-                ? node.types.map(canonicalType).join("&")
-                : node.type;
+          ? node.types.map(canonicalType).join("|")
+          : node.type === AST_NODE_TYPES.TSIntersectionType
+            ? node.types.map(canonicalType).join("&")
+            : node.type;
 
 type THandleTypeLiteral = (node: TSESTree.TSTypeLiteral) => string;
 

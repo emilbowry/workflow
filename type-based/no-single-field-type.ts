@@ -10,14 +10,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/no-single-field-type",
+    rule: "local/no-single-field-type",
     flags: field(
         "flags",
         "Type alias with exactly one" +

@@ -10,16 +10,12 @@ import type { TTransportGraph } from "./transport-graph";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 import { buildTransportGraph, classifyEdge } from "./transport-graph";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/fiber-coherence",
+    rule: "local/fiber-coherence",
     avoid: field(
         "avoid",
         "Isomorphic edges between " +
@@ -108,12 +104,12 @@ const computeCardinality: TComputeCardinality = (node) =>
     node.type === AST_NODE_TYPES.TSUnionType
         ? node.types.length
         : node.type === AST_NODE_TYPES.TSTypeLiteral
-            ? node.members.length
-            : node.type === AST_NODE_TYPES.TSTupleType
-                ? node.elementTypes.length
-                : node.type === AST_NODE_TYPES.TSIntersectionType
-                    ? node.types.length
-                    : 1;
+          ? node.members.length
+          : node.type === AST_NODE_TYPES.TSTupleType
+            ? node.elementTypes.length
+            : node.type === AST_NODE_TYPES.TSIntersectionType
+              ? node.types.length
+              : 1;
 
 type TCardinalityMap = ReadonlyMap<string, number>;
 
@@ -207,12 +203,12 @@ const collectMismatches: TCollectMismatches = (
         return lc === rc
             ? acc
             : [
-                ...acc,
-                {
-                    left: edge.domain,
-                    right: edge.codomain,
-                },
-            ];
+                  ...acc,
+                  {
+                      left: edge.domain,
+                      right: edge.codomain,
+                  },
+              ];
     }, []);
 
 type TEntryMap = ReadonlyMap<string, TAliasEntry>;

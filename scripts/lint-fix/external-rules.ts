@@ -1,19 +1,12 @@
-import type {
-    TLintMeta,
-} from "../../type-based/type-based.types";
+import type { TLintMeta } from "../../type-based/type-based.types";
 
-import {
-    field,
-} from "../../type-based/type-based.types";
+import { field } from "../../type-based/type-based.types";
 
-type TExternalRegistry =
-    ReadonlyArray<TLintMeta>;
+type TExternalRegistry = ReadonlyArray<TLintMeta>;
 
 const registry: TExternalRegistry = [
     {
-        rule:
-            "@typescript-eslint/" +
-            "ban-ts-comment",
+        rule: "@typescript-eslint/" + "ban-ts-comment",
         flags: field(
             "flags",
             "Usage of @ts-ignore" +
@@ -28,21 +21,14 @@ const registry: TExternalRegistry = [
                 " underlying type " +
                 "error instead",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
-            "All ts-comment " +
-                "directives. No " +
-                "exceptions",
+            "All ts-comment " + "directives. No " + "exceptions",
         ),
         related: field(
             "related",
-            "eslint-comments/" +
-                "no-use, " +
-                "ban-tslint-comment",
+            "eslint-comments/" + "no-use, " + "ban-tslint-comment",
         ),
         philosophy: field(
             "philosophy",
@@ -54,9 +40,7 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "ban-tslint-comment",
+        rule: "@typescript-eslint/" + "ban-tslint-comment",
         flags: field(
             "flags",
             "Legacy TSLint " +
@@ -64,25 +48,12 @@ const registry: TExternalRegistry = [
                 " (tslint:disable " +
                 "etc)",
         ),
-        fix: field(
-            "fix",
-            "Remove the stale " +
-                "directive comment",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
-        avoid: field(
-            "avoid",
-            "All tslint " +
-                "directive comments",
-        ),
+        fix: field("fix", "Remove the stale " + "directive comment"),
+        pitfalls: field("pitfalls", "None"),
+        avoid: field("avoid", "All tslint " + "directive comments"),
         related: field(
             "related",
-            "ban-ts-comment, " +
-                "eslint-comments/" +
-                "no-use",
+            "ban-ts-comment, " + "eslint-comments/" + "no-use",
         ),
         philosophy: field(
             "philosophy",
@@ -93,10 +64,7 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "consistent-generic" +
-            "-constructors",
+        rule: "@typescript-eslint/" + "consistent-generic" + "-constructors",
         flags: field(
             "flags",
             "Generic type args " +
@@ -112,10 +80,7 @@ const registry: TExternalRegistry = [
                 "const x: Array<T>" +
                 " = new Array()",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
             "const x = new " +
@@ -123,11 +88,7 @@ const registry: TExternalRegistry = [
                 "generics on the " +
                 "left side",
         ),
-        related: field(
-            "related",
-            "typedef, require-" +
-                "extracted-types",
-        ),
+        related: field("related", "typedef, require-" + "extracted-types"),
         philosophy: field(
             "philosophy",
             "Type annotation is" +
@@ -137,26 +98,13 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "prefer-function-" +
-            "type",
+        rule: "@typescript-eslint/" + "prefer-function-" + "type",
         flags: field(
             "flags",
-            "Type literal with " +
-                "only a single " +
-                "call signature",
+            "Type literal with " + "only a single " + "call signature",
         ),
-        fix: field(
-            "fix",
-            "Simplify " +
-                "{ (): T } to " +
-                "() => T",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        fix: field("fix", "Simplify " + "{ (): T } to " + "() => T"),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
             "Unnecessary " +
@@ -166,50 +114,31 @@ const registry: TExternalRegistry = [
         ),
         related: field(
             "related",
-            "no-single-field-" +
-                "type, enforce-" +
-                "record-type",
+            "no-single-field-" + "type, enforce-" + "record-type",
         ),
         philosophy: field(
             "philosophy",
-            "Reduce " +
-                "indirection for " +
-                "pure function " +
-                "types",
+            "Reduce " + "indirection for " + "pure function " + "types",
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "array-type",
-        flags: field(
-            "flags",
-            "T[] array syntax",
-        ),
+        rule: "@typescript-eslint/" + "array-type",
+        flags: field("flags", "T[] array syntax"),
         fix: field(
             "fix",
-            "Use Array<T> " +
-                "syntax. Tuples " +
-                "are still allowed",
+            "Use Array<T> " + "syntax. Tuples " + "are still allowed",
         ),
         pitfalls: field(
             "pitfalls",
-            "Rule appears " +
-                "twice in config " +
-                "— deduplicate",
+            "Rule appears " + "twice in config " + "— deduplicate",
         ),
         avoid: field(
             "avoid",
-            "T[] syntax. Use " +
-                "Array<T> " +
-                "consistently",
+            "T[] syntax. Use " + "Array<T> " + "consistently",
         ),
         related: field(
             "related",
-            "consistent-type-" +
-                "definitions, " +
-                "enforce-record-" +
-                "type",
+            "consistent-type-" + "definitions, " + "enforce-record-" + "type",
         ),
         philosophy: field(
             "philosophy",
@@ -221,15 +150,10 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "consistent-type-" +
-            "assertions",
+        rule: "@typescript-eslint/" + "consistent-type-" + "assertions",
         flags: field(
             "flags",
-            "Any type assertion" +
-                " (as X or <X> " +
-                "syntax)",
+            "Any type assertion" + " (as X or <X> " + "syntax)",
         ),
         fix: field(
             "fix",
@@ -260,10 +184,7 @@ const registry: TExternalRegistry = [
         ),
         related: field(
             "related",
-            "no-unsafe-type-" +
-                "assertion, no-" +
-                "unnecessary-" +
-                "condition",
+            "no-unsafe-type-" + "assertion, no-" + "unnecessary-" + "condition",
         ),
         philosophy: field(
             "philosophy",
@@ -276,21 +197,14 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "no-unsafe-type-" +
-            "assertion",
+        rule: "@typescript-eslint/" + "no-unsafe-type-" + "assertion",
         flags: field(
             "flags",
-            "Type assertions " +
-                "that narrow to a " +
-                "more specific type",
+            "Type assertions " + "that narrow to a " + "more specific type",
         ),
         fix: field(
             "fix",
-            "Use type narrowing" +
-                " via discriminated" +
-                " unions or switch",
+            "Use type narrowing" + " via discriminated" + " unions or switch",
         ),
         pitfalls: field(
             "pitfalls",
@@ -299,11 +213,7 @@ const registry: TExternalRegistry = [
                 "consistent-type-" +
                 "assertions: never",
         ),
-        avoid: field(
-            "avoid",
-            "All narrowing " +
-                "assertions",
-        ),
+        avoid: field("avoid", "All narrowing " + "assertions"),
         related: field(
             "related",
             "consistent-type-" +
@@ -320,15 +230,10 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "consistent-type-" +
-            "definitions",
+        rule: "@typescript-eslint/" + "consistent-type-" + "definitions",
         flags: field(
             "flags",
-            "Interface " +
-                "declarations " +
-                "(interface keyword)",
+            "Interface " + "declarations " + "(interface keyword)",
         ),
         fix: field(
             "fix",
@@ -337,22 +242,14 @@ const registry: TExternalRegistry = [
                 "IFoo becomes type" +
                 " TFoo",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
-            "Interface keyword." +
-                " Use type " +
-                "exclusively",
+            "Interface keyword." + " Use type " + "exclusively",
         ),
         related: field(
             "related",
-            "no-duplicate-type" +
-                "-structure, " +
-                "enforce-record-" +
-                "type",
+            "no-duplicate-type" + "-structure, " + "enforce-record-" + "type",
         ),
         philosophy: field(
             "philosophy",
@@ -366,21 +263,12 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "consistent-type-" +
-            "imports",
+        rule: "@typescript-eslint/" + "consistent-type-" + "imports",
         flags: field(
             "flags",
-            "Non-type imports " +
-                "of type-only " +
-                "symbols",
+            "Non-type imports " + "of type-only " + "symbols",
         ),
-        fix: field(
-            "fix",
-            "Use import " +
-                "type { }",
-        ),
+        fix: field("fix", "Use import " + "type { }"),
         pitfalls: field(
             "pitfalls",
             "Update imports " +
@@ -391,15 +279,9 @@ const registry: TExternalRegistry = [
         ),
         avoid: field(
             "avoid",
-            "Importing types " +
-                "without the type " +
-                "keyword",
+            "Importing types " + "without the type " + "keyword",
         ),
-        related: field(
-            "related",
-            "consistent-type-" +
-                "exports",
-        ),
+        related: field("related", "consistent-type-" + "exports"),
         philosophy: field(
             "philosophy",
             "Separates type-" +
@@ -409,54 +291,28 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "consistent-type-" +
-            "exports",
+        rule: "@typescript-eslint/" + "consistent-type-" + "exports",
         flags: field(
             "flags",
-            "Type exports " +
-                "without export " +
-                "type keyword",
+            "Type exports " + "without export " + "type keyword",
         ),
-        fix: field(
-            "fix",
-            "Use export " +
-                "type { }",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        fix: field("fix", "Use export " + "type { }"),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
-            "Exporting types " +
-                "without the type " +
-                "keyword",
+            "Exporting types " + "without the type " + "keyword",
         ),
-        related: field(
-            "related",
-            "consistent-type-" +
-                "imports",
-        ),
+        related: field("related", "consistent-type-" + "imports"),
         philosophy: field(
             "philosophy",
-            "Separates type-" +
-                "level and value-" +
-                "level export " +
-                "graphs",
+            "Separates type-" + "level and value-" + "level export " + "graphs",
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "explicit-function-" +
-            "return-type",
+        rule: "@typescript-eslint/" + "explicit-function-" + "return-type",
         flags: field(
             "flags",
-            "Function without " +
-                "explicit return " +
-                "type annotation",
+            "Function without " + "explicit return " + "type annotation",
         ),
         fix: field(
             "fix",
@@ -476,15 +332,9 @@ const registry: TExternalRegistry = [
         ),
         avoid: field(
             "avoid",
-            "Relying on type " +
-                "inference for " +
-                "return types",
+            "Relying on type " + "inference for " + "return types",
         ),
-        related: field(
-            "related",
-            "require-extracted" +
-                "-types, typedef",
-        ),
+        related: field("related", "require-extracted" + "-types, typedef"),
         philosophy: field(
             "philosophy",
             "Every function " +
@@ -495,21 +345,12 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "typedef",
+        rule: "@typescript-eslint/" + "typedef",
         flags: field(
             "flags",
-            "Variable " +
-                "declaration " +
-                "without type " +
-                "annotation",
+            "Variable " + "declaration " + "without type " + "annotation",
         ),
-        fix: field(
-            "fix",
-            "Add explicit type:" +
-                " const x: T = ...",
-        ),
+        fix: field("fix", "Add explicit type:" + " const x: T = ..."),
         pitfalls: field(
             "pitfalls",
             "Combined with " +
@@ -520,10 +361,7 @@ const registry: TExternalRegistry = [
         ),
         avoid: field(
             "avoid",
-            "Implicit type " +
-                "inference on " +
-                "variable " +
-                "declarations",
+            "Implicit type " + "inference on " + "variable " + "declarations",
         ),
         related: field(
             "related",
@@ -542,33 +380,12 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "no-deprecated",
-        flags: field(
-            "flags",
-            "Use of deprecated " +
-                "APIs",
-        ),
-        fix: field(
-            "fix",
-            "Replace with the " +
-                "current API " +
-                "equivalent",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
-        avoid: field(
-            "avoid",
-            "Deprecated " +
-                "interfaces",
-        ),
-        related: field(
-            "related",
-            "None",
-        ),
+        rule: "@typescript-eslint/" + "no-deprecated",
+        flags: field("flags", "Use of deprecated " + "APIs"),
+        fix: field("fix", "Replace with the " + "current API " + "equivalent"),
+        pitfalls: field("pitfalls", "None"),
+        avoid: field("avoid", "Deprecated " + "interfaces"),
+        related: field("related", "None"),
         philosophy: field(
             "philosophy",
             "Keeps codebase " +
@@ -580,10 +397,7 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "no-duplicate-type-" +
-            "constituents",
+        rule: "@typescript-eslint/" + "no-duplicate-type-" + "constituents",
         flags: field(
             "flags",
             "Redundant members " +
@@ -591,27 +405,13 @@ const registry: TExternalRegistry = [
                 " or intersections" +
                 " (A & A)",
         ),
-        fix: field(
-            "fix",
-            "Remove the " +
-                "duplicate " +
-                "constituent",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        fix: field("fix", "Remove the " + "duplicate " + "constituent"),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
-            "Duplicate members " +
-                "in union or " +
-                "intersection types",
+            "Duplicate members " + "in union or " + "intersection types",
         ),
-        related: field(
-            "related",
-            "no-duplicate-type" +
-                "-structure",
-        ),
+        related: field("related", "no-duplicate-type" + "-structure"),
         philosophy: field(
             "philosophy",
             "A union with a " +
@@ -623,26 +423,12 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "no-explicit-any",
-        flags: field(
-            "flags",
-            "Usage of any type " +
-                "(except rest args)",
-        ),
-        fix: field(
-            "fix",
-            "Replace with a " +
-                "specific type or " +
-                "unknown",
-        ),
+        rule: "@typescript-eslint/" + "no-explicit-any",
+        flags: field("flags", "Usage of any type " + "(except rest args)"),
+        fix: field("fix", "Replace with a " + "specific type or " + "unknown"),
         pitfalls: field(
             "pitfalls",
-            "Rest args are " +
-                "exempt " +
-                "(ignoreRestArgs:" +
-                " true)",
+            "Rest args are " + "exempt " + "(ignoreRestArgs:" + " true)",
         ),
         avoid: field(
             "avoid",
@@ -653,9 +439,7 @@ const registry: TExternalRegistry = [
         ),
         related: field(
             "related",
-            "no-unsafe-type-" +
-                "assertion, " +
-                "typedef",
+            "no-unsafe-type-" + "assertion, " + "typedef",
         ),
         philosophy: field(
             "philosophy",
@@ -667,10 +451,7 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "method-signature-" +
-            "style",
+        rule: "@typescript-eslint/" + "method-signature-" + "style",
         flags: field(
             "flags",
             "Method signature " +
@@ -678,27 +459,15 @@ const registry: TExternalRegistry = [
                 "foo(x: A): B in " +
                 "type literals",
         ),
-        fix: field(
-            "fix",
-            "Use property " +
-                "style: foo: " +
-                "(x: A) => B",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        fix: field("fix", "Use property " + "style: foo: " + "(x: A) => B"),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
-            "Method signature " +
-                "syntax in type " +
-                "literals",
+            "Method signature " + "syntax in type " + "literals",
         ),
         related: field(
             "related",
-            "func-style, " +
-                "prefer-arrow-" +
-                "callback",
+            "func-style, " + "prefer-arrow-" + "callback",
         ),
         philosophy: field(
             "philosophy",
@@ -710,15 +479,10 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "no-unnecessary-" +
-            "condition",
+        rule: "@typescript-eslint/" + "no-unnecessary-" + "condition",
         flags: field(
             "flags",
-            "Conditions that " +
-                "are always truthy" +
-                " or always falsy",
+            "Conditions that " + "are always truthy" + " or always falsy",
         ),
         fix: field(
             "fix",
@@ -743,11 +507,7 @@ const registry: TExternalRegistry = [
                 " cannot be " +
                 "nullish",
         ),
-        related: field(
-            "related",
-            "consistent-type-" +
-                "assertions",
-        ),
+        related: field("related", "consistent-type-" + "assertions"),
         philosophy: field(
             "philosophy",
             "Precise types " +
@@ -759,40 +519,24 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "@typescript-eslint/" +
-            "no-confusing-void" +
-            "-expression",
+        rule: "@typescript-eslint/" + "no-confusing-void" + "-expression",
         flags: field(
             "flags",
-            "Void expressions " +
-                "in non-statement " +
-                "position",
+            "Void expressions " + "in non-statement " + "position",
         ),
         fix: field(
             "fix",
-            "Use statement " +
-                "form. Arrow " +
-                "shorthand is " +
-                "exempt",
+            "Use statement " + "form. Arrow " + "shorthand is " + "exempt",
         ),
         pitfalls: field(
             "pitfalls",
-            "ignoreArrow" +
-                "Shorthand is " +
-                "enabled",
+            "ignoreArrow" + "Shorthand is " + "enabled",
         ),
         avoid: field(
             "avoid",
-            "Void return " +
-                "values in " +
-                "expression " +
-                "position",
+            "Void return " + "values in " + "expression " + "position",
         ),
-        related: field(
-            "related",
-            "arrow-body-style",
-        ),
+        related: field("related", "arrow-body-style"),
         philosophy: field(
             "philosophy",
             "Void values " +
@@ -802,14 +546,10 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "eslint-comments/" +
-            "no-use",
+        rule: "eslint-comments/" + "no-use",
         flags: field(
             "flags",
-            "Any eslint disable" +
-                " comment (no " +
-                "exceptions)",
+            "Any eslint disable" + " comment (no " + "exceptions)",
         ),
         fix: field(
             "fix",
@@ -819,21 +559,11 @@ const registry: TExternalRegistry = [
                 "suppression " +
                 "allowed",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "allow: [] means " +
-                "zero exceptions",
-        ),
-        avoid: field(
-            "avoid",
-            "All eslint-disable" +
-                " comments",
-        ),
+        pitfalls: field("pitfalls", "allow: [] means " + "zero exceptions"),
+        avoid: field("avoid", "All eslint-disable" + " comments"),
         related: field(
             "related",
-            "ban-ts-comment, " +
-                "no-warning-" +
-                "comments",
+            "ban-ts-comment, " + "no-warning-" + "comments",
         ),
         philosophy: field(
             "philosophy",
@@ -846,11 +576,7 @@ const registry: TExternalRegistry = [
     },
     {
         rule: "functional/no-let",
-        flags: field(
-            "flags",
-            "Any let " +
-                "declaration",
-        ),
+        flags: field("flags", "Any let " + "declaration"),
         fix: field(
             "fix",
             "Use const. For " +
@@ -871,16 +597,11 @@ const registry: TExternalRegistry = [
         ),
         avoid: field(
             "avoid",
-            "Mutable bindings. " +
-                "Use const " +
-                "exclusively",
+            "Mutable bindings. " + "Use const " + "exclusively",
         ),
         related: field(
             "related",
-            "restrict-return-" +
-                "count, " +
-                "consistent-type-" +
-                "assertions",
+            "restrict-return-" + "count, " + "consistent-type-" + "assertions",
         ),
         philosophy: field(
             "philosophy",
@@ -897,15 +618,11 @@ const registry: TExternalRegistry = [
         rule: "arrow-body-style",
         flags: field(
             "flags",
-            "Block body when " +
-                "expression body " +
-                "suffices",
+            "Block body when " + "expression body " + "suffices",
         ),
         fix: field(
             "fix",
-            "Remove braces and" +
-                " return keyword: " +
-                "=> expr",
+            "Remove braces and" + " return keyword: " + "=> expr",
         ),
         pitfalls: field(
             "pitfalls",
@@ -923,11 +640,7 @@ const registry: TExternalRegistry = [
                 " }) when => expr" +
                 " suffices",
         ),
-        related: field(
-            "related",
-            "restrict-return-" +
-                "count, func-style",
-        ),
+        related: field("related", "restrict-return-" + "count, func-style"),
         philosophy: field(
             "philosophy",
             "Expression-" +
@@ -942,32 +655,20 @@ const registry: TExternalRegistry = [
         rule: "func-style",
         flags: field(
             "flags",
-            "Function " +
-                "declarations " +
-                "(function keyword)",
+            "Function " + "declarations " + "(function keyword)",
         ),
         fix: field(
             "fix",
-            "Convert to const " +
-                "arrow: const f: " +
-                "T = (...) => ...",
+            "Convert to const " + "arrow: const f: " + "T = (...) => ...",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
+        pitfalls: field("pitfalls", "None"),
         avoid: field(
             "avoid",
-            "function " +
-                "declarations. Use" +
-                " const arrow " +
-                "expressions",
+            "function " + "declarations. Use" + " const arrow " + "expressions",
         ),
         related: field(
             "related",
-            "prefer-arrow-" +
-                "callback, " +
-                "arrow-body-style",
+            "prefer-arrow-" + "callback, " + "arrow-body-style",
         ),
         philosophy: field(
             "philosophy",
@@ -980,34 +681,12 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "prefer-arrow-" +
-            "callback",
-        flags: field(
-            "flags",
-            "Function " +
-                "expression as " +
-                "callback",
-        ),
-        fix: field(
-            "fix",
-            "Replace with " +
-                "arrow function",
-        ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
-        avoid: field(
-            "avoid",
-            "function() {} in " +
-                "callback position",
-        ),
-        related: field(
-            "related",
-            "func-style, " +
-                "arrow-body-style",
-        ),
+        rule: "prefer-arrow-" + "callback",
+        flags: field("flags", "Function " + "expression as " + "callback"),
+        fix: field("fix", "Replace with " + "arrow function"),
+        pitfalls: field("pitfalls", "None"),
+        avoid: field("avoid", "function() {} in " + "callback position"),
+        related: field("related", "func-style, " + "arrow-body-style"),
         philosophy: field(
             "philosophy",
             "Complement to " +
@@ -1019,11 +698,7 @@ const registry: TExternalRegistry = [
     },
     {
         rule: "indent",
-        flags: field(
-            "flags",
-            "Non-4-space " +
-                "indentation",
-        ),
+        flags: field("flags", "Non-4-space " + "indentation"),
         fix: field(
             "fix",
             "Restructure code " +
@@ -1051,11 +726,7 @@ const registry: TExternalRegistry = [
                 "beyond the depth" +
                 " limit",
         ),
-        related: field(
-            "related",
-            "max-total-depth, " +
-                "max-len",
-        ),
+        related: field("related", "max-total-depth, " + "max-len"),
         philosophy: field(
             "philosophy",
             "Consistent " +
@@ -1067,11 +738,7 @@ const registry: TExternalRegistry = [
     },
     {
         rule: "max-len",
-        flags: field(
-            "flags",
-            "Lines exceeding " +
-                "80 characters",
-        ),
+        flags: field("flags", "Lines exceeding " + "80 characters"),
         fix: field(
             "fix",
             "Break into " +
@@ -1100,10 +767,7 @@ const registry: TExternalRegistry = [
         ),
         related: field(
             "related",
-            "max-lines-per-" +
-                "function, " +
-                "require-extracted" +
-                "-types",
+            "max-lines-per-" + "function, " + "require-extracted" + "-types",
         ),
         philosophy: field(
             "philosophy",
@@ -1117,9 +781,7 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "max-lines-per-" +
-            "function",
+        rule: "max-lines-per-" + "function",
         flags: field(
             "flags",
             "Functions " +
@@ -1128,12 +790,7 @@ const registry: TExternalRegistry = [
                 "blanks and " +
                 "comments)",
         ),
-        fix: field(
-            "fix",
-            "Extract helper " +
-                "functions at " +
-                "module scope",
-        ),
+        fix: field("fix", "Extract helper " + "functions at " + "module scope"),
         pitfalls: field(
             "pitfalls",
             "Counts blank " +
@@ -1145,17 +802,10 @@ const registry: TExternalRegistry = [
                 " go to module " +
                 "scope",
         ),
-        avoid: field(
-            "avoid",
-            "Functions longer " +
-                "than 40 lines",
-        ),
+        avoid: field("avoid", "Functions longer " + "than 40 lines"),
         related: field(
             "related",
-            "no-nested-" +
-                "function, " +
-                "complexity, " +
-                "max-total-depth",
+            "no-nested-" + "function, " + "complexity, " + "max-total-depth",
         ),
         philosophy: field(
             "philosophy",
@@ -1170,12 +820,7 @@ const registry: TExternalRegistry = [
     },
     {
         rule: "complexity",
-        flags: field(
-            "flags",
-            "Cyclomatic " +
-                "complexity " +
-                "exceeding 5",
-        ),
+        flags: field("flags", "Cyclomatic " + "complexity " + "exceeding 5"),
         fix: field(
             "fix",
             "Extract branches " +
@@ -1217,15 +862,8 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "no-warning-" +
-            "comments",
-        flags: field(
-            "flags",
-            "Comments " +
-                "containing " +
-                "prettier-ignore",
-        ),
+        rule: "no-warning-" + "comments",
+        flags: field("flags", "Comments " + "containing " + "prettier-ignore"),
         fix: field(
             "fix",
             "Remove comment. " +
@@ -1233,20 +871,11 @@ const registry: TExternalRegistry = [
                 " to work with " +
                 "prettier",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
-        avoid: field(
-            "avoid",
-            "prettier-ignore " +
-                "comments anywhere",
-        ),
+        pitfalls: field("pitfalls", "None"),
+        avoid: field("avoid", "prettier-ignore " + "comments anywhere"),
         related: field(
             "related",
-            "eslint-comments/" +
-                "no-use, " +
-                "ban-ts-comment",
+            "eslint-comments/" + "no-use, " + "ban-ts-comment",
         ),
         philosophy: field(
             "philosophy",
@@ -1259,14 +888,10 @@ const registry: TExternalRegistry = [
         ),
     },
     {
-        rule:
-            "no-restricted-" +
-            "syntax",
+        rule: "no-restricted-" + "syntax",
         flags: field(
             "flags",
-            "Type predicates " +
-                "(is keyword in " +
-                "return type)",
+            "Type predicates " + "(is keyword in " + "return type)",
         ),
         fix: field(
             "fix",
@@ -1275,21 +900,9 @@ const registry: TExternalRegistry = [
                 "explicit type " +
                 "narrowing",
         ),
-        pitfalls: field(
-            "pitfalls",
-            "None",
-        ),
-        avoid: field(
-            "avoid",
-            "Type predicate " +
-                "functions " +
-                "(x is T)",
-        ),
-        related: field(
-            "related",
-            "consistent-type-" +
-                "assertions",
-        ),
+        pitfalls: field("pitfalls", "None"),
+        avoid: field("avoid", "Type predicate " + "functions " + "(x is T)"),
+        related: field("related", "consistent-type-" + "assertions"),
         philosophy: field(
             "philosophy",
             "Type predicates " +
@@ -1310,9 +923,7 @@ const registry: TExternalRegistry = [
         rule: "id-length",
         flags: field(
             "flags",
-            "Identifiers " +
-                "shorter than 3 " +
-                "characters",
+            "Identifiers " + "shorter than 3 " + "characters",
         ),
         fix: field(
             "fix",
@@ -1325,21 +936,13 @@ const registry: TExternalRegistry = [
         ),
         pitfalls: field(
             "pitfalls",
-            "Property names " +
-                "are excluded " +
-                "(properties: " +
-                "never)",
+            "Property names " + "are excluded " + "(properties: " + "never)",
         ),
         avoid: field(
             "avoid",
-            "Short identifiers" +
-                " outside the " +
-                "exceptions list",
+            "Short identifiers" + " outside the " + "exceptions list",
         ),
-        related: field(
-            "related",
-            "None",
-        ),
+        related: field("related", "None"),
         philosophy: field(
             "philosophy",
             "Descriptive names" +

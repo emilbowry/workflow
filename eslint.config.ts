@@ -282,9 +282,7 @@ export default defineConfig(
                         "Record dispatch.",
                 },
                 {
-                    selector:
-                        "TSTypeReference" +
-                        '[typeName.name="Map"]',
+                    selector: "TSTypeReference" + '[typeName.name="Map"]',
                     message:
                         "Map is banned. Use " +
                         "Record<K, V> with " +

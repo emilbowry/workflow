@@ -9,14 +9,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/finite-domain-return-widening",
+    rule: "local/finite-domain-return-widening",
     avoid: field(
         "avoid",
         "Returning bare string from " +
@@ -108,8 +104,8 @@ const getParamAnnotation: (
     param.type === AST_NODE_TYPES.Identifier
         ? param.typeAnnotation?.typeAnnotation
         : param.type === AST_NODE_TYPES.RestElement && param.typeAnnotation
-            ? param.typeAnnotation.typeAnnotation
-            : undefined;
+          ? param.typeAnnotation.typeAnnotation
+          : undefined;
 
 const hasFiniteParam: THasFiniteParam = (params) =>
     params.some((p: TSESTree.Parameter) => {
