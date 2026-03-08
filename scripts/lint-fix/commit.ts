@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import { dirname } from "path";
 import type { TCommitData } from "./types.ts";
 
 const execAsync = promisify(exec);
@@ -36,8 +37,9 @@ const composeCommitMessage: TComposeCommitMessage = (data) => {
 type TCommitFile = (filePath: string, message: string) => Promise<void>;
 
 const commitFile: TCommitFile = async (filePath, message) => {
-    await execAsync("git add " + JSON.stringify(filePath));
-    await execAsync("git commit -m " + JSON.stringify(message));
+    const cwd: string = dirname(filePath);
+    await execAsync("git add " + JSON.stringify(filePath), { cwd });
+    await execAsync("git commit -m " + JSON.stringify(message), { cwd });
 };
 
 export { composeCommitMessage, commitFile };
