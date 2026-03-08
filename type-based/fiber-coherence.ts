@@ -89,13 +89,9 @@ const makeAliasEntry: TMakeAliasEntry = (node) => ({
     node,
 });
 
-type TIsFunctionType = (
-    node: TSESTree.TypeNode,
-) => node is TSESTree.TSFunctionType;
+type TIsFunctionType = (node: TSESTree.TypeNode) => boolean;
 
-const isFunctionType: TIsFunctionType = (
-    node,
-): node is TSESTree.TSFunctionType =>
+const isFunctionType: TIsFunctionType = (node) =>
     node.type === AST_NODE_TYPES.TSFunctionType;
 
 type TComputeCardinality = (node: TSESTree.TypeNode) => number;
