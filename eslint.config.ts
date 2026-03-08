@@ -189,7 +189,7 @@ export default defineConfig(
             */
             "@typescript-eslint/no-unnecessary-condition": "error",
             "local/restrict-return-count": ["error", 1],
-            indent: ["error", 4],
+            indent: ["error", 4, { SwitchCase: 1 }],
             "local/max-total-depth": ["error", 3],
             "local/require-extracted-function-type": "error",
             // "local/prefer-call-signature": "error",
@@ -253,7 +253,7 @@ export default defineConfig(
                 "error",
                 {
                     selector: "TSTypePredicate",
-                    message: "Type predicates (is) " + "are not allowed.",
+                    message: "Type predicates (is) are not allowed.",
                 },
                 {
                     selector: "TSTypeReference" + '[typeName.name="Partial"]',
