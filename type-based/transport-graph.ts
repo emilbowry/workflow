@@ -32,7 +32,7 @@ export const LINT_META: TLintMeta = {
         "flags",
         "Discriminated type with no " +
             "edges in the transport graph " +
-            "— not used as domain or " +
+            "\u2014 not used as domain or " +
             "codomain of any function " +
             "signature",
     ),
@@ -40,7 +40,7 @@ export const LINT_META: TLintMeta = {
         "philosophy",
         "Types are nodes, functions " +
             "are edges. The type graph " +
-            "must be connected — every " +
+            "must be connected \u2014 every " +
             "type participates in the " +
             "computation graph. Isolated " +
             "nodes are dead types",
@@ -95,8 +95,8 @@ type TTypeName = TSESTree.TSTypeReference["typeName"];
 
 type TTypeNameStr = (t: TTypeName) => string;
 
-const typeNameStr: TTypeNameStr = (t) =>
-    t.type === AST_NODE_TYPES.Identifier ? t.name : "";
+const typeNameStr: TTypeNameStr = (typ) =>
+    typ.type === AST_NODE_TYPES.Identifier ? typ.name : "";
 
 type TIsLiteralType = (node: TSESTree.TypeNode) => boolean;
 
@@ -119,8 +119,8 @@ const getConstraint: TGetConstraint = (param) => param.constraint ?? undefined;
 type THasFiniteConstraint = (param: TSESTree.TSTypeParameter) => boolean;
 
 const hasFiniteConstraint: THasFiniteConstraint = (param) => {
-    const c: TSESTree.TypeNode | undefined = getConstraint(param);
-    return c !== undefined && (isLiteralUnion(c) || isLiteralType(c));
+    const con: TSESTree.TypeNode | undefined = getConstraint(param);
+    return con !== undefined && (isLiteralUnion(con) || isLiteralType(con));
 };
 
 type TIsConstrainedGeneric = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
@@ -150,9 +150,9 @@ const extractParamRef: TExtractDomain = (node) => {
     if (ann === undefined) {
         return undefined;
     }
-    const t: TSESTree.TypeNode = ann.typeAnnotation;
-    return t.type === AST_NODE_TYPES.TSTypeReference
-        ? typeNameStr(t.typeName)
+    const typ: TSESTree.TypeNode = ann.typeAnnotation;
+    return typ.type === AST_NODE_TYPES.TSTypeReference
+        ? typeNameStr(typ.typeName)
         : undefined;
 };
 
@@ -163,9 +163,9 @@ const extractCodomain: TExtractCodomain = (node) => {
     if (ret === undefined) {
         return undefined;
     }
-    const t: TSESTree.TypeNode = ret.typeAnnotation;
-    return t.type === AST_NODE_TYPES.TSTypeReference
-        ? typeNameStr(t.typeName)
+    const typ: TSESTree.TypeNode = ret.typeAnnotation;
+    return typ.type === AST_NODE_TYPES.TSTypeReference
+        ? typeNameStr(typ.typeName)
         : undefined;
 };
 
@@ -193,9 +193,9 @@ const hasReverse: (
         if (!isFunctionType(e.annotation)) {
             return false;
         }
-        const d: string | undefined = extractParamRef(e.annotation);
-        const c: string | undefined = extractCodomain(e.annotation);
-        return d === codomain && c === domain;
+        const dom: string | undefined = extractParamRef(e.annotation);
+        const cod: string | undefined = extractCodomain(e.annotation);
+        return dom === codomain && cod === domain;
     });
 
 export const classifyEdge: TClassifyCardinality = (
@@ -219,18 +219,18 @@ const collectEdges: TCollectEdges = (nodeNames, fnEntries) =>
         if (!isFunctionType(entry.annotation)) {
             return acc;
         }
-        const d: string | undefined = extractParamRef(entry.annotation);
-        const c: string | undefined = extractCodomain(entry.annotation);
-        if (d === undefined || c === undefined) {
+        const dom: string | undefined = extractParamRef(entry.annotation);
+        const cod: string | undefined = extractCodomain(entry.annotation);
+        if (dom === undefined || cod === undefined) {
             return acc;
         }
-        if (!nodeNames.has(d) || !nodeNames.has(c)) {
+        if (!nodeNames.has(dom) || !nodeNames.has(cod)) {
             return acc;
         }
         const edge: TEdge = {
-            cardinality: classifyEdge(d, c, fnEntries),
-            codomain: c,
-            domain: d,
+            cardinality: classifyEdge(dom, cod, fnEntries),
+            codomain: cod,
+            domain: dom,
         };
         return [...acc, edge];
     }, []);
@@ -242,7 +242,7 @@ type TBuildAdjacency = (
 
 const buildAdjacency: TBuildAdjacency = (nodes, edges) => {
     const base: ReadonlyArray<readonly [string, ReadonlyArray<string>]> =
-        nodes.map((n) => [n, []] as const);
+        nodes.map((node) => [node, []] as const);
     const initial: Map<string, ReadonlyArray<string>> = new Map(base);
     return edges.reduce((acc, edge) => {
         const existing: ReadonlyArray<string> = acc.get(edge.domain) ?? [];
@@ -301,7 +301,7 @@ type TFindComponents = (
 
 const findComponents: TFindComponents = (graph) =>
     graph.nodes.reduce<ReadonlyArray<ReadonlySet<string>>>((acc, node) => {
-        const alreadySeen: boolean = acc.some((c) => c.has(node));
+        const alreadySeen: boolean = acc.some((comp) => comp.has(node));
         if (alreadySeen) {
             return acc;
         }
@@ -333,8 +333,8 @@ type TReportIsolated = (
 ) => void;
 
 const reportIsolated: TReportIsolated = (context, graph, entryMap) => {
-    const isolated: ReadonlyArray<string> = graph.nodes.filter((n) =>
-        isIsolated(n, graph),
+    const isolated: ReadonlyArray<string> = graph.nodes.filter((node) =>
+        isIsolated(node, graph),
     );
     for (const name of isolated) {
         const entry: TAliasEntry | undefined = entryMap.get(name);

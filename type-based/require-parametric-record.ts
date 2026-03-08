@@ -95,13 +95,15 @@ type TRule = ESLintUtils.RuleModule<
 const PARAMETRIC: RegExp =
     /type\s+\w+<(\w+)\s+extends\s+[^>]+>\s*=\s*Record<\1,\s*\w+<\1>>/;
 
-type TIsValid = (...args: [src: string]) => boolean;
+type TIsValidArgs = [src: string];
+
+type TIsValid = (...args: TIsValidArgs) => boolean;
 
 const isValid: TIsValid = (src) => PARAMETRIC.test(src);
 
-type TIsRefWithArg = (
-    ...args: [node: TSESTree.TypeNode, name: string]
-) => boolean;
+type TIsRefWithArgArgs = [node: TSESTree.TypeNode, name: string];
+
+type TIsRefWithArg = (...args: TIsRefWithArgArgs) => boolean;
 
 const isRefWithArg: TIsRefWithArg = (node, name) =>
     node.type === AST_NODE_TYPES.TSTypeReference &&
@@ -113,23 +115,23 @@ const isRefWithArg: TIsRefWithArg = (node, name) =>
             param.typeName.name === name,
     );
 
-type TGetMappedKeyName = (...args: [mapped: TSESTree.TSMappedType]) => string;
+type TMappedArgs = [mapped: TSESTree.TSMappedType];
+
+type TGetMappedKeyName = (...args: TMappedArgs) => string;
 
 const getMappedKeyName: TGetMappedKeyName = (mapped) => mapped.key.name;
 
-type TGetMappedValue = (
-    ...args: [mapped: TSESTree.TSMappedType]
-) => TSESTree.TypeNode | undefined;
+type TGetMappedValue = (...args: TMappedArgs) => TSESTree.TypeNode | undefined;
 
 const getMappedValue: TGetMappedValue = (mapped) =>
     mapped.typeAnnotation ?? undefined;
 
-type TCheckMapped = (
-    ...args: [
-        context: Parameters<TRule["create"]>[0],
-        node: TSESTree.TSTypeAliasDeclaration,
-    ]
-) => void;
+type TCheckMappedArgs = [
+    context: Parameters<TRule["create"]>[0],
+    node: TSESTree.TSTypeAliasDeclaration,
+];
+
+type TCheckMapped = (...args: TCheckMappedArgs) => void;
 
 const checkMapped: TCheckMapped = (context, node) => {
     const body: TSESTree.TypeNode = node.typeAnnotation;
