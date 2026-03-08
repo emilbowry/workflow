@@ -314,11 +314,7 @@ const reportPair: TReportPair = (context, file, entryA, entryB) => {
 
 type TContextFileArgs = [TContext<TRule>, string];
 
-type TCheckSimilarArgs = [TContext<TRule>, string, TEntry, TEntry];
-
-type TCheckSimilar = (...args: TCheckSimilarArgs) => void;
-
-const checkSimilar: TCheckSimilar = (context, file, entryA, entryB) => {
+const checkSimilar: TReportPair = (context, file, entryA, entryB) => {
     if (isSimilarPair(entryA, entryB)) {
         reportPair(context, file, entryA, entryB);
     }
