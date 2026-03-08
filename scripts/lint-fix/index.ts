@@ -49,19 +49,37 @@ const installDeps: TInstallDeps = () => {
 type TCheckPrereqs = () => void;
 
 const checkPrereqs: TCheckPrereqs = () => {
+    const localBin: string = resolve("node_modules", ".bin");
     const checks: ReadonlyArray<{ cmd: string; name: string }> = [
-        { cmd: "npx eslint --version", name: "eslint" },
-        { cmd: "npx prettier --version", name: "prettier" },
+        { cmd: resolve(localBin, "eslint") + " --version", name: "eslint" },
+        {
+            cmd: resolve(localBin, "prettier") + " --version",
+            name: "prettier",
+        },
     ];
     for (const check of checks) {
         try {
             execSync(check.cmd, { stdio: "pipe", timeout: 30_000 });
-            console.log("[setup] " + check.name + " OK");
+            console.log("[setup] " + check.name + " OK (local)");
         } catch {
             throw new Error(
                 "[setup] " +
                     check.name +
-                    " not available. Check dependencies.",
+                    " not found in local node_modules. " +
+                    "npm install may have failed.",
+            );
+        }
+    }
+    const requiredModules: ReadonlyArray<string> = ["jiti", "typescript-eslint"];
+    for (const mod of requiredModules) {
+        try {
+            require.resolve(mod, { paths: [resolve("node_modules")] });
+            console.log("[setup] " + mod + " OK");
+        } catch {
+            throw new Error(
+                "[setup] " +
+                    mod +
+                    " not found. npm install may have failed.",
             );
         }
     }
