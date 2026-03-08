@@ -3,6 +3,7 @@ import type {
     TContext,
     TCreate,
     THandler,
+    TLintMeta,
     TMeta,
 } from "./type-based.types";
 
@@ -10,6 +11,41 @@ import {
     AST_NODE_TYPES,
     ESLintUtils,
 } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Generic type families over " +
+        "the same finite domain with " +
+        "identical cardinality profiles " +
+        "that are secretly isomorphic",
+    fix:
+        "Unify the two generic types " +
+        "into a single parameterized " +
+        "type if they agree pointwise " +
+        "over their shared domain",
+    flags:
+        "Two generic types with the " +
+        "same constraint that have " +
+        "identical cardinality profiles " +
+        "(union members, record fields, " +
+        "tuple elements)",
+    philosophy:
+        "Extends structural deduplication " +
+        "into the parameterized case. " +
+        "Two type families that agree " +
+        "pointwise are isomorphic " +
+        "functors and should be unified",
+    pitfalls:
+        "Only compares first type " +
+        "parameter constraint. Uses " +
+        "module-level mutable array. " +
+        "Non-null assertion on " +
+        "typeParameters (line 121)",
+    related:
+        "type-distance, " +
+        "no-duplicate-type-structure, " +
+        "fiber-coherence",
+};
 
 const MSG: string =
     "Generic types '{{first}}' and " +

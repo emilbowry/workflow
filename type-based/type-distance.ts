@@ -3,10 +3,47 @@ import type {
     TContext,
     TCreate,
     THandler,
+    TLintMeta,
     TMeta,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Near-duplicate type aliases " +
+        "with high Jaccard similarity " +
+        "that should be unified or " +
+        "made explicitly different",
+    fix:
+        "Merge the two types into one " +
+        "if they represent the same " +
+        "concept, or add/remove fields " +
+        "to make the structural " +
+        "difference explicit",
+    flags:
+        "Two type aliases with " +
+        "structural distance >= 0.75 " +
+        "(Jaccard similarity on keys " +
+        "and values)",
+    philosophy:
+        "The type namespace is a set — " +
+        "no two names should describe " +
+        "the same shape. Near-duplicates " +
+        "indicate concept drift that " +
+        "should be resolved",
+    pitfalls:
+        "Uses module-level mutable " +
+        "array for cross-type " +
+        "comparison. Exact duplicates " +
+        "(canonical match) are " +
+        "excluded — use no-duplicate-" +
+        "type-structure for those",
+    related:
+        "no-duplicate-type-structure, " +
+        "cardinality-isomorphic-families, " +
+        "no-single-field-type",
+};
 
 const MSG: string =
     "Types '{{nameA}}' and '{{nameB}}' " +

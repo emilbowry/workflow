@@ -2,17 +2,48 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type {
     TContext,
     TCreate,
+    TLintMeta,
     TMeta,
 } from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-const MSG: string =
-    "Function parameters must use " +
-    "rest-params tuple form: " +
-    "(...args: TNamedTuple) => TReturn. " +
-    "Use a named tuple type, not " +
-    "inline positional params.";
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Inline positional parameters " +
+        "in type-level function " +
+        "signatures. Named individual " +
+        "params like (a: A, b: B)",
+    fix:
+        "Wrap parameters in a named " +
+        "tuple type and spread: " +
+        "type TArgs = [a: A, b: B]; " +
+        "type TFn = (...args: TArgs)" +
+        " => R",
+    flags:
+        "Type-level function signature " +
+        "with positional parameters " +
+        "instead of rest-params tuple",
+    philosophy:
+        "Every function is an arrow " +
+        "A -> B between named types. " +
+        "Rest-params tuple makes the " +
+        "input a single named product, " +
+        "enabling mechanical comparison " +
+        "and transport graph edges",
+    pitfalls:
+        "Zero-param signatures () => R " +
+        "are valid and not flagged. " +
+        "Currently type-level only — " +
+        "runtime signatures commented out",
+    related:
+        "require-extracted-function-type, " +
+        "prefer-call-signature, " +
+        "transport-graph",
+};
+
+const MSG: string = LINT_META.flags + ". " +
+    LINT_META.fix;
 
 const DESC: string =
     "Require all function signatures " +

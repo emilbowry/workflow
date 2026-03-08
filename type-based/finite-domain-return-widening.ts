@@ -3,6 +3,7 @@ import type {
     TCheckNode,
     TCreate,
     THandler,
+    TLintMeta,
     TMakeHandler,
 } from "./type-based.types";
 
@@ -11,11 +12,44 @@ import {
     ESLintUtils,
 } from "@typescript-eslint/utils";
 
-const MSG: string =
-    "Function from finite domain " +
-    "returns bare 'string'. " +
-    "Prefer a literal union " +
-    "return type.";
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Returning bare string from " +
+        "functions whose input is a " +
+        "finite domain (literal or " +
+        "literal union)",
+    fix:
+        "Replace bare string return " +
+        "with a literal union that " +
+        "maps each input variant to " +
+        "a specific output. The " +
+        "function becomes a lookup " +
+        "table",
+    flags:
+        "Function from finite domain " +
+        "returns bare 'string' — " +
+        "prefer a literal union " +
+        "return type",
+    philosophy:
+        "Finite domains should " +
+        "propagate. If the input " +
+        "space is enumerable, the " +
+        "output space should be too. " +
+        "Makes the function decidable " +
+        "and exhaustively testable",
+    pitfalls:
+        "Only checks TSFunctionType " +
+        "inside TSTypeAliasDeclaration. " +
+        "Does not check implementation " +
+        "return values, only type-level " +
+        "annotations",
+    related:
+        "require-rest-params-tuple, " +
+        "transport-graph, " +
+        "valid-generics",
+};
+
+const MSG: string = LINT_META.flags;
 
 const DESC: string =
     "Functions from finite domains " +

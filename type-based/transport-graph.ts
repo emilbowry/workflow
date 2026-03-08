@@ -3,10 +3,49 @@ import type {
     TContext,
     TCreate,
     THandler,
+    TLintMeta,
     TMeta,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Discriminated types (literal " +
+        "unions or constrained generics) " +
+        "that exist without any function " +
+        "signature connecting them",
+    fix:
+        "Define a function type that " +
+        "uses the isolated type as " +
+        "domain or codomain: " +
+        "type TFn = (x: TIsolated)" +
+        " => TTarget",
+    flags:
+        "Discriminated type with no " +
+        "edges in the transport graph " +
+        "— not used as domain or " +
+        "codomain of any function " +
+        "signature",
+    philosophy:
+        "Types are nodes, functions " +
+        "are edges. The type graph " +
+        "must be connected — every " +
+        "type participates in the " +
+        "computation graph. Isolated " +
+        "nodes are dead types",
+    pitfalls:
+        "Only checks within a single " +
+        "file. Exports buildTransport" +
+        "Graph and classifyEdge for " +
+        "fiber-coherence. Uses " +
+        "as const assertions " +
+        "(currently banned)",
+    related:
+        "fiber-coherence, " +
+        "require-rest-params-tuple, " +
+        "require-extracted-function-type",
+};
 
 const MSG: string =
     "Type '{{name}}' is isolated " +

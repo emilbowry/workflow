@@ -31,6 +31,20 @@ import {
 } from "../../type-based/require-parametric-record";
 import { LINT_META as validGenerics } from
     "../../type-based/valid-generics";
+import { LINT_META as requireRestParamsTuple } from
+    "../../rules/require-rest-params-tuple";
+import {
+    LINT_META as finiteDomainReturnWidening,
+} from "../../type-based/finite-domain-return-widening";
+import { LINT_META as typeDistance } from
+    "../../type-based/type-distance";
+import {
+    LINT_META as cardinalityIsomorphicFamilies,
+} from "../../type-based/cardinality-isomorphic-families";
+import { LINT_META as transportGraph } from
+    "../../type-based/transport-graph";
+import { LINT_META as fiberCoherence } from
+    "../../type-based/fiber-coherence";
 
 import externalRegistry from "./external-rules";
 
@@ -89,6 +103,30 @@ const customRules: ReadonlyArray<TRuleEntry> = [
     [
         "local/valid-generics",
         validGenerics,
+    ],
+    [
+        "local/require-rest-params-tuple",
+        requireRestParamsTuple,
+    ],
+    [
+        "local/finite-domain-return-widening",
+        finiteDomainReturnWidening,
+    ],
+    [
+        "local/type-distance",
+        typeDistance,
+    ],
+    [
+        "local/cardinality-isomorphic-families",
+        cardinalityIsomorphicFamilies,
+    ],
+    [
+        "local/transport-graph",
+        transportGraph,
+    ],
+    [
+        "local/fiber-coherence",
+        fiberCoherence,
     ],
 ];
 

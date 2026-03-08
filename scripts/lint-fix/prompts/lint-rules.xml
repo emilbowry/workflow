@@ -1,0 +1,255 @@
+<lint_rules>
+  <rule name="local/max-total-depth">
+    <flags>Indentation deeper than configured maximum (default 3 levels)</flags>
+    <fix>Extract deeply indented blocks into separate functions at module scope</fix>
+  </rule>
+  <rule name="local/no-nested-function">
+    <flags>Parameterized function defined inside another parameterized function</flags>
+    <fix>Three solutions: (1) Extract inner function to module scope with explicit parameters, (2) Nullary PA: (fn, ...params) =&gt; () =&gt; fn(...params), (3) IIFE thunk: (() =&gt; (node) =&gt; work)()</fix>
+  </rule>
+  <rule name="local/restrict-return-count">
+    <flags>More than 1 return statement per function, or any non-final return (early return)</flags>
+    <fix>Ternary for 2-3 branches. Switch+let+single-return for 4+. Nullish coalescing chain (tryA(x) ?? tryB(x) ?? fallback) for T|undefined dispatch</fix>
+  </rule>
+  <rule name="local/enforce-record-type">
+    <flags>Type alias body is an object literal type (TSTypeLiteral)</flags>
+    <fix>Rewrite { key: T } as Record&lt;K, V&gt; or restructure</fix>
+  </rule>
+  <rule name="local/max-type-nesting">
+    <flags>More than 1 nested type construct (TSTypeLiteral or TSTupleType) in a type alias</flags>
+    <fix>Extract inner type literals and tuples into named type aliases</fix>
+  </rule>
+  <rule name="local/no-duplicate-type-structure">
+    <flags>Two or more type aliases with identical canonical structural representation</flags>
+    <fix>Remove duplicate, reuse the existing type alias. If semantically distinct, differentiate the structure</fix>
+  </rule>
+  <rule name="local/no-single-field-type">
+    <flags>Type alias with exactly one member in a type literal body (except call signatures)</flags>
+    <fix>Inline the single field type directly or combine with other fields</fix>
+  </rule>
+  <rule name="local/prefer-call-signature">
+    <flags>Function type syntax (...) =&gt; T in type alias body (TSFunctionType)</flags>
+    <fix>Rewrite as call-signature: type TFoo = { (x: A): B }</fix>
+  </rule>
+  <rule name="local/require-extracted-function-type">
+    <flags>Inline type annotations that are not keywords or named references (TSTypeReference)</flags>
+    <fix>Extract to a named type alias: type TFoo = string | number; const x: TFoo = ...</fix>
+  </rule>
+  <rule name="local/require-parametric-record">
+    <flags>Record type without parametric key-value relationship (type parameter as key backreferenced in value)</flags>
+    <fix>Add type parameter: type TFoo&lt;T extends X&gt; = Record&lt;T, TBar&lt;T&gt;&gt;. Or replace with tuple/mapped type if no parametric relationship exists</fix>
+  </rule>
+  <rule name="local/valid-generics">
+    <flags>Degenerate generic (body is just the type parameter: type TId&lt;T&gt; = T) or homogeneous generic (all params passed straight through: type TFoo&lt;A,B&gt; = TBar&lt;A,B&gt;)</flags>
+    <fix>Degenerate: remove type parameter, use inner type directly. Homogeneous: remove generic params (make simple alias) or add transformation logic</fix>
+  </rule>
+  <rule name="local/require-rest-params-tuple">
+    <flags>Type-level function signature with positional parameters instead of rest-params tuple</flags>
+    <fix>Wrap parameters in a named tuple type and spread: type TArgs = [a: A, b: B]; type TFn = (...args: TArgs) =&gt; R</fix>
+  </rule>
+  <rule name="local/finite-domain-return-widening">
+    <flags>Function from finite domain returns bare 'string' — prefer a literal union return type</flags>
+    <fix>Replace bare string return with a literal union that maps each input variant to a specific output. The function becomes a lookup table</fix>
+  </rule>
+  <rule name="local/type-distance">
+    <flags>Two type aliases with structural distance &gt;= 0.75 (Jaccard similarity on keys and values)</flags>
+    <fix>Merge the two types into one if they represent the same concept, or add/remove fields to make the structural difference explicit</fix>
+  </rule>
+  <rule name="local/cardinality-isomorphic-families">
+    <flags>Two generic types with the same constraint that have identical cardinality profiles (union members, record fields, tuple elements)</flags>
+    <fix>Unify the two generic types into a single parameterized type if they agree pointwise over their shared domain</fix>
+  </rule>
+  <rule name="local/transport-graph">
+    <flags>Discriminated type with no edges in the transport graph — not used as domain or codomain of any function signature</flags>
+    <fix>Define a function type that uses the isolated type as domain or codomain: type TFn = (x: TIsolated) =&gt; TTarget</fix>
+  </rule>
+  <rule name="local/fiber-coherence">
+    <flags>Two types connected by an isomorphic edge in the transport graph that have different cardinalities</flags>
+    <fix>Either adjust the types to have matching cardinalities (same number of variants/fields/elements) or reclassify the edge as a section</fix>
+  </rule>
+  <rule name="@typescript-eslint/ban-ts-comment">
+    <flags>Usage of @ts-ignore, @ts-expect-error, or @ts-nocheck comments</flags>
+    <fix>Remove the directive. Fix the underlying type error instead</fix>
+  </rule>
+  <rule name="@typescript-eslint/ban-tslint-comment">
+    <flags>Legacy TSLint directive comments (tslint:disable etc)</flags>
+    <fix>Remove the stale directive comment</fix>
+  </rule>
+  <rule name="@typescript-eslint/consistent-generic-constructors">
+    <flags>Generic type args on constructor call instead of type annotation</flags>
+    <fix>Move generics to the variable declaration: const x: Map&lt;K,V&gt; = new Map()</fix>
+  </rule>
+  <rule name="@typescript-eslint/prefer-function-type">
+    <flags>Type literal with only a single call signature</flags>
+    <fix>Simplify { (): T } to () =&gt; T</fix>
+  </rule>
+  <rule name="@typescript-eslint/array-type">
+    <flags>T[] array syntax</flags>
+    <fix>Use Array&lt;T&gt; syntax. Tuples are still allowed</fix>
+  </rule>
+  <rule name="@typescript-eslint/consistent-type-assertions">
+    <flags>Any type assertion (as X or &lt;X&gt; syntax)</flags>
+    <fix>Remove assertion. Restructure code so TypeScript infers the correct type. Use switch dispatch or try-dispatch pattern</fix>
+  </rule>
+  <rule name="@typescript-eslint/no-unsafe-type-assertion">
+    <flags>Type assertions that narrow to a more specific type</flags>
+    <fix>Use type narrowing via discriminated unions or switch</fix>
+  </rule>
+  <rule name="@typescript-eslint/consistent-type-definitions">
+    <flags>Interface declarations (interface keyword)</flags>
+    <fix>Convert to type alias: interface IFoo becomes type TFoo</fix>
+  </rule>
+  <rule name="@typescript-eslint/consistent-type-imports">
+    <flags>Non-type imports of type-only symbols</flags>
+    <fix>Use import type { }</fix>
+  </rule>
+  <rule name="@typescript-eslint/consistent-type-exports">
+    <flags>Type exports without export type keyword</flags>
+    <fix>Use export type { }</fix>
+  </rule>
+  <rule name="@typescript-eslint/explicit-function-return-type">
+    <flags>Function without explicit return type annotation</flags>
+    <fix>Add : TReturnType. Create the type alias first if needed</fix>
+  </rule>
+  <rule name="@typescript-eslint/typedef">
+    <flags>Variable declaration without type annotation</flags>
+    <fix>Add explicit type: const x: T = ...</fix>
+  </rule>
+  <rule name="@typescript-eslint/no-deprecated">
+    <flags>Use of deprecated APIs</flags>
+    <fix>Replace with the current API equivalent</fix>
+  </rule>
+  <rule name="@typescript-eslint/no-duplicate-type-constituents">
+    <flags>Redundant members in unions (A | A) or intersections (A &amp; A)</flags>
+    <fix>Remove the duplicate constituent</fix>
+  </rule>
+  <rule name="@typescript-eslint/no-explicit-any">
+    <flags>Usage of any type (except rest args)</flags>
+    <fix>Replace with a specific type or unknown</fix>
+  </rule>
+  <rule name="@typescript-eslint/method-signature-style">
+    <flags>Method signature syntax foo(x: A): B in type literals</flags>
+    <fix>Use property style: foo: (x: A) =&gt; B</fix>
+  </rule>
+  <rule name="@typescript-eslint/no-unnecessary-condition">
+    <flags>Conditions that are always truthy or always falsy</flags>
+    <fix>Remove condition. Use Map instead of Record for T | undefined lookups</fix>
+  </rule>
+  <rule name="@typescript-eslint/no-confusing-void-expression">
+    <flags>Void expressions in non-statement position</flags>
+    <fix>Use statement form. Arrow shorthand is exempt</fix>
+  </rule>
+  <rule name="eslint-comments/no-use">
+    <flags>Any eslint disable comment (no exceptions)</flags>
+    <fix>Fix the underlying issue structurally. No suppression allowed</fix>
+  </rule>
+  <rule name="functional/no-let">
+    <flags>Any let declaration</flags>
+    <fix>Use const. For dispatch: try/nullish-coalescing chain (tryA(x) ?? tryB(x) ?? fallback)</fix>
+  </rule>
+  <rule name="arrow-body-style">
+    <flags>Block body when expression body suffices</flags>
+    <fix>Remove braces and return keyword: =&gt; expr</fix>
+  </rule>
+  <rule name="func-style">
+    <flags>Function declarations (function keyword)</flags>
+    <fix>Convert to const arrow: const f: T = (...) =&gt; ...</fix>
+  </rule>
+  <rule name="prefer-arrow-callback">
+    <flags>Function expression as callback</flags>
+    <fix>Replace with arrow function</fix>
+  </rule>
+  <rule name="indent">
+    <flags>Non-4-space indentation</flags>
+    <fix>Auto-fixable. WARNING: --fix on ternaries cascades into depth violations</fix>
+  </rule>
+  <rule name="max-len">
+    <flags>Lines exceeding 80 characters</flags>
+    <fix>Break into multiple lines. Use string concatenation for long strings. Extract sub-expressions</fix>
+  </rule>
+  <rule name="max-lines-per-function">
+    <flags>Functions exceeding 40 lines (including blanks and comments)</flags>
+    <fix>Extract helper functions at module scope</fix>
+  </rule>
+  <rule name="complexity">
+    <flags>Cyclomatic complexity exceeding 5</flags>
+    <fix>Extract branches into functions. Use Map/dispatch or try-dispatch pattern</fix>
+  </rule>
+  <rule name="no-warning-comments">
+    <flags>Comments containing prettier-ignore</flags>
+    <fix>Remove comment. Restructure code to work with prettier</fix>
+  </rule>
+  <rule name="no-restricted-syntax">
+    <flags>Type predicates (is keyword in return type)</flags>
+    <fix>Use discriminated unions or explicit type narrowing</fix>
+  </rule>
+  <rule name="id-length">
+    <flags>Identifiers shorter than 3 characters</flags>
+    <fix>Use descriptive names. Exceptions: id, i, j, k, x, y, z, _, fs, db, ui, el, e</fix>
+  </rule>
+</lint_rules>
+
+<rule_interactions>
+  <interaction>
+    indent --fix + ternary chains → cascading max-total-depth violations.
+    Prettier reformats ternaries; --fix re-indents; depth exceeds 3.
+    Solution: use switch+let for 4+ branches.
+  </interaction>
+  <interaction>
+    restrict-return-count + if-chains → multiple returns.
+    Solution: ternary (2-3 branches) or switch+let+single-return (4+).
+  </interaction>
+  <interaction>
+    consistent-type-assertions:never + Map-based dispatch → cannot cast.
+    Solution: switch dispatch with type narrowing in each case.
+  </interaction>
+  <interaction>
+    functional/no-let + switch dispatch → tension.
+    Known: switch+let is the only pattern satisfying
+    return-count + depth + assertions simultaneously. Accepted trade-off.
+  </interaction>
+  <interaction>
+    Record access + no-unnecessary-condition → ?? flagged.
+    Record&lt;K,V&gt;[k] returns V (never undefined), so ?? is unnecessary.
+    Solution: use Map for lookups needing T|undefined.
+  </interaction>
+  <interaction>
+    prettier ternary formatting + indent → permanent incompatibility
+    on deep ternaries. No prettier config fixes this.
+    Solution: max 3 ternary branches.
+  </interaction>
+  <interaction>
+    no-nested-function + ESLint handler pattern → need PA boundary.
+    Solution: IIFE (() => (node) => work)() or .bind(null, context).
+  </interaction>
+</rule_interactions>
+
+<canonical_patterns>
+  <pattern name="try-dispatch">
+    For T|undefined returns: tryX(node) ?? tryY(node) ?? fallback.
+    Each tryX returns T|undefined.
+    Satisfies: single return, no let, no depth issues.
+  </pattern>
+  <pattern name="switch-dispatch">
+    For mandatory returns:
+    let result: T; switch(x) { case A: result = f(x); break; } return result;
+    Satisfies: single return, depth ≤3, type narrowing in cases.
+    Violates: no-let (accepted trade-off).
+  </pattern>
+  <pattern name="pa-thunk">
+    IIFE: (() => (node: T) => work)()
+    Or .bind(): handler.bind(null, context)
+    Both valid PA boundaries for no-nested-function.
+  </pattern>
+  <pattern name="string-concat">
+    Use "a" + "b" over template literals for long strings.
+    Template literals cannot be broken across lines under max-len: 80.
+  </pattern>
+  <pattern name="type-first">
+    Define type alias before every const:
+    type TFoo = (x: A) => B;
+    const foo: TFoo = (x) => ...;
+    Satisfies: typedef, explicit-function-return-type,
+    require-extracted-function-type.
+  </pattern>
+</canonical_patterns>

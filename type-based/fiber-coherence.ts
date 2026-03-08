@@ -3,6 +3,7 @@ import type {
     TContext,
     TCreate,
     THandler,
+    TLintMeta,
     TMeta,
 } from "./type-based.types";
 import type {
@@ -18,6 +19,45 @@ import {
     buildTransportGraph,
     classifyEdge,
 } from "./transport-graph";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Isomorphic edges between " +
+        "types with mismatched " +
+        "cardinalities — a bijection " +
+        "between sets of different " +
+        "size is a contradiction",
+    fix:
+        "Either adjust the types to " +
+        "have matching cardinalities " +
+        "(same number of variants/" +
+        "fields/elements) or reclassify " +
+        "the edge as a section",
+    flags:
+        "Two types connected by an " +
+        "isomorphic edge in the " +
+        "transport graph that have " +
+        "different cardinalities",
+    philosophy:
+        "Structural promises must be " +
+        "backed by cardinality " +
+        "evidence. An isomorphism " +
+        "between a 3-variant union " +
+        "and a 5-variant union is a " +
+        "proof obligation that cannot " +
+        "be satisfied",
+    pitfalls:
+        "Depends on transport-graph " +
+        "exports. Duplicates several " +
+        "helpers (TAliasEntry, " +
+        "isLiteralType, findConnected, " +
+        "etc.) — should extract to " +
+        "shared module",
+    related:
+        "transport-graph, " +
+        "cardinality-isomorphic-families, " +
+        "type-distance",
+};
 
 const MSG: string =
     "Fiber coherence violation: " +
