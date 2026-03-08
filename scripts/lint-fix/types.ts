@@ -31,11 +31,19 @@ export type TPlan = {
     chosen_reason: string;
 };
 
+export type TRegressionSummary = {
+    rule: string;
+    count: number;
+    flags: string;
+    fix: string;
+};
+
 export type TPostMortemEntry = {
     attempt: number;
     plan: TPlan;
     diff: string;
     remaining_errors: ReadonlyArray<TEslintError>;
+    regressions: ReadonlyArray<TRegressionSummary>;
 };
 
 export type TPostMortem = ReadonlyArray<TPostMortemEntry>;

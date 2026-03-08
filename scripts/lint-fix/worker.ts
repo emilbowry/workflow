@@ -30,6 +30,7 @@ import type {
     TEslintError,
     TPlan,
     TPostMortemEntry,
+    TRegressionSummary,
     TTriageResult,
     TWorkerResult,
 } from "./types.ts";
@@ -109,16 +110,47 @@ const applyFix: TApplyFix = async (filePath, errors, original, plan) => {
 type TVerifyResult = {
     passed: boolean;
     remaining: ReadonlyArray<TEslintError>;
+    regressions: ReadonlyArray<TRegressionSummary>;
 };
 
-type TVerifyFix = (filePath: string, rule: string) => Promise<TVerifyResult>;
+type TVerifyFix = (
+    filePath: string,
+    rule: string,
+    previousErrors: ReadonlyArray<TEslintError>,
+) => Promise<TVerifyResult>;
 
-const verifyFix: TVerifyFix = async (filePath, rule) => {
+const verifyFix: TVerifyFix = async (filePath, rule, previousErrors) => {
     const newErrors = await scanFile(filePath);
     const remaining = newErrors.filter((e) => e.ruleId === rule);
+    const prevCounts = new Map<string, number>();
+    previousErrors.forEach((e) => {
+        if (e.ruleId !== rule) {
+            prevCounts.set(e.ruleId, (prevCounts.get(e.ruleId) ?? 0) + 1);
+        }
+    });
+    const newCounts = new Map<string, number>();
+    newErrors.forEach((e) => {
+        if (e.ruleId !== rule) {
+            newCounts.set(e.ruleId, (newCounts.get(e.ruleId) ?? 0) + 1);
+        }
+    });
+    const regressions: Array<TRegressionSummary> = [];
+    newCounts.forEach((count, ruleId) => {
+        const prev = prevCounts.get(ruleId) ?? 0;
+        if (count > prev) {
+            const meta = metaMap[ruleId];
+            regressions.push({
+                rule: ruleId,
+                count: count - prev,
+                flags: meta ? meta.flags : ruleId,
+                fix: meta ? meta.fix : "",
+            });
+        }
+    });
     return {
-        passed: remaining.length === 0,
+        passed: remaining.length === 0 && regressions.length === 0,
         remaining,
+        regressions,
     };
 };
 
@@ -173,7 +205,7 @@ const tryFix: TTryFix = async (
     const fixed: string = await applyFix(filePath, errors, original, plan);
     writeFileSync(filePath, fixed, "utf-8");
     console.log("  [attempt " + String(attempt) + "] verifying...");
-    const result: TVerifyResult = await verifyFix(filePath, triage.rule);
+    const result: TVerifyResult = await verifyFix(filePath, triage.rule, errors);
     if (result.passed) {
         await doCommit(filePath, triage, plan, postMortem);
         return true;
@@ -184,6 +216,7 @@ const tryFix: TTryFix = async (
         plan,
         diff,
         remaining_errors: result.remaining,
+        regressions: result.regressions,
     });
     writeFileSync(filePath, original, "utf-8");
     return false;

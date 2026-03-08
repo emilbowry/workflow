@@ -100,6 +100,20 @@ const postMortemToXml: TPostMortemToXml = (pm) => {
                         '" />',
                 )
                 .join("\n");
+            const regressionsStr: string = entry.regressions
+                .map(
+                    (reg) =>
+                        '      <regression rule="' +
+                        escapeXml(reg.rule) +
+                        '" count="' +
+                        String(reg.count) +
+                        '" flags="' +
+                        escapeXml(reg.flags) +
+                        '" fix="' +
+                        escapeXml(reg.fix) +
+                        '" />',
+                )
+                .join("\n");
             return (
                 '  <attempt n="' +
                 String(entry.attempt) +
@@ -112,6 +126,10 @@ const postMortemToXml: TPostMortemToXml = (pm) => {
                 remaining +
                 "\n" +
                 "    </remaining>\n" +
+                "    <regressions>\n" +
+                regressionsStr +
+                "\n" +
+                "    </regressions>\n" +
                 "  </attempt>"
             );
         })
