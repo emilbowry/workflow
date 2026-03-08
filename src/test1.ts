@@ -1,12 +1,5 @@
-// // Valid: Record types pass
-// type TNames = Record<string, string>;
+type TAdd = (left: number, right: number) => number;
 
-// // Valid: non-object types pass
-// type TId = string;
+const add: TAdd = (left, right) => left + right;
 
-// type TUnion = "a" | "b";
-
-// type TTuple = [string, number];
-
-// // Valid: function types pass
-// type TMapper = (x: string) => number;
+export { add };
