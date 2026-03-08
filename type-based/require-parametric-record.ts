@@ -101,6 +101,22 @@ type TIsValid = (...args: TIsValidArgs) => boolean;
 
 const isValid: TIsValid = (src) => PARAMETRIC.test(src);
 
+type TParamPredicateArgs = [TSESTree.TypeNode];
+
+type TParamPredicate = (...args: TParamPredicateArgs) => boolean;
+
+type TMakePredicateArgs = [string];
+
+type TMakePredicate = (...args: TMakePredicateArgs) => TParamPredicate;
+
+const makePredicate: TMakePredicate = (name) =>
+    (
+        () => (param: TSESTree.TypeNode) =>
+            param.type === AST_NODE_TYPES.TSTypeReference &&
+            param.typeName.type === AST_NODE_TYPES.Identifier &&
+            param.typeName.name === name
+    )();
+
 type TIsRefWithArgArgs = [TSESTree.TypeNode, string];
 
 type TIsRefWithArg = (...args: TIsRefWithArgArgs) => boolean;
@@ -108,12 +124,7 @@ type TIsRefWithArg = (...args: TIsRefWithArgArgs) => boolean;
 const isRefWithArg: TIsRefWithArg = (node, name) =>
     node.type === AST_NODE_TYPES.TSTypeReference &&
     node.typeArguments !== undefined &&
-    node.typeArguments.params.some(
-        (param: TSESTree.TypeNode) =>
-            param.type === AST_NODE_TYPES.TSTypeReference &&
-            param.typeName.type === AST_NODE_TYPES.Identifier &&
-            param.typeName.name === name,
-    );
+    node.typeArguments.params.some(makePredicate(name));
 
 type TMappedArgs = [TSESTree.TSMappedType];
 
