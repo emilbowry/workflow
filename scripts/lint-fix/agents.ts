@@ -23,6 +23,47 @@ const readPrompt: TReadPrompt = (name) =>
         "utf-8",
     );
 
+type TSlotMap = Record<string, string>;
+
+type TInjectSlots = (
+    template: string,
+    slots: TSlotMap,
+) => string;
+
+const injectSlots: TInjectSlots = (
+    template,
+    slots,
+) =>
+    Object.entries(slots).reduce(
+        (acc: string, [key, val]: [string, string]) =>
+            acc.replace("{{" + key + "}}", val),
+        template,
+    );
+
+type TTemplateParts = {
+    system: string;
+    user: string;
+};
+
+type TSplitTemplate = (
+    filled: string,
+) => TTemplateParts;
+
+const splitTemplate: TSplitTemplate = (filled) => {
+    const openTag: string = "<system>";
+    const closeTag: string = "</system>";
+    const start: number =
+        filled.indexOf(openTag) + openTag.length;
+    const end: number = filled.indexOf(closeTag);
+    const system: string =
+        filled.slice(start, end).trim();
+    const user: string = (
+        filled.slice(0, filled.indexOf(openTag))
+        + filled.slice(end + closeTag.length)
+    ).trim();
+    return { system, user };
+};
+
 type TInvokeAgent = (
     config: TAgentConfig,
 ) => Promise<TAgentResponse>;
@@ -78,16 +119,23 @@ const invokeAnalyser: TInvokeAnalyser = async (
     errorsXml,
     fileXml,
 ) => {
-    const system: string = readPrompt(
-        "lint-analyser.md",
+    const template: string = readPrompt(
+        "lint-analyser.xml",
     );
-    const user: string =
-        errorsXml + "\n\n" + fileXml;
+    const filled: string = injectSlots(
+        template,
+        {
+            ERRORS: errorsXml,
+            FILE: fileXml,
+        },
+    );
+    const parts: TTemplateParts =
+        splitTemplate(filled);
     const response: TAgentResponse =
         await invokeAgent({
             model: "haiku",
-            systemPrompt: system,
-            userPrompt: user,
+            systemPrompt: parts.system,
+            userPrompt: parts.user,
         });
     const parsed: TTriageResult = JSON.parse(
         extractJson(response.content),
@@ -110,24 +158,26 @@ const invokePlanner: TInvokePlanner = async (
     rulesXml,
     postMortemXml,
 ) => {
-    const system: string = readPrompt(
-        "fix-planner.md",
+    const template: string = readPrompt(
+        "fix-planner.xml",
     );
-    const user: string =
-        targetXml
-        + "\n\n"
-        + errorsXml
-        + "\n\n"
-        + fileXml
-        + "\n\n"
-        + rulesXml
-        + "\n\n"
-        + postMortemXml;
+    const filled: string = injectSlots(
+        template,
+        {
+            TARGET_RULE: targetXml,
+            ALL_ERRORS: errorsXml,
+            FILE: fileXml,
+            LINT_RULES: rulesXml,
+            POST_MORTEM: postMortemXml,
+        },
+    );
+    const parts: TTemplateParts =
+        splitTemplate(filled);
     const response: TAgentResponse =
         await invokeAgent({
             model: "opus",
-            systemPrompt: system,
-            userPrompt: user,
+            systemPrompt: parts.system,
+            userPrompt: parts.user,
         });
     const outer = JSON.parse(
         extractJson(response.content),
@@ -146,20 +196,24 @@ type TInvokeImplementor = (
 
 const invokeImplementor: TInvokeImplementor =
     async (optionXml, errorsXml, fileXml) => {
-        const system: string = readPrompt(
-            "fix-implementor.md",
+        const template: string = readPrompt(
+            "fix-implementor.xml",
         );
-        const user: string =
-            optionXml
-            + "\n\n"
-            + errorsXml
-            + "\n\n"
-            + fileXml;
+        const filled: string = injectSlots(
+            template,
+            {
+                CHOSEN_OPTION: optionXml,
+                TARGET_ERRORS: errorsXml,
+                FILE: fileXml,
+            },
+        );
+        const parts: TTemplateParts =
+            splitTemplate(filled);
         const response: TAgentResponse =
             await invokeAgent({
                 model: "sonnet",
-                systemPrompt: system,
-                userPrompt: user,
+                systemPrompt: parts.system,
+                userPrompt: parts.user,
             });
         const parsed = JSON.parse(
             extractJson(response.content),
