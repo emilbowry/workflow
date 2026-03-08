@@ -11,6 +11,7 @@ import type {
 import { scanBatch, groupByFile } from "./scan.ts";
 import { createWorktree, removeWorktree, mergeWorktree } from "./worktree.ts";
 import { runWorker } from "./worker.ts";
+import { commitFile } from "./commit.ts";
 
 type TGetRulesXml = () => string;
 
@@ -25,6 +26,30 @@ type TScanAll = (paths: ReadonlyArray<string>) => Promise<TErrorMap>;
 const scanAll: TScanAll = async (paths) => {
     const allErrors: ReadonlyArray<TEslintError> = scanBatch(paths);
     return groupByFile(allErrors);
+};
+
+type TCommitAutoFixes = () => Promise<number>;
+
+const commitAutoFixes: TCommitAutoFixes = async () => {
+    const status: string = execSync("git status --porcelain", {
+        stdio: "pipe",
+    })
+        .toString()
+        .trim();
+    if (status.length === 0) {
+        return 0;
+    }
+    const changedFiles: ReadonlyArray<string> = status
+        .split("\n")
+        .map((line) => line.slice(3).trim())
+        .filter((f) => f.length > 0);
+    for (const filePath of changedFiles) {
+        await commitFile(
+            filePath,
+            "style: auto-fix formatting via prettier and eslint\n\n" + filePath,
+        );
+    }
+    return changedFiles.length;
 };
 
 import type { TWorktreeInfo } from "./types.ts";
@@ -78,6 +103,14 @@ const main: TMain = async (paths) => {
     const rulesXml: string = getRulesXml();
     const mainBranch: string = getCurrentBranch();
     const errorMap: TErrorMap = await scanAll(paths);
+    const autoFixCount: number = await commitAutoFixes();
+    if (autoFixCount > 0) {
+        console.log(
+            "Committed auto-fixes for " +
+                String(autoFixCount) +
+                " file(s).",
+        );
+    }
     if (errorMap.size === 0) {
         console.log("No errors found.");
         return;
