@@ -107,10 +107,10 @@ const isRefWithArg: TIsRefWithArg = (node, name) =>
     node.type === AST_NODE_TYPES.TSTypeReference &&
     node.typeArguments !== undefined &&
     node.typeArguments.params.some(
-        (p: TSESTree.TypeNode) =>
-            p.type === AST_NODE_TYPES.TSTypeReference &&
-            p.typeName.type === AST_NODE_TYPES.Identifier &&
-            p.typeName.name === name,
+        (param: TSESTree.TypeNode) =>
+            param.type === AST_NODE_TYPES.TSTypeReference &&
+            param.typeName.type === AST_NODE_TYPES.Identifier &&
+            param.typeName.name === name,
     );
 
 type TIsMapped = (node: TSESTree.TypeNode) => node is TSESTree.TSMappedType;
