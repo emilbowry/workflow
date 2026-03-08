@@ -86,9 +86,13 @@ type TCollected = Array<TEntry>;
 
 type TGroupLookup = TCollected | undefined;
 
-type TConstraintKey = (param: TSESTree.TSTypeParameter) => string;
+type TConstraintKeyArgs = [param: TSESTree.TSTypeParameter];
 
-type TCanonicalConstraint = (node: TSESTree.TypeNode) => string;
+type TConstraintKey = (...args: TConstraintKeyArgs) => string;
+
+type TTypeNodeArgs = [node: TSESTree.TypeNode];
+
+type TCanonicalConstraint = (...args: TTypeNodeArgs) => string;
 
 const canonicalConstraint: TCanonicalConstraint = (node) =>
     node.type === AST_NODE_TYPES.TSTypeReference &&
@@ -99,7 +103,7 @@ const canonicalConstraint: TCanonicalConstraint = (node) =>
 const constraintKey: TConstraintKey = (param) =>
     param.constraint ? canonicalConstraint(param.constraint) : "";
 
-type TCountCardinality = (node: TSESTree.TypeNode) => number;
+type TCountCardinality = (...args: TTypeNodeArgs) => number;
 
 const countUnionMembers: TCountCardinality = (node) =>
     node.type === AST_NODE_TYPES.TSUnionType ? node.types.length : 0;
@@ -110,7 +114,7 @@ const countRecordFields: TCountCardinality = (node) =>
 const countTupleElements: TCountCardinality = (node) =>
     node.type === AST_NODE_TYPES.TSTupleType ? node.elementTypes.length : 0;
 
-type TBodyCardinality = (body: TSESTree.TypeNode) => ReadonlyArray<number>;
+type TBodyCardinality = (...args: TTypeNodeArgs) => ReadonlyArray<number>;
 
 const bodyCardinality: TBodyCardinality = (body) => [
     countUnionMembers(body),
@@ -118,18 +122,22 @@ const bodyCardinality: TBodyCardinality = (body) => [
     countTupleElements(body),
 ];
 
-type TProfileKey = (profile: ReadonlyArray<number>) => string;
+type TProfileKeyArgs = [profile: ReadonlyArray<number>];
+
+type TProfileKey = (...args: TProfileKeyArgs) => string;
 
 const SEP: string = ":";
 
 const profileKey: TProfileKey = (profile) => profile.join(SEP);
 
-type THasTypeParams = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
+type TAliasNodeArgs = [node: TSESTree.TSTypeAliasDeclaration];
+
+type THasTypeParams = (...args: TAliasNodeArgs) => boolean;
 
 const hasTypeParams: THasTypeParams = (node) =>
     node.typeParameters !== undefined && node.typeParameters.params.length > 0;
 
-type TGetConstraintGroup = (node: TSESTree.TSTypeAliasDeclaration) => string;
+type TGetConstraintGroup = (...args: TAliasNodeArgs) => string;
 
 const getConstraintGroup: TGetConstraintGroup = (node) =>
     node.typeParameters !== undefined
@@ -138,7 +146,9 @@ const getConstraintGroup: TGetConstraintGroup = (node) =>
 
 type TGroupMap = Map<string, Array<TEntry>>;
 
-type TBuildGroups = (items: TCollected) => TGroupMap;
+type TBuildGroupsArgs = [items: TCollected];
+
+type TBuildGroups = (...args: TBuildGroupsArgs) => TGroupMap;
 
 const buildGroups: TBuildGroups = (items) => {
     const groups: TGroupMap = new Map();
@@ -156,7 +166,9 @@ const buildGroups: TBuildGroups = (items) => {
 
 type TPair = readonly [TEntry, TEntry];
 
-type TFindPairs = (entries: ReadonlyArray<TEntry>) => ReadonlyArray<TPair>;
+type TFindPairsArgs = [entries: ReadonlyArray<TEntry>];
+
+type TFindPairs = (...args: TFindPairsArgs) => ReadonlyArray<TPair>;
 
 const findIsomorphicPairs: TFindPairs = (entries) => {
     const pairs: Array<TPair> = [];
@@ -172,11 +184,9 @@ const findIsomorphicPairs: TFindPairs = (entries) => {
     return pairs;
 };
 
-type TReportPair = (
-    context: TContext<TRule>,
-    file: string,
-    pair: TPair,
-) => void;
+type TReportPairArgs = [context: TContext<TRule>, file: string, pair: TPair];
+
+type TReportPair = (...args: TReportPairArgs) => void;
 
 const reportPair: TReportPair = (context, file, pair) => {
     const firstName: string = pair[0][1];
@@ -203,11 +213,13 @@ const reportPair: TReportPair = (context, file, pair) => {
     }
 };
 
-type TReportGroups = (
+type TReportGroupsArgs = [
     context: TContext<TRule>,
     file: string,
     groups: TGroupMap,
-) => void;
+];
+
+type TReportGroups = (...args: TReportGroupsArgs) => void;
 
 const reportGroups: TReportGroups = (context, file, groups) => {
     for (const entries of groups.values()) {
@@ -225,10 +237,9 @@ const collected: TCollected = [];
 
 type TExitHandler = () => void;
 
-type TMakeExitHandler = (
-    context: TContext<TRule>,
-    file: string,
-) => TExitHandler;
+type TMakeExitHandlerArgs = [context: TContext<TRule>, file: string];
+
+type TMakeExitHandler = (...args: TMakeExitHandlerArgs) => TExitHandler;
 
 const makeExitHandler: TMakeExitHandler = (context, file) =>
     (() => () => {
@@ -236,10 +247,9 @@ const makeExitHandler: TMakeExitHandler = (context, file) =>
         reportGroups(context, file, groups);
     })();
 
-type TRecordGeneric = (
-    file: string,
-    node: TSESTree.TSTypeAliasDeclaration,
-) => void;
+type TRecordGenericArgs = [file: string, node: TSESTree.TSTypeAliasDeclaration];
+
+type TRecordGeneric = (...args: TRecordGenericArgs) => void;
 
 const recordGeneric: TRecordGeneric = (file, node) => {
     if (hasTypeParams(node)) {
@@ -253,7 +263,9 @@ const recordGeneric: TRecordGeneric = (file, node) => {
     }
 };
 
-type TMakeAliasHandler = (file: string) => THandler;
+type TFileArgs = [file: string];
+
+type TMakeAliasHandler = (...args: TFileArgs) => THandler;
 
 const makeAliasHandler: TMakeAliasHandler = (file) =>
     (
@@ -261,9 +273,11 @@ const makeAliasHandler: TMakeAliasHandler = (file) =>
             recordGeneric(file, node)
     )();
 
-type TEntryPredicate = (e: TEntry) => boolean;
+type TEntryPredicateArgs = [e: TEntry];
 
-type TMakeFileFilter = (file: string) => TEntryPredicate;
+type TEntryPredicate = (...args: TEntryPredicateArgs) => boolean;
+
+type TMakeFileFilter = (...args: TFileArgs) => TEntryPredicate;
 
 const makeFileFilter: TMakeFileFilter = (file) =>
     (
@@ -271,7 +285,7 @@ const makeFileFilter: TMakeFileFilter = (file) =>
             e[0] !== file
     )();
 
-type TClearFile = (file: string) => void;
+type TClearFile = (...args: TFileArgs) => void;
 
 const clearFile: TClearFile = (file) => {
     const keep: TEntryPredicate = makeFileFilter(file);
