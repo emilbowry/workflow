@@ -137,6 +137,24 @@ type TGetMappedValue = (...args: TMappedArgs) => TMappedValueNode;
 const getMappedValue: TGetMappedValue = (mapped) =>
     mapped.typeAnnotation ?? undefined;
 
+type THasNonRefValueArgs = [TMappedValueNode, string];
+
+type THasNonRefValue = (...args: THasNonRefValueArgs) => boolean;
+
+const hasNonRefValue: THasNonRefValue = (node, name) =>
+    node !== undefined && !isRefWithArg(node, name);
+
+type TShouldReportArgs = [TSESTree.TSTypeAliasDeclaration];
+
+type TShouldReportMapped = (...args: TShouldReportArgs) => boolean;
+
+const shouldReportMapped: TShouldReportMapped = (node) =>
+    node.typeAnnotation.type === AST_NODE_TYPES.TSMappedType &&
+    hasNonRefValue(
+        getMappedValue(node.typeAnnotation),
+        getMappedKeyName(node.typeAnnotation),
+    );
+
 type TCheckMappedArgs = [
     Parameters<TRule["create"]>[0],
     TSESTree.TSTypeAliasDeclaration,
@@ -144,23 +162,13 @@ type TCheckMappedArgs = [
 
 type TCheckMapped = (...args: TCheckMappedArgs) => void;
 
-const checkMapped: TCheckMapped = (context, node) => {
-    const body: TSESTree.TypeNode = node.typeAnnotation;
-    if (body.type !== AST_NODE_TYPES.TSMappedType) {
-        return;
-    }
-    const keyName: string = getMappedKeyName(body);
-    const valueNode: TMappedValueNode = getMappedValue(body);
-    if (valueNode === undefined) {
-        return;
-    }
-    if (!isRefWithArg(valueNode, keyName)) {
-        context.report({
+const checkMapped: TCheckMapped = (context, node) =>
+    shouldReportMapped(node)
+        ? context.report({
             messageId: "degenerateMappedType",
             node,
-        });
-    }
-};
+        })
+        : undefined;
 
 const checkNode: TCheckNode<TRule> = (context, node) => {
     const src: string = context.sourceCode.getText(node);
