@@ -123,10 +123,7 @@ const handlePropSig: THandlePropSig = (member) => {
     return key + opt + sep + ann;
 };
 
-type TKeyValuePair = {
-    readonly key: string;
-    readonly value: string;
-};
+type TKeyValuePair = readonly [key: string, value: string];
 
 type TMemberToPairOpt = (
     member: TSESTree.TypeElement,
@@ -144,15 +141,15 @@ const extractPairs: TExtractPairs = (node) =>
 
 type TToPair = (member: TSESTree.TSPropertySignature) => TKeyValuePair;
 
-const toPair: TToPair = (member) => ({
-    key: keyName(member.key),
-    value: annotationStr(member.typeAnnotation, "any"),
-});
+const toPair: TToPair = (member) => [
+    keyName(member.key),
+    annotationStr(member.typeAnnotation, "any"),
+];
 
 type TKeysOf = (pairs: ReadonlyArray<TKeyValuePair>) => ReadonlySet<string>;
 
 const keysOf: TKeysOf = (pairs) =>
-    new Set(pairs.map((pair: TKeyValuePair) => pair.key));
+    new Set(pairs.map((pair: TKeyValuePair) => pair[0]));
 
 type TJaccardSimilarity = (
     a: ReadonlySet<string>,
@@ -179,9 +176,7 @@ type TToValueMap = (pairs: ReadonlyArray<TKeyValuePair>) => TValueMap;
 
 const toValueMap: TToValueMap = (pairs) =>
     new Map(
-        pairs.map(
-            (pair: TKeyValuePair): TValueMapEntry => [pair.key, pair.value],
-        ),
+        pairs.map((pair: TKeyValuePair): TValueMapEntry => [pair[0], pair[1]]),
     );
 
 type TValueSimilarity = (
@@ -224,13 +219,15 @@ const computeDistance: TComputeDistance = (pairsA, pairsB) => {
     return (keySim + valSim) / 2;
 };
 
-type TEntry = {
-    readonly name: string;
-    readonly pairs: ReadonlyArray<TKeyValuePair>;
-    readonly canonical: string;
-    readonly node: TSESTree.TSTypeAliasDeclaration;
-    readonly file: string;
-};
+type TEntryField = "canonical" | "file" | "name" | "node" | "pairs";
+
+type TEntryLookup<K extends TEntryField> = K extends "pairs"
+    ? ReadonlyArray<TKeyValuePair>
+    : K extends "node"
+      ? TSESTree.TSTypeAliasDeclaration
+      : string;
+
+type TEntry = { readonly [K in TEntryField]: TEntryLookup<K> };
 
 type TEntries = Array<TEntry>;
 
