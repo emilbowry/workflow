@@ -2,10 +2,51 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type {
     TContext,
     TCreate,
+    TLintMeta,
     TTypeNodePredicate,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    flags:
+        "Inline type annotations " +
+        "that are not keywords or " +
+        "named references " +
+        "(TSTypeReference)",
+    fix:
+        "Extract to a named type " +
+        "alias: type TFoo = string " +
+        "| number; const x: TFoo " +
+        "= ...",
+    pitfalls:
+        "High volume — a function " +
+        "with 3 params + return + " +
+        "2 locals could need 6 " +
+        "type aliases. Naming " +
+        "requires semantic thought," +
+        " not mechanical " +
+        "substitution",
+    avoid:
+        "Inline unions, " +
+        "intersections, function " +
+        "types, tuple types, object" +
+        " literals in annotation " +
+        "position",
+    related:
+        "typedef, " +
+        "explicit-function-return-" +
+        "type, no-duplicate-type-" +
+        "structure, max-type-" +
+        "nesting",
+    philosophy:
+        "Every value has a named " +
+        "type defined before the " +
+        "value exists. The type " +
+        "vocabulary IS the " +
+        "specification — readable " +
+        "without any implementation",
+};
 
 const MSG: string = "Inline type must be extracted " + "to a named type alias.";
 

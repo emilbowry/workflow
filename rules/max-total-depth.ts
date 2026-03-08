@@ -2,11 +2,46 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type {
     TContext,
     TCreate,
+    TLintMeta,
     TMeta,
     TSchema,
 } from "../type-based/type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Nested ternaries beyond 3 " +
+        "branches. Deep if-chains. " +
+        "Inline JSX nesting",
+    fix:
+        "Extract deeply indented " +
+        "blocks into separate " +
+        "functions at module scope",
+    flags:
+        "Indentation deeper than " +
+        "configured maximum " +
+        "(default 3 levels)",
+    philosophy:
+        "Bounds structural complexity " +
+        "per generation. Shallow code " +
+        "is locally verifiable — each " +
+        "function readable in one pass " +
+        "without holding nesting " +
+        "context",
+    pitfalls:
+        "eslint --fix on indent + " +
+        "ternary chains cascades into " +
+        "new depth violations. Run " +
+        "prettier first, then lint. " +
+        "Only use eslint --fix for " +
+        "indent on non-ternary code",
+    related:
+        "restrict-return-count, " +
+        "complexity, " +
+        "no-nested-function, " +
+        "max-lines-per-function",
+};
 
 const INDENT_SIZE: number = 4;
 const MSG: string =

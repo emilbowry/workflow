@@ -4,10 +4,43 @@ import type {
     TCreate,
     THandler,
     TMakeHandler,
+    TLintMeta,
     TTypeNodePredicate,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    flags:
+        "Type alias body is an object " +
+        "literal type (TSTypeLiteral)",
+    fix:
+        "Rewrite { key: T } as " +
+        "Record<K, V> or restructure",
+    pitfalls:
+        "Fires on all type literals " +
+        "including call/index/method " +
+        "signatures. Call signatures " +
+        "should use prefer-call-" +
+        "signature form instead",
+    avoid:
+        "Object literal types " +
+        "{ key: T }. Use Record<K, V>" +
+        " for keyed structures",
+    related:
+        "no-single-field-type, " +
+        "prefer-call-signature, " +
+        "no-duplicate-type-structure",
+    philosophy:
+        "Records make structural " +
+        "comparison obvious. Two " +
+        "Records with identical K,V " +
+        "are visibly the same; two " +
+        "object literals with " +
+        "different property names " +
+        "hide structural identity " +
+        "behind labels",
+};
 
 const MSG: string = "Use Record<K, V> instead of " + "an object literal type.";
 

@@ -66,3 +66,12 @@ export type TRefIdentName = (
 export type TTypeNodePredicate = (
     node: TSESTree.TypeNode,
 ) => boolean;
+
+export type TLintMeta = {
+    flags: string;
+    fix: string;
+    pitfalls: string;
+    avoid: string;
+    related: string;
+    philosophy: string;
+};

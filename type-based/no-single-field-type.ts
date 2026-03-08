@@ -4,10 +4,44 @@ import type {
     TContext,
     TCreate,
     THandler,
+    TLintMeta,
     TTypeNodePredicate,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    flags:
+        "Type alias with exactly one" +
+        " member in a type literal " +
+        "body (except call " +
+        "signatures)",
+    fix:
+        "Inline the single field " +
+        "type directly or combine " +
+        "with other fields",
+    pitfalls:
+        "Call signature types " +
+        "({ (x: A): B }) are " +
+        "exempt — they are canonical" +
+        " function type form, not " +
+        "wrappers",
+    avoid:
+        "Single-property wrapper " +
+        "types. type TFoo = " +
+        "{ value: string } — use " +
+        "string directly",
+    related:
+        "enforce-record-type, " +
+        "require-extracted-types, " +
+        "prefer-call-signature",
+    philosophy:
+        "Every type must earn its " +
+        "existence structurally. A " +
+        "single-field wrapper adds " +
+        "indirection without " +
+        "information",
+};
 
 const MSG: string =
     "Type alias has only one " +

@@ -4,10 +4,43 @@ import type {
     TContext,
     TMeta,
     TNodeHandler,
+    TLintMeta,
     TReportFn,
 } from "./type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    flags:
+        "More than 1 nested type " +
+        "construct (TSTypeLiteral or " +
+        "TSTupleType) in a type alias",
+    fix:
+        "Extract inner type literals " +
+        "and tuples into named type " +
+        "aliases",
+    pitfalls:
+        "Counts occurrences, not " +
+        "depth. Two sibling type " +
+        "literals at the same level " +
+        "both increment the counter",
+    avoid:
+        "Inline anonymous type " +
+        "structures within type " +
+        "aliases",
+    related:
+        "require-extracted-types, " +
+        "no-duplicate-type-structure," +
+        " no-single-field-type",
+    philosophy:
+        "Flat named types are " +
+        "independently comparable, " +
+        "composable, and visible as " +
+        "nodes in the type graph. " +
+        "Inline structures are " +
+        "invisible to structural " +
+        "comparison",
+};
 
 const MSG: string =
     "Type alias contains " +

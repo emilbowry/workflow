@@ -5,10 +5,50 @@ import type {
     TCreate,
     THandler,
     TMeta,
+    TLintMeta,
     TRefIdentName,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    flags:
+        "Two or more type aliases " +
+        "with identical canonical " +
+        "structural representation",
+    fix:
+        "Remove duplicate, reuse " +
+        "the existing type alias. " +
+        "If semantically distinct, " +
+        "differentiate the structure",
+    pitfalls:
+        "Uses module-level Map that " +
+        "persists across files in a " +
+        "lint run. clearFile handles " +
+        "re-linting. Canonical string" +
+        " comparison is nominal — " +
+        "renamed but structurally " +
+        "identical types are still " +
+        "caught",
+    avoid:
+        "Introducing new type aliases" +
+        " without checking for " +
+        "existing structurally " +
+        "identical types",
+    related:
+        "enforce-record-type, " +
+        "require-extracted-types, " +
+        "max-type-nesting, " +
+        "consistent-type-definitions",
+    philosophy:
+        "Two types with identical " +
+        "structure are the same " +
+        "type. Catches redundancy at" +
+        " lint time per-issue before" +
+        " duplicates enter the " +
+        "codebase and diverge across" +
+        " issues",
+};
 
 const MSG: string = "Types {{names}} are " + "structurally identical.";
 

@@ -2,6 +2,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type {
     TContext,
     TCreate,
+    TLintMeta,
     TMeta,
     TNodeHandler,
     TReportFn,
@@ -9,6 +10,47 @@ import type {
 } from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Early returns / guard " +
+        "clauses. Multiple return " +
+        "paths. If-else chains " +
+        "returning from each branch",
+    fix:
+        "Ternary for 2-3 branches. " +
+        "Switch+let+single-return " +
+        "for 4+. Nullish coalescing " +
+        "chain (tryA(x) ?? tryB(x) " +
+        "?? fallback) for " +
+        "T|undefined dispatch",
+    flags:
+        "More than 1 return statement " +
+        "per function, or any " +
+        "non-final return " +
+        "(early return)",
+    philosophy:
+        "Single return = total arrow. " +
+        "One input path, one output " +
+        "path, both visible in the " +
+        "type signature. The " +
+        "implementation is determined " +
+        "by the type, not by which " +
+        "branch executes",
+    pitfalls:
+        "Arrow expression bodies " +
+        "have no ReturnStatement " +
+        "node — invisible to this " +
+        "rule. Guard clauses " +
+        "(if (bad) return) are " +
+        "always flagged even with " +
+        "1 total return",
+    related:
+        "max-total-depth, " +
+        "complexity, " +
+        "functional/no-let, " +
+        "consistent-type-assertions",
+};
 
 const MSG: string =
     "Function has {{count}} return " +
