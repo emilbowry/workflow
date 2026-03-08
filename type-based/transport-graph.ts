@@ -150,10 +150,10 @@ const isDiscriminated: TIsDiscriminated = (entry) =>
 type TExtractDomain = (node: TSESTree.TSFunctionType) => string | undefined;
 
 const extractParamRef: TExtractDomain = (node) => {
-    const first: TSESTree.Parameter | undefined = node.params[0];
-    if (first === undefined) {
+    if (node.params.length === 0) {
         return undefined;
     }
+    const first: TSESTree.Parameter = node.params[0];
     if (first.type !== AST_NODE_TYPES.Identifier) {
         return undefined;
     }
