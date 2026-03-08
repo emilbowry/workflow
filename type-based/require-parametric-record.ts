@@ -112,123 +112,29 @@ type TIsValid = (
 const isValid: TIsValid = (src) =>
     PARAMETRIC.test(src);
 
-type TContainsRef = (
+type TIsRefWithArg = (
     ...args: [
         node: TSESTree.TypeNode,
         name: string,
     ]
 ) => boolean;
 
-const containsRef: TContainsRef = (
+const isRefWithArg: TIsRefWithArg = (
     node,
     name,
 ) =>
-    tryRefMatch(node, name) ??
-    tryUnionMatch(node, name) ??
-    tryIntersectionMatch(node, name) ??
-    tryArrayMatch(node, name) ??
-    tryTupleMatch(node, name) ??
-    tryFnMatch(node, name) ??
-    false;
-
-type TTryMatch = (
-    ...args: [
-        node: TSESTree.TypeNode,
-        name: string,
-    ]
-) => boolean | undefined;
-
-const tryRefMatch: TTryMatch = (node, name) =>
-    node.type !==
-    AST_NODE_TYPES.TSTypeReference
-        ? undefined
-        : tryRefName(node, name) ??
-          tryRefArgs(node, name);
-
-type TRefNameCheck = (
-    ...args: [
-        node: TSESTree.TSTypeReference,
-        name: string,
-    ]
-) => boolean | undefined;
-
-const tryRefName: TRefNameCheck = (
-    node,
-    name,
-) =>
-    node.typeName.type ===
-        AST_NODE_TYPES.Identifier &&
-    node.typeName.name === name
-        ? true
-        : undefined;
-
-const tryRefArgs: TRefNameCheck = (
-    node,
-    name,
-) =>
+    node.type ===
+        AST_NODE_TYPES.TSTypeReference &&
     node.typeArguments !== undefined &&
     node.typeArguments.params.some(
         (p: TSESTree.TypeNode) =>
-            containsRef(p, name),
-    )
-        ? true
-        : undefined;
-
-const tryUnionMatch: TTryMatch = (
-    node,
-    name,
-) =>
-    node.type !== AST_NODE_TYPES.TSUnionType
-        ? undefined
-        : node.types.some(
-                (t: TSESTree.TypeNode) =>
-                    containsRef(t, name),
-            );
-
-const tryIntersectionMatch: TTryMatch = (
-    node,
-    name,
-) =>
-    node.type !==
-    AST_NODE_TYPES.TSIntersectionType
-        ? undefined
-        : node.types.some(
-                (t: TSESTree.TypeNode) =>
-                    containsRef(t, name),
-            );
-
-const tryArrayMatch: TTryMatch = (
-    node,
-    name,
-) =>
-    node.type !== AST_NODE_TYPES.TSArrayType
-        ? undefined
-        : containsRef(
-              node.elementType,
-              name,
-          );
-
-const tryTupleMatch: TTryMatch = (
-    node,
-    name,
-) =>
-    node.type !== AST_NODE_TYPES.TSTupleType
-        ? undefined
-        : node.elementTypes.some(
-                (t: TSESTree.TypeNode) =>
-                    containsRef(t, name),
-            );
-
-const tryFnMatch: TTryMatch = (node, name) =>
-    node.type !==
-    AST_NODE_TYPES.TSFunctionType
-        ? undefined
-        : node.returnType !== undefined &&
-              containsRef(
-                  node.returnType
-                      .typeAnnotation,
-                  name,
-              );
+            p.type ===
+                AST_NODE_TYPES
+                    .TSTypeReference &&
+            p.typeName.type ===
+                AST_NODE_TYPES.Identifier &&
+            p.typeName.name === name,
+    );
 
 type TIsMapped = (
     node: TSESTree.TypeNode,
@@ -285,7 +191,7 @@ const checkMapped: TCheckMapped = (
     if (valueNode === undefined) {
         return;
     }
-    if (!containsRef(valueNode, keyName)) {
+    if (!isRefWithArg(valueNode, keyName)) {
         context.report({
             messageId:
                 "degenerateMappedType",
