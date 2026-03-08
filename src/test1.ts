@@ -1,4 +1,5 @@
-type TAdd = (left: number, right: number) => number;
+type TAddArgs = [left: number, right: number];
+type TAdd = (...args: TAddArgs) => number;
 
 const add: TAdd = (left, right) => left + right;
 
