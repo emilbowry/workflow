@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { resolve, dirname, relative } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import type {
@@ -111,7 +111,8 @@ type TProcessFile = (
 
 const processFile: TProcessFile = async (filePath, rulesXml) => {
     const info: TWorktreeInfo = await createWorktree(filePath);
-    const worktreeFile: string = resolve(info.path, filePath);
+    const rel: string = relative(process.cwd(), filePath);
+    const worktreeFile: string = resolve(info.path, rel);
     const result: TWorkerResult = await runWorker(worktreeFile, rulesXml);
     return { result, info };
 };
