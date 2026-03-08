@@ -22,17 +22,20 @@ export const LINT_META: TLintMeta = {
     pitfalls:
         "Fires on all type literals " +
         "including call/index/method " +
-        "signatures. Call signatures " +
-        "should use prefer-call-" +
-        "signature form instead",
+        "signatures. For lookup " +
+        "tables needing T|undefined " +
+        "use Map not Record — " +
+        "Record access never " +
+        "returns undefined",
     avoid:
         "Object literal types " +
         "{ key: T }. Use Record<K, V>" +
         " for keyed structures",
     related:
         "no-single-field-type, " +
-        "prefer-call-signature, " +
-        "no-duplicate-type-structure",
+        "no-duplicate-type-" +
+        "structure, " +
+        "require-parametric-record",
     philosophy:
         "Records make structural " +
         "comparison obvious. Two " +

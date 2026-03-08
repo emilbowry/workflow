@@ -40,9 +40,7 @@ export const LINT_META: TLintMeta = {
     pitfalls:
         "Only compares first type " +
         "parameter constraint. Uses " +
-        "module-level mutable array. " +
-        "Non-null assertion on " +
-        "typeParameters (line 121)",
+        "module-level mutable array",
     related:
         "type-distance, " +
         "no-duplicate-type-structure, " +

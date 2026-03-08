@@ -39,9 +39,9 @@ export const LINT_META: TLintMeta = {
         "Currently type-level only — " +
         "runtime signatures commented out",
     related:
-        "require-extracted-function-type, " +
-        "prefer-call-signature, " +
-        "transport-graph",
+        "require-extracted-types, " +
+        "transport-graph, " +
+        "valid-generics",
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);

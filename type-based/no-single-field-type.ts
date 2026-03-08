@@ -36,7 +36,7 @@ export const LINT_META: TLintMeta = {
     related:
         "enforce-record-type, " +
         "require-extracted-types, " +
-        "prefer-call-signature",
+        "no-duplicate-type-structure",
     philosophy:
         "Every type must earn its " +
         "existence structurally. A " +

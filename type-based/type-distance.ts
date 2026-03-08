@@ -25,8 +25,9 @@ export const LINT_META: TLintMeta = {
         "difference explicit",
     flags:
         "Two type aliases with " +
-        "structural distance >= 0.75 " +
-        "(Jaccard similarity on keys " +
+        "structural similarity " +
+        ">= 0.75 (Jaccard " +
+        "similarity on keys " +
         "and values)",
     philosophy:
         "The type namespace is a set — " +

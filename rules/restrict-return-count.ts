@@ -21,11 +21,11 @@ export const LINT_META: TLintMeta = {
         "returning from each branch",
     fix:
         "Ternary for 2-3 branches. " +
-        "Switch+let+single-return " +
-        "for 4+. Nullish coalescing " +
-        "chain (tryA(x) ?? tryB(x) " +
-        "?? fallback) for " +
-        "T|undefined dispatch",
+        "Nullish coalescing chain " +
+        "(tryA(x) ?? tryB(x) ?? " +
+        "fallback) for T|undefined " +
+        "dispatch. Map-based " +
+        "dispatch for 4+ branches",
     flags:
         "More than 1 return statement " +
         "per function, or any " +
@@ -46,7 +46,10 @@ export const LINT_META: TLintMeta = {
         "rule. Guard clauses " +
         "(if (bad) return) are " +
         "always flagged even with " +
-        "1 total return",
+        "1 total return. Do not " +
+        "use switch+let — " +
+        "functional/no-let bans " +
+        "let entirely",
     related:
         "max-total-depth, " +
         "complexity, " +

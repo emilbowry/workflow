@@ -37,16 +37,15 @@ export const LINT_META: TLintMeta = {
         "computation graph. Isolated " +
         "nodes are dead types",
     pitfalls:
-        "Only checks within a single " +
-        "file. Exports buildTransport" +
-        "Graph and classifyEdge for " +
-        "fiber-coherence. Uses " +
-        "as const assertions " +
-        "(currently banned)",
+        "Only checks within a " +
+        "single file. Exports " +
+        "buildTransportGraph and " +
+        "classifyEdge for " +
+        "fiber-coherence",
     related:
         "fiber-coherence, " +
         "require-rest-params-tuple, " +
-        "require-extracted-function-type",
+        "require-extracted-types",
 };
 
 const MSG: string =

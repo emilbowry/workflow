@@ -1,5 +1,4 @@
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { TRule } from "../rules/max-total-depth";
 import type {
     TContext,
     TMeta,
@@ -11,6 +10,11 @@ import type {
 import { ESLintUtils } from "@typescript-eslint/utils";
 
 import { lintMetaToMsg } from "./type-based.types";
+
+type TRule = ESLintUtils.RuleModule<
+    "tooManyNested",
+    [number]
+>;
 
 export const LINT_META: TLintMeta = {
     flags:
@@ -87,7 +91,7 @@ const report: TReportFn<TRule> = (ctx, node, count, max) => {
             count: String(count),
             max: String(max),
         },
-        messageId: "tooDeep",
+        messageId: "tooManyNested",
         node,
     });
 };
@@ -126,7 +130,7 @@ const meta: TMeta<TRule> = {
         description: DESC,
     },
     messages: {
-        tooDeep: MSG,
+        tooManyNested: MSG,
     },
     schema: [
         {

@@ -32,41 +32,57 @@ import { lintMetaToMsg } from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
     avoid:
-        "Closures that capture mutable " +
-        "outer scope. Nested arrow " +
-        "chains beyond the PA boundary",
+        "Closures capturing outer " +
+        "scope. .bind() for partial " +
+        "application — it is not a " +
+        "valid solution. Nested " +
+        "arrow chains beyond the " +
+        "PA boundary",
     fix:
-        "Three solutions: (1) Extract " +
-        "inner function to module " +
-        "scope with explicit " +
-        "parameters, (2) Nullary PA: " +
+        "Three solutions: " +
+        "(1) Extract inner function " +
+        "to module scope, pass free " +
+        "variables as explicit args " +
+        "(lambda lifting). " +
+        "(2) Nullary PA: " +
         "(fn, ...params) => () => " +
-        "fn(...params), (3) IIFE " +
-        "thunk: (() => (node) => " +
-        "work)()",
+        "fn(...params). " +
+        "(3) IIFE thunk: " +
+        "(() => (node) => work)()",
     flags:
         "Parameterized function " +
-        "defined inside another " +
-        "parameterized function",
+        "inside another " +
+        "parameterized function. " +
+        "Two permitted nesting " +
+        "shapes: (1) Nullary PA — " +
+        "inner has zero params and " +
+        "is not parameterized " +
+        "inside parameterized, " +
+        "(2) IIFE thunk — " +
+        "(() => (node) => work)() " +
+        "collapses by the " +
+        "1 -> T isomorphism",
     philosophy:
-        "Lambda lifting makes all " +
-        "dependencies explicit " +
-        "parameters in the type " +
-        "signature. No hidden " +
-        "wiring — the signature IS " +
-        "the specification of what " +
-        "the function touches",
+        "Lambda lifting (Johnsson " +
+        "1985): every closure is " +
+        "mechanically eliminable " +
+        "by lifting free variables " +
+        "into parameters. Flat " +
+        "typed arrows with " +
+        "explicit params — the " +
+        "signature IS the " +
+        "specification",
     pitfalls:
         "Object literal method " +
         "shorthands are NOT exempt " +
-        "— ESLint create() handler " +
-        "methods close over context " +
-        "and trigger the rule. The " +
+        "— { foo(node) { } } is a " +
+        "nested function expression " +
+        "not a method. The " +
         "makeHandler(fn, ctx)() " +
         "anti-pattern is a no-op " +
         "(1 -> T ≅ T) — put the " +
-        "IIFE inside makeHandler " +
-        "instead",
+        "IIFE inside makeHandler. " +
+        ".bind() is never valid",
     related:
         "max-lines-per-function, " +
         "func-style, " +

@@ -92,17 +92,14 @@ const registry: TExternalRegistry = new Map([
             fix:
                 "Simplify { (): T } to " +
                 "() => T",
-            pitfalls:
-                "May conflict with " +
-                "prefer-call-signature " +
-                "if enabled",
+            pitfalls: "None",
             avoid:
                 "Unnecessary structural" +
                 " wrapping of pure " +
                 "function types",
             related:
-                "prefer-call-signature" +
-                ", no-single-field-type",
+                "no-single-field-type" +
+                ", enforce-record-type",
             philosophy:
                 "Reduce indirection " +
                 "for pure function " +
@@ -536,14 +533,12 @@ const registry: TExternalRegistry = new Map([
                 "(tryA(x) ?? tryB(x) " +
                 "?? fallback)",
             pitfalls:
-                "Tension with " +
-                "restrict-return-count" +
-                ": switch+let is the " +
-                "only pattern " +
-                "satisfying return-" +
-                "count + depth + " +
-                "assertions. Accepted " +
-                "trade-off",
+                "No exceptions. " +
+                "switch+let is banned" +
+                " — use nullish " +
+                "coalescing chains or" +
+                " Map-based dispatch " +
+                "instead",
             avoid:
                 "Mutable bindings. " +
                 "Use const exclusively",
