@@ -121,7 +121,9 @@ type TGetMappedKeyName = (...args: TMappedArgs) => string;
 
 const getMappedKeyName: TGetMappedKeyName = (mapped) => mapped.key.name;
 
-type TGetMappedValue = (...args: TMappedArgs) => TSESTree.TypeNode | undefined;
+type TMappedValueNode = TSESTree.TypeNode | undefined;
+
+type TGetMappedValue = (...args: TMappedArgs) => TMappedValueNode;
 
 const getMappedValue: TGetMappedValue = (mapped) =>
     mapped.typeAnnotation ?? undefined;
@@ -139,7 +141,7 @@ const checkMapped: TCheckMapped = (context, node) => {
         return;
     }
     const keyName: string = getMappedKeyName(body);
-    const valueNode: TSESTree.TypeNode | undefined = getMappedValue(body);
+    const valueNode: TMappedValueNode = getMappedValue(body);
     if (valueNode === undefined) {
         return;
     }
