@@ -12,6 +12,8 @@ import {
     ESLintUtils,
 } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Generic type families over " +
@@ -48,10 +50,8 @@ export const LINT_META: TLintMeta = {
 };
 
 const MSG: string =
-    "Generic types '{{first}}' and " +
-    "'{{second}}' are cardinality-" +
-    "isomorphic over their shared " +
-    "domain and may be unifiable.";
+    lintMetaToMsg(LINT_META)
+    + " Types: {{first}}, {{second}}";
 
 const DESC: string =
     "Detect generic type families " +

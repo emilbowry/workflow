@@ -6,6 +6,8 @@ import type {
     TMeta,
 } from "../type-based/type-based.types";
 
+import { lintMetaToMsg } from "../type-based/type-based.types";
+
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 export const LINT_META: TLintMeta = {
@@ -42,8 +44,7 @@ export const LINT_META: TLintMeta = {
         "transport-graph",
 };
 
-const MSG: string = LINT_META.flags + ". " +
-    LINT_META.fix;
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Require all function signatures " +

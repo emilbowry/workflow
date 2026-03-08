@@ -9,6 +9,8 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "../type-based/type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Nested ternaries beyond 3 " +
@@ -45,10 +47,8 @@ export const LINT_META: TLintMeta = {
 
 const INDENT_SIZE: number = 4;
 const MSG: string =
-    "Indentation depth ({{depth}}) " +
-    "exceeds maximum of {{max}}. " +
-    "Extract into a separate " +
-    "component or function.";
+    lintMetaToMsg(LINT_META)
+    + " depth={{depth}} max={{max}}";
 
 const DESC: string = "Enforce a maximum indentation " + "depth for all code.";
 

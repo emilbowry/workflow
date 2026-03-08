@@ -15,6 +15,8 @@ import {
     ESLintUtils,
 } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 import {
     buildTransportGraph,
     classifyEdge,
@@ -60,11 +62,8 @@ export const LINT_META: TLintMeta = {
 };
 
 const MSG: string =
-    "Fiber coherence violation: " +
-    "types '{{left}}' and '{{right}}' " +
-    "are connected by an isomorphic " +
-    "edge but have different " +
-    "cardinalities.";
+    lintMetaToMsg(LINT_META)
+    + " Types: {{left}}, {{right}}";
 
 const DESC: string =
     "Ensure fiber members connected " +

@@ -10,6 +10,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Type alias with exactly one" +
@@ -43,10 +45,7 @@ export const LINT_META: TLintMeta = {
         "information",
 };
 
-const MSG: string =
-    "Type alias has only one " +
-    "field. Combine with other " +
-    "fields or use the type directly.";
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string = "Disallow type aliases with " + "a single property field.";
 

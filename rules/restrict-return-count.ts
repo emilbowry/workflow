@@ -11,6 +11,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "../type-based/type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Early returns / guard " +
@@ -53,16 +55,14 @@ export const LINT_META: TLintMeta = {
 };
 
 const MSG: string =
-    "Function has {{count}} return " +
-    "statements. Maximum allowed " +
-    "is {{max}}.";
+    lintMetaToMsg(LINT_META)
+    + " count={{count}} max={{max}}";
 
 const DESC: string = "Enforce a maximum number " + "of return statements.";
 
 const EARLY_MSG: string =
-    "Early return statement. " +
-    "Return only at the end " +
-    "of the function body.";
+    lintMetaToMsg(LINT_META)
+    + " (early return)";
 
 type TRule = ESLintUtils.RuleModule<"earlyReturn" | "tooManyReturns", [number]>;
 

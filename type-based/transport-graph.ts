@@ -9,6 +9,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Discriminated types (literal " +
@@ -48,10 +50,8 @@ export const LINT_META: TLintMeta = {
 };
 
 const MSG: string =
-    "Type '{{name}}' is isolated " +
-    "in the transport graph " +
-    "(not connected to any " +
-    "function signature).";
+    lintMetaToMsg(LINT_META)
+    + " Type: {{name}}";
 
 const DESC: string =
     "Ensure all discriminated " +

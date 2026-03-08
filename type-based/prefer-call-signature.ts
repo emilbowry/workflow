@@ -9,6 +9,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Function type syntax " +
@@ -40,10 +42,7 @@ export const LINT_META: TLintMeta = {
         " literal patterns",
 };
 
-const MSG: string =
-    "Use call-signature syntax " +
-    "{ (...): T } instead of " +
-    "function type (...) => T.";
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Require call-signature syntax " +

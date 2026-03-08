@@ -11,6 +11,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Two or more type aliases " +
@@ -50,7 +52,9 @@ export const LINT_META: TLintMeta = {
         " issues",
 };
 
-const MSG: string = "Types {{names}} are " + "structurally identical.";
+const MSG: string =
+    lintMetaToMsg(LINT_META)
+    + " Types: {{names}}";
 
 const DESC: string =
     "Disallow multiple type " +

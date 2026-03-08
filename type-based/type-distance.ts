@@ -9,6 +9,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Near-duplicate type aliases " +
@@ -46,9 +48,8 @@ export const LINT_META: TLintMeta = {
 };
 
 const MSG: string =
-    "Types '{{nameA}}' and '{{nameB}}' " +
-    "have low structural distance " +
-    "and may be unifiable.";
+    lintMetaToMsg(LINT_META)
+    + " Types: {{nameA}}, {{nameB}}";
 
 const DESC: string =
     "Detect type aliases with " +

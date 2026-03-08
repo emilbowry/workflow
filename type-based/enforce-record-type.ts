@@ -10,6 +10,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Type alias body is an object " +
@@ -42,7 +44,7 @@ export const LINT_META: TLintMeta = {
         "behind labels",
 };
 
-const MSG: string = "Use Record<K, V> instead of " + "an object literal type.";
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Enforce Record for all " + "object-literal type definitions.";

@@ -8,6 +8,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Inline type annotations " +
@@ -48,7 +50,7 @@ export const LINT_META: TLintMeta = {
         "without any implementation",
 };
 
-const MSG: string = "Inline type must be extracted " + "to a named type alias.";
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Require type annotations to be " + "keywords or named references.";

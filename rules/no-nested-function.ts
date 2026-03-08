@@ -28,6 +28,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "../type-based/type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Closures that capture mutable " +
@@ -71,13 +73,7 @@ export const LINT_META: TLintMeta = {
         "prefer-arrow-callback",
 };
 
-const MSG: string =
-    "Nested function definition. " +
-    "Extract to a top-level " +
-    "function or use partial " +
-    "application: " +
-    "(fn, ...p) => () => fn(...p) " +
-    "or IIFE (() => (x) => work)()";
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Disallow function definitions " +

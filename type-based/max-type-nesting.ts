@@ -10,6 +10,8 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "More than 1 nested type " +
@@ -43,11 +45,8 @@ export const LINT_META: TLintMeta = {
 };
 
 const MSG: string =
-    "Type alias contains " +
-    "{{count}} nested type " +
-    "constructs, maximum " +
-    "allowed is {{max}}. " +
-    "Extract to named types.";
+    lintMetaToMsg(LINT_META)
+    + " count={{count}} max={{max}}";
 
 const DESC: string =
     "Enforce a maximum number " +

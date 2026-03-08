@@ -11,6 +11,8 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Degenerate generic (body " +
@@ -58,12 +60,10 @@ export const LINT_META: TLintMeta = {
 };
 
 const DEGENERATE_MSG: string =
-    "Degenerate generic: type alias " + "body is just the type parameter.";
+    lintMetaToMsg(LINT_META) + " (degenerate)";
 
 const HOMOGENEOUS_MSG: string =
-    "Homogeneous generic: type alias " +
-    "passes type parameters straight " +
-    "through to another generic.";
+    lintMetaToMsg(LINT_META) + " (homogeneous)";
 
 const DESC: string =
     "Disallow degenerate and " + "homogeneous generic type aliases.";

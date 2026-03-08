@@ -9,6 +9,8 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     flags:
         "Record type without " +
@@ -55,16 +57,7 @@ export const LINT_META: TLintMeta = {
         "relationship",
 };
 
-const MSG: string =
-    "Record must be parametric. " +
-    "Use type TFoo<T extends X> = " +
-    "Record<T, TBar<T>>. " +
-    "If the generic key parameter " +
-    "cannot be constructed, there " +
-    "is no structural reasoning " +
-    "for key-value pairs — use a " +
-    "tuple instead. Otherwise the " +
-    "type is constructable.";
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Require Record types to be " +

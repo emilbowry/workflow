@@ -12,6 +12,8 @@ import {
     ESLintUtils,
 } from "@typescript-eslint/utils";
 
+import { lintMetaToMsg } from "./type-based.types";
+
 export const LINT_META: TLintMeta = {
     avoid:
         "Returning bare string from " +
@@ -49,7 +51,7 @@ export const LINT_META: TLintMeta = {
         "valid-generics",
 };
 
-const MSG: string = LINT_META.flags;
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Functions from finite domains " +

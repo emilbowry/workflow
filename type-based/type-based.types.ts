@@ -75,3 +75,24 @@ export type TLintMeta = {
     related: string;
     philosophy: string;
 };
+
+type TLintMetaToMsg = (
+    meta: TLintMeta,
+) => string;
+
+export const lintMetaToMsg: TLintMetaToMsg =
+    (meta) =>
+        "<lint_meta>"
+        + "<flags>" + meta.flags + "</flags>"
+        + "<fix>" + meta.fix + "</fix>"
+        + "<pitfalls>"
+        + meta.pitfalls
+        + "</pitfalls>"
+        + "<avoid>" + meta.avoid + "</avoid>"
+        + "<related>"
+        + meta.related
+        + "</related>"
+        + "<philosophy>"
+        + meta.philosophy
+        + "</philosophy>"
+        + "</lint_meta>";
