@@ -36,8 +36,14 @@ const composeCommitMessage: TComposeCommitMessage = (data) => {
 type TCommitFile = (filePath: string, message: string) => Promise<void>;
 
 const commitFile: TCommitFile = async (filePath, message) => {
-    await execAsync("git add " + JSON.stringify(filePath));
-    await execAsync("git commit -m " + JSON.stringify(message));
+    await execAsync(
+        "git add " +
+            JSON.stringify(filePath) +
+            " && git commit -m " +
+            JSON.stringify(message) +
+            " -- " +
+            JSON.stringify(filePath),
+    );
 };
 
 export { composeCommitMessage, commitFile };
