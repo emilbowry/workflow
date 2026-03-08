@@ -230,22 +230,22 @@ const canonicalMember: TCanonicalMember = (member) =>
     tryMethodSig(member) ??
     memberFallback(member);
 
-type TKeywordMap = Map<string, string>;
+type TKeywordMap = Record<string, string | undefined>;
 
-const KEYWORD_MAP: TKeywordMap = new Map([
-    [AST_NODE_TYPES.TSAnyKeyword, "any"],
-    [AST_NODE_TYPES.TSBigIntKeyword, "bigint"],
-    [AST_NODE_TYPES.TSBooleanKeyword, "boolean"],
-    [AST_NODE_TYPES.TSNeverKeyword, "never"],
-    [AST_NODE_TYPES.TSNullKeyword, "null"],
-    [AST_NODE_TYPES.TSNumberKeyword, "number"],
-    [AST_NODE_TYPES.TSObjectKeyword, "object"],
-    [AST_NODE_TYPES.TSStringKeyword, "string"],
-    [AST_NODE_TYPES.TSSymbolKeyword, "symbol"],
-    [AST_NODE_TYPES.TSUndefinedKeyword, "undefined"],
-    [AST_NODE_TYPES.TSUnknownKeyword, "unknown"],
-    [AST_NODE_TYPES.TSVoidKeyword, "void"],
-]);
+const KEYWORD_MAP: TKeywordMap = {
+    [AST_NODE_TYPES.TSAnyKeyword]: "any",
+    [AST_NODE_TYPES.TSBigIntKeyword]: "bigint",
+    [AST_NODE_TYPES.TSBooleanKeyword]: "boolean",
+    [AST_NODE_TYPES.TSNeverKeyword]: "never",
+    [AST_NODE_TYPES.TSNullKeyword]: "null",
+    [AST_NODE_TYPES.TSNumberKeyword]: "number",
+    [AST_NODE_TYPES.TSObjectKeyword]: "object",
+    [AST_NODE_TYPES.TSStringKeyword]: "string",
+    [AST_NODE_TYPES.TSSymbolKeyword]: "symbol",
+    [AST_NODE_TYPES.TSUndefinedKeyword]: "undefined",
+    [AST_NODE_TYPES.TSUnknownKeyword]: "unknown",
+    [AST_NODE_TYPES.TSVoidKeyword]: "void",
+};
 
 type THandleTypeLiteral = (node: TSESTree.TSTypeLiteral) => string;
 
@@ -481,7 +481,7 @@ const dispatchNode: TCanonical = (node) =>
     node.type;
 
 const canonical: TCanonical = (node) => {
-    const keyword: TMaybeString = KEYWORD_MAP.get(node.type);
+    const keyword: TMaybeString = KEYWORD_MAP[node.type];
     return keyword ?? dispatchNode(node);
 };
 
@@ -489,7 +489,7 @@ type TEntry = [string, string, TSESTree.TSTypeAliasDeclaration];
 
 type TRule = ESLintUtils.RuleModule<"duplicateStructure">;
 
-const seen: Map<string, Array<TEntry>> = new Map();
+const seen: Record<string, Array<TEntry> | undefined> = {};
 
 type TFormatEntry = (entry: TEntry) => string;
 
@@ -520,8 +520,8 @@ const reportEntry: TReportEntry = (context, file, entry, names) => {
 type TReportDuplicates = (context: TContext<TRule>, file: string) => void;
 
 const reportDuplicates: TReportDuplicates = (context, file) => {
-    for (const entries of seen.values()) {
-        if (entries.length < 2) {
+    for (const entries of Object.values(seen)) {
+        if (!entries || entries.length < 2) {
             continue;
         }
         const names: string = formatNames(entries);
@@ -542,11 +542,11 @@ const recordAlias: TRecordAlias = (file, node) => {
     const key: string = canonical(node.typeAnnotation);
     const name: string = node.id.name;
     const newEntry: TEntry = [file, name, node];
-    const existing: TMaybeEntries = seen.get(key);
+    const existing: TMaybeEntries = seen[key];
     if (existing) {
         existing.push(newEntry);
     } else {
-        seen.set(key, [newEntry]);
+        seen[key] = [newEntry];
     }
 };
 
@@ -564,12 +564,15 @@ type TClearFile = (file: string) => void;
 
 const clearFile: TClearFile = (file) => {
     const keep: TEntryPredicate = makeFileFilter(file);
-    for (const [key, entries] of seen) {
+    for (const [key, entries] of Object.entries(seen)) {
+        if (!entries) {
+            continue;
+        }
         const kept: Array<TEntry> = entries.filter(keep);
         if (kept.length === 0) {
-            seen.delete(key);
+            delete seen[key];
         } else {
-            seen.set(key, kept);
+            seen[key] = kept;
         }
     }
 };
