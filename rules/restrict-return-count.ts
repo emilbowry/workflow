@@ -1,5 +1,12 @@
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { TContext, TCreate, TMeta } from "./rules.types";
+import type {
+    TContext,
+    TCreate,
+    TMeta,
+    TNodeHandler,
+    TReportFn,
+    TSchema,
+} from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -38,14 +45,7 @@ type TMakeData = (count: number, max: number) => TReportTuple;
 const makeData: TMakeData = (count, max) =>
     [String(count), String(max)] as const;
 
-type TReportIfExceeded = (
-    context: TContext,
-    node: TSESTree.Node,
-    count: number,
-    max: number,
-) => void;
-
-const reportIfExceeded: TReportIfExceeded = (context, node, count, max) => {
+const reportIfExceeded: TReportFn<TRule> = (context, node, count, max) => {
     if (count > max) {
         const reportData: TReportTuple = makeData(count, max);
         context.report({
@@ -58,7 +58,7 @@ const reportIfExceeded: TReportIfExceeded = (context, node, count, max) => {
 
 type TPop = (
     stack: Array<number>,
-    context: TContext,
+    context: TContext<TRule>,
     node: TSESTree.Node,
     max: number,
 ) => void;
@@ -69,8 +69,6 @@ const pop: TPop = (stack, context, node, max) => {
         reportIfExceeded(context, node, count, max);
     }
 };
-
-type TNodeHandler = (node: TSESTree.Node) => void;
 
 type TFunctionNodeTypes = Set<string>;
 
@@ -91,7 +89,10 @@ const isFinalReturn: TIsFinalReturn = (node) => {
     );
 };
 
-type TReportEarly = (context: TContext, node: TSESTree.ReturnStatement) => void;
+type TReportEarly = (
+    context: TContext<TRule>,
+    node: TSESTree.ReturnStatement,
+) => void;
 
 const reportEarlyReturn: TReportEarly = (context, node) => {
     if (!isFinalReturn(node)) {
@@ -106,7 +107,7 @@ type TReturnHandler = (node: TSESTree.ReturnStatement) => void;
 
 type THandleReturn = (
     stack: Array<number>,
-    context: TContext,
+    context: TContext<TRule>,
     node: TSESTree.ReturnStatement,
 ) => void;
 
@@ -118,7 +119,7 @@ const handleReturn: THandleReturn = (stack, context, node) => {
 type TMakeNodeHandler = (
     handler: TPop,
     stack: Array<number>,
-    context: TContext,
+    context: TContext<TRule>,
     max: number,
 ) => TNodeHandler;
 
@@ -131,7 +132,7 @@ const makeOnExit: TMakeNodeHandler = (handler, stack, context, max) =>
 type TMakeReturnHandler = (
     handler: THandleReturn,
     stack: Array<number>,
-    context: TContext,
+    context: TContext<TRule>,
 ) => TReturnHandler;
 
 const makeOnReturn: TMakeReturnHandler = (handler, stack, context) =>
@@ -140,7 +141,7 @@ const makeOnReturn: TMakeReturnHandler = (handler, stack, context) =>
             handler(stack, context, node)
     )();
 
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const max: number = context.options[0];
     const stack: Array<number> = [];
 
@@ -161,15 +162,9 @@ const create: TCreate = (context) => {
     };
 };
 
-type TSchemaKey = "minimum" | "type";
+const SCHEMA: TSchema<TRule> = [{ minimum: 1, type: "integer" }];
 
-type TSchemaValue<T extends TSchemaKey> = T extends "minimum" ? number : string;
-
-type TSchema = { [K in TSchemaKey]: TSchemaValue<K> };
-
-const SCHEMA: Array<TSchema> = [{ minimum: 1, type: "integer" }];
-
-const META: TMeta = {
+const META: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { earlyReturn: EARLY_MSG, tooManyReturns: MSG },
     schema: SCHEMA,

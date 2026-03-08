@@ -1,5 +1,11 @@
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { TContext, TMeta, TNodeHandler } from "./type-based.types";
+import type { TRule } from "../rules/max-total-depth";
+import type {
+    TContext,
+    TMeta,
+    TNodeHandler,
+    TReportFn,
+} from "./type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -15,8 +21,6 @@ const DESC: string =
     "of nested type constructs " +
     "(literals and tuples) per " +
     "type alias declaration.";
-
-type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
 
 type TStack = Array<number>;
 
@@ -45,14 +49,7 @@ const exit: TEnter = (state) => {
     state[1] = pop(state[1]);
 };
 
-type TReport = (
-    ctx: TContext<TRule>,
-    node: TSESTree.Node,
-    count: number,
-    max: number,
-) => void;
-
-const report: TReport = (ctx, node, count, max) => {
+const report: TReportFn<TRule> = (ctx, node, count, max) => {
     ctx.report({
         data: {
             count: String(count),

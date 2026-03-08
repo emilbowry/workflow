@@ -1,5 +1,10 @@
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { TContext, TCreate, TMeta } from "./rules.types";
+import type {
+    TContext,
+    TCreate,
+    TMeta,
+    TSchema,
+} from "../type-based/type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -12,11 +17,11 @@ const MSG: string =
 
 const DESC: string = "Enforce a maximum indentation " + "depth for all code.";
 
-type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
+export type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
 
 type TMatch = null | RegExpMatchArray;
 
-type TSourceCode = TContext["sourceCode"];
+type TSourceCode = TContext<TRule>["sourceCode"];
 
 type TStringToNumber = (input: string) => number;
 
@@ -57,7 +62,7 @@ const getLeading: TGetLeading = (line) => {
 };
 
 type TCheckLine = (
-    context: TContext,
+    context: TContext<TRule>,
     node: TSESTree.Program,
     max: number,
     line: string,
@@ -84,7 +89,7 @@ type TLineHandler = (line: string, idx: number) => void;
 
 type TMakeLineHandler = (
     checkLine: TCheckLine,
-    context: TContext,
+    context: TContext<TRule>,
     node: TSESTree.Program,
     max: number,
 ) => TLineHandler;
@@ -96,7 +101,7 @@ const makeLineHandler: TMakeLineHandler = (checkLine, context, node, max) =>
     )();
 
 type TCheckLines = (
-    context: TContext,
+    context: TContext<TRule>,
     node: TSESTree.Program,
     max: number,
 ) => void;
@@ -118,7 +123,7 @@ type TProgramHandler = (node: TSESTree.Program) => void;
 
 type TMakeProgramHandler = (
     checkLines: TCheckLines,
-    context: TContext,
+    context: TContext<TRule>,
     max: number,
 ) => TProgramHandler;
 
@@ -128,7 +133,7 @@ const makeProgramHandler: TMakeProgramHandler = (checkLines, context, max) =>
             checkLines(context, node, max)
     )();
 
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const max: number = context.options[0];
     const handler: TProgramHandler = makeProgramHandler(
         checkLines,
@@ -138,11 +143,9 @@ const create: TCreate = (context) => {
     return { "Program:exit": handler };
 };
 
-type TSchema = TMeta["schema"];
+const schema: TSchema<TRule> = [{ minimum: 1, type: "integer" }];
 
-const schema: TSchema = [{ minimum: 1, type: "integer" }];
-
-const meta: TMeta = {
+const meta: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { tooDeep: MSG },
     schema,

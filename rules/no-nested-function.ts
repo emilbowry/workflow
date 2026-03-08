@@ -13,13 +13,17 @@
     thunk layer between them is a valid PA boundary.
     An IIFE thunk collapses by 1 → T ≅ T.
 
-    const collapse = 
-    <A extends unknown[], R>( f: (...args: A) => () => R ):    
+    const collapse =
+    <A extends unknown[], R>( f: (...args: A) => () => R ):
         (...args: A) => R => (...args) => f(...args)();
 */
 
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { TContext, TCreate, TMeta } from "./rules.types";
+import type {
+    TContext,
+    TCreate,
+    TMeta,
+} from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -73,7 +77,10 @@ type TFunctionPredicate = (node: TFunctionNode) => boolean;
 const shouldReport: TFunctionPredicate = (node) =>
     node.params.length > 0 && parentIsParameterized(node);
 
-type TCheckNode = (context: TContext, node: TFunctionNode) => void;
+type TCheckNode = (
+    context: TContext<TRule>,
+    node: TFunctionNode,
+) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (shouldReport(node)) {
@@ -86,7 +93,10 @@ const checkNode: TCheckNode = (context, node) => {
 
 type THandler = (node: TFunctionNode) => void;
 
-type TMakeHandler = (checkNode: TCheckNode, context: TContext) => THandler;
+type TMakeHandler = (
+    checkNode: TCheckNode,
+    context: TContext<TRule>,
+) => THandler;
 
 const makeHandler: TMakeHandler = (checkNode, context) =>
     (
@@ -94,7 +104,7 @@ const makeHandler: TMakeHandler = (checkNode, context) =>
             checkNode(context, node)
     )();
 
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(checkNode, context);
     return {
         ArrowFunctionExpression: handler,
@@ -103,7 +113,7 @@ const create: TCreate = (context) => {
     };
 };
 
-const META: TMeta = {
+const META: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { nestedFunction: MSG },
     schema: [],

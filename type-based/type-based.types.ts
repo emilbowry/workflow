@@ -42,6 +42,19 @@ export type TMakeHandler<
     context: TContext<TRule>,
 ) => THandler;
 
+export type TSchema<
+    TRule extends TBaseRule
+> = TMeta<TRule>["schema"];
+
+export type TReportFn<
+    TRule extends TBaseRule
+> = (
+    ctx: TContext<TRule>,
+    node: TSESTree.Node,
+    count: number,
+    max: number,
+) => void;
+
 export type TCanonical = (
     node: TSESTree.TypeNode,
 ) => string;
