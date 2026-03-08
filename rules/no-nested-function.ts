@@ -116,7 +116,9 @@ type TFunctionNode =
 
 type TMaybeNode = TSESTree.Node | undefined;
 
-type TFnParamCount = (node: TSESTree.Node) => number;
+type TNodeArgs = [node: TSESTree.Node];
+
+type TFnParamCount = (...args: TNodeArgs) => number;
 
 const fnParamCount: TFnParamCount = (node) =>
     node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
@@ -125,9 +127,11 @@ const fnParamCount: TFnParamCount = (node) =>
         ? node.params.length
         : -1;
 
-type TParentIsParameterized = (node: TSESTree.Node) => boolean;
+type TParentIsParameterized = (...args: TNodeArgs) => boolean;
 
-type TFindParentParamCount = (node: TMaybeNode) => number;
+type TMaybeNodeArgs = [node: TMaybeNode];
+
+type TFindParentParamCount = (...args: TMaybeNodeArgs) => number;
 
 const findParentParamCount: TFindParentParamCount = (node) =>
     !node
@@ -139,12 +143,16 @@ const findParentParamCount: TFindParentParamCount = (node) =>
 const parentIsParameterized: TParentIsParameterized = (node) =>
     findParentParamCount(node.parent) > 0;
 
-type TFunctionPredicate = (node: TFunctionNode) => boolean;
+type TFunctionNodeArgs = [node: TFunctionNode];
+
+type TFunctionPredicate = (...args: TFunctionNodeArgs) => boolean;
 
 const shouldReport: TFunctionPredicate = (node) =>
     node.params.length > 0 && parentIsParameterized(node);
 
-type TCheckNode = (context: TContext<TRule>, node: TFunctionNode) => void;
+type TCheckNodeArgs = [context: TContext<TRule>, node: TFunctionNode];
+
+type TCheckNode = (...args: TCheckNodeArgs) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (shouldReport(node)) {
@@ -155,12 +163,11 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type THandler = (node: TFunctionNode) => void;
+type THandler = (...args: TFunctionNodeArgs) => void;
 
-type TMakeHandler = (
-    checkNode: TCheckNode,
-    context: TContext<TRule>,
-) => THandler;
+type TMakeHandlerArgs = [checkNode: TCheckNode, context: TContext<TRule>];
+
+type TMakeHandler = (...args: TMakeHandlerArgs) => THandler;
 
 const makeHandler: TMakeHandler = (checkNode, context) =>
     (
