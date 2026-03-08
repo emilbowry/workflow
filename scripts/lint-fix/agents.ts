@@ -96,7 +96,7 @@ const AGENT_TIMEOUT_MS: number = 120_000;
 const invokeAgent: TInvokeAgent = async (config) => {
     const cmd: string =
         "claude --print" +
-        " -m " +
+        " --model " +
         config.model +
         " --system-prompt " +
         JSON.stringify(config.systemPrompt) +
