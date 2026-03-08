@@ -8,9 +8,16 @@ Analysis of each lint rule active in eslint.config.ts, with findings on fixes, p
 
 ### local/no-nested-function
 
-This rule forbids a parameterized function defined inside another parameterized function. The theoretical basis is lambda lifting (Johnsson 1985): every closure can be mechanically eliminated by lifting free variables into parameters. The only permitted nesting shape is the partial application thunk — `(fn, ...params) => () => fn(...params)` — where the inner function has zero parameters and therefore is not "parameterized inside parameterized."
+This rule forbids a parameterized function defined inside another parameterized function. The theoretical basis is lambda lifting (Johnsson 1985): every closure can be mechanically eliminated by lifting free variables into parameters. 
+There are only two only permitted nesting shapes:
+1. Nullary PA is the partial application thunk — `(fn, ...params) => () => fn(...params)` — where the inner function has zero parameters and therefore is not "parameterized inside parameterized."
+2. IIFE thunk `(() => (node) => work)()`, which exists in the AST as a zero-param wrapper and collapses at runtime by the `1 -> T` isomorphism.
 
-The fix is always one of three forms. First, extract the inner function to module scope and pass its free variables as explicit arguments. Second, use the IIFE thunk `(() => (node) => work)()`, which exists in the AST as a zero-param wrapper and collapses at runtime by the `1 -> T` isomorphism. Third, use `.bind(null, arg1, arg2)` as JavaScript's native partial application primitive — this is not a function definition, so the rule does not see it.
+Leading to one of 3 solutions:
+1. Extract the inner function to module scope and pass its free variables as explicit arguments. 
+2. Implement the Nullary PA format.
+3. Implement the IIFE thunk pattern.
+
 
 A common pitfall is believing that object literal method shorthands are exempt. They are not. An object literal `{ foo(node) { ... } }` is syntactically a function expression assigned to a property — no prototype, no `this` contract, no class. The rule sees it as a nested function and flags it if the enclosing function is also parameterized. Every ESLint rule's `create` return object hits this: the handler methods close over `context`. The IIFE thunk or `.bind()` patterns resolve it.
 
