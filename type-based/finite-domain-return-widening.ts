@@ -68,26 +68,21 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"finiteReturnWidening">;
 
-type TIsLiteralType = (node: TSESTree.TypeNode) => boolean;
+type TTypeNodeArgs = [node: TSESTree.TypeNode];
+type TTypeNodePredicate = (...args: TTypeNodeArgs) => boolean;
 
-const isLiteralType: TIsLiteralType = (node) =>
+const isLiteralType: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSLiteralType;
 
-type TIsLiteralUnion = (node: TSESTree.TypeNode) => boolean;
-
-const isLiteralUnion: TIsLiteralUnion = (node) =>
+const isLiteralUnion: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSUnionType &&
     node.types.length > 0 &&
     node.types.every(isLiteralType);
 
-type TIsFiniteDomain = (node: TSESTree.TypeNode) => boolean;
-
-const isFiniteDomain: TIsFiniteDomain = (node) =>
+const isFiniteDomain: TTypeNodePredicate = (node) =>
     isLiteralType(node) || isLiteralUnion(node);
 
-type TIsBareString = (node: TSESTree.TypeNode) => boolean;
-
-const isBareString: TIsBareString = (node) =>
+const isBareString: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSStringKeyword;
 
 type TGetReturnType = (
