@@ -1,5 +1,5 @@
-import { readFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { readFileSync, existsSync, readdirSync, statSync } from "fs";
+import { resolve, dirname, join, basename } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import type {
@@ -182,9 +182,48 @@ const main: TMain = async (paths) => {
     });
 };
 
+type TFindFile = (
+    dir: string,
+    name: string,
+    ignore: ReadonlyArray<string>,
+) => ReadonlyArray<string>;
+
+const findFile: TFindFile = (dir, name, ignore) => {
+    const results: Array<string> = [];
+    const entries = readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+        if (ignore.includes(entry.name)) continue;
+        const full: string = join(dir, entry.name);
+        if (entry.isDirectory()) {
+            results.push(...findFile(full, name, ignore));
+        } else if (entry.name === name) {
+            results.push(full);
+        }
+    }
+    return results;
+};
+
+type TResolvePaths = (
+    raw: ReadonlyArray<string>,
+) => ReadonlyArray<string>;
+
+const resolvePaths: TResolvePaths = (raw) =>
+    raw.flatMap((p) => {
+        if (existsSync(p)) return [p];
+        const name: string = basename(p);
+        const matches: ReadonlyArray<string> = findFile(
+            ".",
+            name,
+            ["node_modules", ".worktrees", ".git"],
+        );
+        if (matches.length > 0) return matches;
+        console.warn("[resolve] Could not find file: " + p);
+        return [];
+    });
+
 const args: ReadonlyArray<string> = process.argv.slice(2);
 
-main(args).catch((err) => {
+main(resolvePaths(args)).catch((err) => {
     console.error("Workflow failed:", err);
     process.exit(1);
 });
