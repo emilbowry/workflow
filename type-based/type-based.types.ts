@@ -45,6 +45,8 @@ export type TLintKey =
     | "related"
     | "philosophy";
 
+type TLintKeyMap = (key: TLintKey) => TLintKey;
+
 export type TLintValue<T extends TLintKey> = `<${T}>${string}</${T}>`;
 
 export type TLintMeta = {
