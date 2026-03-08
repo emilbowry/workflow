@@ -96,14 +96,28 @@ type TTypeNodeArgs = [TSESTree.TypeNode];
 
 type TCanonicalType = (...args: TTypeNodeArgs) => string;
 
-const canonicalType: TCanonicalType = (node) =>
+type TTryCanonical = (...args: TTypeNodeArgs) => string | undefined;
+
+const tryTypeLiteral: TTryCanonical = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
         ? handleTypeLiteral(node)
-        : node.type === AST_NODE_TYPES.TSUnionType
-            ? node.types.map(canonicalType).join("|")
-            : node.type === AST_NODE_TYPES.TSIntersectionType
-                ? node.types.map(canonicalType).join("&")
-                : node.type;
+        : undefined;
+
+const tryUnion: TTryCanonical = (node) =>
+    node.type === AST_NODE_TYPES.TSUnionType
+        ? node.types.map(canonicalType).join("|")
+        : undefined;
+
+const tryIntersection: TTryCanonical = (node) =>
+    node.type === AST_NODE_TYPES.TSIntersectionType
+        ? node.types.map(canonicalType).join("&")
+        : undefined;
+
+const canonicalType: TCanonicalType = (node) =>
+    tryTypeLiteral(node) ??
+    tryUnion(node) ??
+    tryIntersection(node) ??
+    node.type;
 
 type TTypeLiteralArgs = [TSESTree.TSTypeLiteral];
 
@@ -300,14 +314,22 @@ const reportPair: TReportPair = (context, file, entryA, entryB) => {
 
 type TContextFileArgs = [TContext<TRule>, string];
 
+type TCheckSimilarArgs = [TContext<TRule>, string, TEntry, TEntry];
+
+type TCheckSimilar = (...args: TCheckSimilarArgs) => void;
+
+const checkSimilar: TCheckSimilar = (context, file, entryA, entryB) => {
+    if (isSimilarPair(entryA, entryB)) {
+        reportPair(context, file, entryA, entryB);
+    }
+};
+
 type TCheckPairs = (...args: TContextFileArgs) => void;
 
 const checkPairs: TCheckPairs = (context, file) => {
     for (const [i, entryA] of entries.entries()) {
         for (const entryB of entries.slice(i + 1)) {
-            if (isSimilarPair(entryA, entryB)) {
-                reportPair(context, file, entryA, entryB);
-            }
+            checkSimilar(context, file, entryA, entryB);
         }
     }
 };
