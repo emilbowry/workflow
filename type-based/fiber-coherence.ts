@@ -10,47 +10,64 @@ import type { TTransportGraph } from "./transport-graph";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 import { buildTransportGraph, classifyEdge } from "./transport-graph";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/fiber-coherence",
+    avoid: field(
+        "avoid",
         "Isomorphic edges between " +
-        "types with mismatched " +
-        "cardinalities — a bijection " +
-        "between sets of different " +
-        "size is a contradiction",
-    fix:
+            "types with mismatched " +
+            "cardinalities — a bijection " +
+            "between sets of different " +
+            "size is a contradiction",
+    ),
+    fix: field(
+        "fix",
         "Either adjust the types to " +
-        "have matching cardinalities " +
-        "(same number of variants/" +
-        "fields/elements) or reclassify " +
-        "the edge as a section",
-    flags:
+            "have matching cardinalities " +
+            "(same number of variants/" +
+            "fields/elements) or reclassify " +
+            "the edge as a section",
+    ),
+    flags: field(
+        "flags",
         "Two types connected by an " +
-        "isomorphic edge in the " +
-        "transport graph that have " +
-        "different cardinalities",
-    philosophy:
+            "isomorphic edge in the " +
+            "transport graph that have " +
+            "different cardinalities",
+    ),
+    philosophy: field(
+        "philosophy",
         "Structural promises must be " +
-        "backed by cardinality " +
-        "evidence. An isomorphism " +
-        "between a 3-variant union " +
-        "and a 5-variant union is a " +
-        "proof obligation that cannot " +
-        "be satisfied",
-    pitfalls:
+            "backed by cardinality " +
+            "evidence. An isomorphism " +
+            "between a 3-variant union " +
+            "and a 5-variant union is a " +
+            "proof obligation that cannot " +
+            "be satisfied",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Depends on transport-graph " +
-        "exports. Duplicates several " +
-        "helpers (TAliasEntry, " +
-        "isLiteralType, findConnected, " +
-        "etc.) — should extract to " +
-        "shared module",
-    related:
+            "exports. Duplicates several " +
+            "helpers (TAliasEntry, " +
+            "isLiteralType, findConnected, " +
+            "etc.) — should extract to " +
+            "shared module",
+    ),
+    related: field(
+        "related",
         "transport-graph, " +
-        "cardinality-isomorphic-families, " +
-        "type-distance",
+            "cardinality-isomorphic-families, " +
+            "type-distance",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{left}}, {{right}}";

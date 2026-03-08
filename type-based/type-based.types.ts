@@ -37,35 +37,42 @@ export type TRefIdentName = (ref: TSESTree.TSTypeReference) => string;
 
 export type TTypeNodePredicate = (node: TSESTree.TypeNode) => boolean;
 
+export type TLintKey =
+    | "flags"
+    | "fix"
+    | "pitfalls"
+    | "avoid"
+    | "related"
+    | "philosophy";
+
+export type TLintValue<T extends TLintKey> =
+    `<${T}>${string}</${T}>`;
+
 export type TLintMeta = {
-    flags: string;
-    fix: string;
-    pitfalls: string;
-    avoid: string;
-    related: string;
-    philosophy: string;
+    [K in TLintKey]: TLintValue<K>;
+} & {
+    readonly rule: string;
 };
 
-type TLintMetaToMsg = (meta: TLintMeta) => string;
+type TField = <T extends TLintKey>(
+    ...args: [tag: T, value: string]
+) => TLintValue<T>;
 
-export const lintMetaToMsg: TLintMetaToMsg = (meta) =>
+export const field: TField = (tag, value) =>
+    `<${tag}>${value}</${tag}>`;
+
+type TLintMetaToMsg = (
+    ...args: [meta: TLintMeta]
+) => string;
+
+export const lintMetaToMsg: TLintMetaToMsg = (
+    meta,
+) =>
     "<lint_meta>" +
-    "<flags>" +
     meta.flags +
-    "</flags>" +
-    "<fix>" +
     meta.fix +
-    "</fix>" +
-    "<pitfalls>" +
     meta.pitfalls +
-    "</pitfalls>" +
-    "<avoid>" +
     meta.avoid +
-    "</avoid>" +
-    "<related>" +
     meta.related +
-    "</related>" +
-    "<philosophy>" +
     meta.philosophy +
-    "</philosophy>" +
     "</lint_meta>";

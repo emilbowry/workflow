@@ -10,39 +10,56 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    flags:
+    rule:
+        "local/no-single-field-type",
+    flags: field(
+        "flags",
         "Type alias with exactly one" +
-        " member in a type literal " +
-        "body (except call " +
-        "signatures)",
-    fix:
+            " member in a type literal " +
+            "body (except call " +
+            "signatures)",
+    ),
+    fix: field(
+        "fix",
         "Inline the single field " +
-        "type directly or combine " +
-        "with other fields",
-    pitfalls:
+            "type directly or combine " +
+            "with other fields",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Call signature types " +
-        "({ (x: A): B }) are " +
-        "exempt — they are canonical" +
-        " function type form, not " +
-        "wrappers",
-    avoid:
+            "({ (x: A): B }) are " +
+            "exempt — they are canonical" +
+            " function type form, not " +
+            "wrappers",
+    ),
+    avoid: field(
+        "avoid",
         "Single-property wrapper " +
-        "types. type TFoo = " +
-        "{ value: string } — use " +
-        "string directly",
-    related:
+            "types. type TFoo = " +
+            "{ value: string } — use " +
+            "string directly",
+    ),
+    related: field(
+        "related",
         "enforce-record-type, " +
-        "require-extracted-types, " +
-        "no-duplicate-type-structure",
-    philosophy:
+            "require-extracted-types, " +
+            "no-duplicate-type-structure",
+    ),
+    philosophy: field(
+        "philosophy",
         "Every type must earn its " +
-        "existence structurally. A " +
-        "single-field wrapper adds " +
-        "indirection without " +
-        "information",
+            "existence structurally. A " +
+            "single-field wrapper adds " +
+            "indirection without " +
+            "information",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);

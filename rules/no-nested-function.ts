@@ -28,63 +28,80 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "../type-based/type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/no-nested-function",
+    avoid: field(
+        "avoid",
         "Closures capturing outer " +
-        "scope. .bind() for partial " +
-        "application — it is not a " +
-        "valid solution. Nested " +
-        "arrow chains beyond the " +
-        "PA boundary",
-    fix:
+            "scope. .bind() for partial " +
+            "application — it is not a " +
+            "valid solution. Nested " +
+            "arrow chains beyond the " +
+            "PA boundary",
+    ),
+    fix: field(
+        "fix",
         "Three solutions: " +
-        "(1) Extract inner function " +
-        "to module scope, pass free " +
-        "variables as explicit args " +
-        "(lambda lifting). " +
-        "(2) Nullary PA: " +
-        "(fn, ...params) => () => " +
-        "fn(...params). " +
-        "(3) IIFE thunk: " +
-        "(() => (node) => work)()",
-    flags:
+            "(1) Extract inner function " +
+            "to module scope, pass free " +
+            "variables as explicit args " +
+            "(lambda lifting). " +
+            "(2) Nullary PA: " +
+            "(fn, ...params) => () => " +
+            "fn(...params). " +
+            "(3) IIFE thunk: " +
+            "(() => (node) => work)()",
+    ),
+    flags: field(
+        "flags",
         "Parameterized function " +
-        "inside another " +
-        "parameterized function. " +
-        "Two permitted nesting " +
-        "shapes: (1) Nullary PA — " +
-        "inner has zero params and " +
-        "is not parameterized " +
-        "inside parameterized, " +
-        "(2) IIFE thunk — " +
-        "(() => (node) => work)() " +
-        "collapses by the " +
-        "1 -> T isomorphism",
-    philosophy:
+            "inside another " +
+            "parameterized function. " +
+            "Two permitted nesting " +
+            "shapes: (1) Nullary PA — " +
+            "inner has zero params and " +
+            "is not parameterized " +
+            "inside parameterized, " +
+            "(2) IIFE thunk — " +
+            "(() => (node) => work)() " +
+            "collapses by the " +
+            "1 -> T isomorphism",
+    ),
+    philosophy: field(
+        "philosophy",
         "Lambda lifting (Johnsson " +
-        "1985): every closure is " +
-        "mechanically eliminable " +
-        "by lifting free variables " +
-        "into parameters. Flat " +
-        "typed arrows with " +
-        "explicit params — the " +
-        "signature IS the " +
-        "specification",
-    pitfalls:
+            "1985): every closure is " +
+            "mechanically eliminable " +
+            "by lifting free variables " +
+            "into parameters. Flat " +
+            "typed arrows with " +
+            "explicit params — the " +
+            "signature IS the " +
+            "specification",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Object literal method " +
-        "shorthands are NOT exempt " +
-        "— { foo(node) { } } is a " +
-        "nested function expression " +
-        "not a method. The " +
-        "makeHandler(fn, ctx)() " +
-        "anti-pattern is a no-op " +
-        "(1 -> T ≅ T) — put the " +
-        "IIFE inside makeHandler. " +
-        ".bind() is never valid",
-    related:
+            "shorthands are NOT exempt " +
+            "— { foo(node) { } } is a " +
+            "nested function expression " +
+            "not a method. The " +
+            "makeHandler(fn, ctx)() " +
+            "anti-pattern is a no-op " +
+            "(1 -> T ≅ T) — put the " +
+            "IIFE inside makeHandler. " +
+            ".bind() is never valid",
+    ),
+    related: field(
+        "related",
         "max-lines-per-function, " + "func-style, " + "prefer-arrow-callback",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);

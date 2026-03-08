@@ -9,43 +9,60 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/transport-graph",
+    avoid: field(
+        "avoid",
         "Discriminated types (literal " +
-        "unions or constrained generics) " +
-        "that exist without any function " +
-        "signature connecting them",
-    fix:
+            "unions or constrained generics) " +
+            "that exist without any function " +
+            "signature connecting them",
+    ),
+    fix: field(
+        "fix",
         "Define a function type that " +
-        "uses the isolated type as " +
-        "domain or codomain: " +
-        "type TFn = (x: TIsolated)" +
-        " => TTarget",
-    flags:
+            "uses the isolated type as " +
+            "domain or codomain: " +
+            "type TFn = (x: TIsolated)" +
+            " => TTarget",
+    ),
+    flags: field(
+        "flags",
         "Discriminated type with no " +
-        "edges in the transport graph " +
-        "— not used as domain or " +
-        "codomain of any function " +
-        "signature",
-    philosophy:
+            "edges in the transport graph " +
+            "— not used as domain or " +
+            "codomain of any function " +
+            "signature",
+    ),
+    philosophy: field(
+        "philosophy",
         "Types are nodes, functions " +
-        "are edges. The type graph " +
-        "must be connected — every " +
-        "type participates in the " +
-        "computation graph. Isolated " +
-        "nodes are dead types",
-    pitfalls:
+            "are edges. The type graph " +
+            "must be connected — every " +
+            "type participates in the " +
+            "computation graph. Isolated " +
+            "nodes are dead types",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Only checks within a " +
-        "single file. Exports " +
-        "buildTransportGraph and " +
-        "classifyEdge for " +
-        "fiber-coherence",
-    related:
+            "single file. Exports " +
+            "buildTransportGraph and " +
+            "classifyEdge for " +
+            "fiber-coherence",
+    ),
+    related: field(
+        "related",
         "fiber-coherence, " +
-        "require-rest-params-tuple, " +
-        "require-extracted-types",
+            "require-rest-params-tuple, " +
+            "require-extracted-types",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " Type: {{name}}";

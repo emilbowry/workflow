@@ -4,12 +4,12 @@
     <fix>Extract deeply indented blocks into separate functions at module scope</fix>
   </rule>
   <rule name="local/no-nested-function">
-    <flags>Parameterized function defined inside another parameterized function</flags>
-    <fix>Three solutions: (1) Extract inner function to module scope with explicit parameters, (2) Nullary PA: (fn, ...params) =&gt; () =&gt; fn(...params), (3) IIFE thunk: (() =&gt; (node) =&gt; work)()</fix>
+    <flags>Parameterized function inside another parameterized function. Two permitted nesting shapes: (1) Nullary PA — inner has zero params and is not parameterized inside parameterized, (2) IIFE thunk — (() =&gt; (node) =&gt; work)() collapses by the 1 -&gt; T isomorphism</flags>
+    <fix>Three solutions: (1) Extract inner function to module scope, pass free variables as explicit args (lambda lifting). (2) Nullary PA: (fn, ...params) =&gt; () =&gt; fn(...params). (3) IIFE thunk: (() =&gt; (node) =&gt; work)()</fix>
   </rule>
   <rule name="local/restrict-return-count">
     <flags>More than 1 return statement per function, or any non-final return (early return)</flags>
-    <fix>Ternary for 2-3 branches. Switch+let+single-return for 4+. Nullish coalescing chain (tryA(x) ?? tryB(x) ?? fallback) for T|undefined dispatch</fix>
+    <fix>Ternary for 2-3 branches. Nullish coalescing chain (tryA(x) ?? tryB(x) ?? fallback) for T|undefined dispatch. Record dispatch for 4+ branches</fix>
   </rule>
   <rule name="local/enforce-record-type">
     <flags>Type alias body is an object literal type (TSTypeLiteral)</flags>
@@ -27,17 +27,13 @@
     <flags>Type alias with exactly one member in a type literal body (except call signatures)</flags>
     <fix>Inline the single field type directly or combine with other fields</fix>
   </rule>
-  <rule name="local/prefer-call-signature">
-    <flags>Function type syntax (...) =&gt; T in type alias body (TSFunctionType)</flags>
-    <fix>Rewrite as call-signature: type TFoo = { (x: A): B }</fix>
-  </rule>
   <rule name="local/require-extracted-function-type">
     <flags>Inline type annotations that are not keywords or named references (TSTypeReference)</flags>
     <fix>Extract to a named type alias: type TFoo = string | number; const x: TFoo = ...</fix>
   </rule>
   <rule name="local/require-parametric-record">
-    <flags>Record type without parametric key-value relationship (type parameter as key backreferenced in value)</flags>
-    <fix>Add type parameter: type TFoo&lt;T extends X&gt; = Record&lt;T, TBar&lt;T&gt;&gt;. Or replace with tuple/mapped type if no parametric relationship exists</fix>
+    <flags>Record or mapped type without dependent product structure (value type does not reference key type parameter)</flags>
+    <fix>Add type parameter: type TFoo&lt;T extends X&gt; = Record&lt;T, TBar&lt;T&gt;&gt;. For mapped types: {[K in T]: F&lt;K&gt;}. Or replace with tuple if no parametric relationship exists</fix>
   </rule>
   <rule name="local/valid-generics">
     <flags>Degenerate generic (body is just the type parameter: type TId&lt;T&gt; = T) or homogeneous generic (all params passed straight through: type TFoo&lt;A,B&gt; = TBar&lt;A,B&gt;)</flags>
@@ -52,7 +48,7 @@
     <fix>Replace bare string return with a literal union that maps each input variant to a specific output. The function becomes a lookup table</fix>
   </rule>
   <rule name="local/type-distance">
-    <flags>Two type aliases with structural distance &gt;= 0.75 (Jaccard similarity on keys and values)</flags>
+    <flags>Two type aliases with structural similarity &gt;= 0.75 (Jaccard similarity on keys and values)</flags>
     <fix>Merge the two types into one if they represent the same concept, or add/remove fields to make the structural difference explicit</fix>
   </rule>
   <rule name="local/cardinality-isomorphic-families">
@@ -77,7 +73,7 @@
   </rule>
   <rule name="@typescript-eslint/consistent-generic-constructors">
     <flags>Generic type args on constructor call instead of type annotation</flags>
-    <fix>Move generics to the variable declaration: const x: Map&lt;K,V&gt; = new Map()</fix>
+    <fix>Move generics to the variable declaration: const x: Array&lt;T&gt; = new Array()</fix>
   </rule>
   <rule name="@typescript-eslint/prefer-function-type">
     <flags>Type literal with only a single call signature</flags>
@@ -133,7 +129,7 @@
   </rule>
   <rule name="@typescript-eslint/no-unnecessary-condition">
     <flags>Conditions that are always truthy or always falsy</flags>
-    <fix>Remove condition. Use Map instead of Record for T | undefined lookups</fix>
+    <fix>Remove condition. Use try-dispatch for T | undefined lookups</fix>
   </rule>
   <rule name="@typescript-eslint/no-confusing-void-expression">
     <flags>Void expressions in non-statement position</flags>
@@ -161,7 +157,7 @@
   </rule>
   <rule name="indent">
     <flags>Non-4-space indentation</flags>
-    <fix>Auto-fixable. WARNING: --fix on ternaries cascades into depth violations</fix>
+    <fix>Restructure code to reduce indentation. Extract into smaller functions at module scope</fix>
   </rule>
   <rule name="max-len">
     <flags>Lines exceeding 80 characters</flags>
@@ -173,7 +169,7 @@
   </rule>
   <rule name="complexity">
     <flags>Cyclomatic complexity exceeding 5</flags>
-    <fix>Extract branches into functions. Use Map/dispatch or try-dispatch pattern</fix>
+    <fix>Extract branches into functions. Use try-dispatch pattern</fix>
   </rule>
   <rule name="no-warning-comments">
     <flags>Comments containing prettier-ignore</flags>
@@ -193,14 +189,14 @@
   <interaction>
     indent --fix + ternary chains → cascading max-total-depth violations.
     Prettier reformats ternaries; --fix re-indents; depth exceeds 3.
-    Solution: use switch+let for 4+ branches.
+    Solution: use try-dispatch for 4+ branches.
   </interaction>
   <interaction>
     restrict-return-count + if-chains → multiple returns.
-    Solution: ternary (2-3 branches) or switch+let+single-return (4+).
+    Solution: ternary (2-3 branches) or try-dispatch (4+).
   </interaction>
   <interaction>
-    consistent-type-assertions:never + Map-based dispatch → cannot cast.
+    consistent-type-assertions:never + Record dispatch → cannot cast.
     Solution: switch dispatch with type narrowing in each case.
   </interaction>
   <interaction>
@@ -211,7 +207,7 @@
   <interaction>
     Record access + no-unnecessary-condition → ?? flagged.
     Record&lt;K,V&gt;[k] returns V (never undefined), so ?? is unnecessary.
-    Solution: use Map for lookups needing T|undefined.
+    Solution: use try-dispatch for lookups needing T|undefined.
   </interaction>
   <interaction>
     prettier ternary formatting + indent → permanent incompatibility

@@ -9,43 +9,60 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/type-distance",
+    avoid: field(
+        "avoid",
         "Near-duplicate type aliases " +
-        "with high Jaccard similarity " +
-        "that should be unified or " +
-        "made explicitly different",
-    fix:
+            "with high Jaccard similarity " +
+            "that should be unified or " +
+            "made explicitly different",
+    ),
+    fix: field(
+        "fix",
         "Merge the two types into one " +
-        "if they represent the same " +
-        "concept, or add/remove fields " +
-        "to make the structural " +
-        "difference explicit",
-    flags:
+            "if they represent the same " +
+            "concept, or add/remove fields " +
+            "to make the structural " +
+            "difference explicit",
+    ),
+    flags: field(
+        "flags",
         "Two type aliases with " +
-        "structural similarity " +
-        ">= 0.75 (Jaccard " +
-        "similarity on keys " +
-        "and values)",
-    philosophy:
+            "structural similarity " +
+            ">= 0.75 (Jaccard " +
+            "similarity on keys " +
+            "and values)",
+    ),
+    philosophy: field(
+        "philosophy",
         "The type namespace is a set — " +
-        "no two names should describe " +
-        "the same shape. Near-duplicates " +
-        "indicate concept drift that " +
-        "should be resolved",
-    pitfalls:
+            "no two names should describe " +
+            "the same shape. Near-duplicates " +
+            "indicate concept drift that " +
+            "should be resolved",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Uses module-level mutable " +
-        "array for cross-type " +
-        "comparison. Exact duplicates " +
-        "(canonical match) are " +
-        "excluded — use no-duplicate-" +
-        "type-structure for those",
-    related:
+            "array for cross-type " +
+            "comparison. Exact duplicates " +
+            "(canonical match) are " +
+            "excluded — use no-duplicate-" +
+            "type-structure for those",
+    ),
+    related: field(
+        "related",
         "no-duplicate-type-structure, " +
-        "cardinality-isomorphic-families, " +
-        "no-single-field-type",
+            "cardinality-isomorphic-families, " +
+            "no-single-field-type",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{nameA}}, {{nameB}}";

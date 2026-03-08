@@ -276,7 +276,21 @@ export default defineConfig(
                 },
                 {
                     selector: "SwitchStatement",
-                    message: "switch is banned. Use " + "exhaustive maps.",
+                    message:
+                        "switch is banned. " +
+                        "Use try-dispatch or " +
+                        "Record dispatch.",
+                },
+                {
+                    selector:
+                        "TSTypeReference" +
+                        '[typeName.name="Map"]',
+                    message:
+                        "Map is banned. Use " +
+                        "Record<K, V> with " +
+                        "proven domain or " +
+                        "try-dispatch for " +
+                        "partial lookups.",
                 },
             ],
             "@typescript-eslint/no-confusing-void-expression": [

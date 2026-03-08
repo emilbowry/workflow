@@ -9,40 +9,57 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "../type-based/type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/max-total-depth",
+    avoid: field(
+        "avoid",
         "Nested ternaries beyond 3 " +
-        "branches. Deep if-chains. " +
-        "Inline JSX nesting",
-    fix:
+            "branches. Deep if-chains. " +
+            "Inline JSX nesting",
+    ),
+    fix: field(
+        "fix",
         "Extract deeply indented " +
-        "blocks into separate " +
-        "functions at module scope",
-    flags:
+            "blocks into separate " +
+            "functions at module scope",
+    ),
+    flags: field(
+        "flags",
         "Indentation deeper than " +
-        "configured maximum " +
-        "(default 3 levels)",
-    philosophy:
+            "configured maximum " +
+            "(default 3 levels)",
+    ),
+    philosophy: field(
+        "philosophy",
         "Bounds structural complexity " +
-        "per generation. Shallow code " +
-        "is locally verifiable — each " +
-        "function readable in one pass " +
-        "without holding nesting " +
-        "context",
-    pitfalls:
+            "per generation. Shallow code " +
+            "is locally verifiable — each " +
+            "function readable in one pass " +
+            "without holding nesting " +
+            "context",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Indent auto-formatting on " +
-        "ternary chains cascades " +
-        "into new depth violations." +
-        " Nested ternaries beyond " +
-        "3 branches will always " +
-        "exceed the depth limit",
-    related:
+            "ternary chains cascades " +
+            "into new depth violations." +
+            " Nested ternaries beyond " +
+            "3 branches will always " +
+            "exceed the depth limit",
+    ),
+    related: field(
+        "related",
         "restrict-return-count, " +
-        "complexity, " +
-        "no-nested-function, " +
-        "max-lines-per-function",
+            "complexity, " +
+            "no-nested-function, " +
+            "max-lines-per-function",
+    ),
 };
 
 const INDENT_SIZE: number = 4;

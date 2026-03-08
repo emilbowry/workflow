@@ -6,40 +6,57 @@ import type {
     TMeta,
 } from "../type-based/type-based.types";
 
-import { lintMetaToMsg } from "../type-based/type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/require-rest-params-tuple",
+    avoid: field(
+        "avoid",
         "Inline positional parameters " +
-        "in type-level function " +
-        "signatures. Named individual " +
-        "params like (a: A, b: B)",
-    fix:
+            "in type-level function " +
+            "signatures. Named individual " +
+            "params like (a: A, b: B)",
+    ),
+    fix: field(
+        "fix",
         "Wrap parameters in a named " +
-        "tuple type and spread: " +
-        "type TArgs = [a: A, b: B]; " +
-        "type TFn = (...args: TArgs)" +
-        " => R",
-    flags:
+            "tuple type and spread: " +
+            "type TArgs = [a: A, b: B]; " +
+            "type TFn = (...args: TArgs)" +
+            " => R",
+    ),
+    flags: field(
+        "flags",
         "Type-level function signature " +
-        "with positional parameters " +
-        "instead of rest-params tuple",
-    philosophy:
+            "with positional parameters " +
+            "instead of rest-params tuple",
+    ),
+    philosophy: field(
+        "philosophy",
         "Every function is an arrow " +
-        "A -> B between named types. " +
-        "Rest-params tuple makes the " +
-        "input a single named product, " +
-        "enabling mechanical comparison " +
-        "and transport graph edges",
-    pitfalls:
+            "A -> B between named types. " +
+            "Rest-params tuple makes the " +
+            "input a single named product, " +
+            "enabling mechanical comparison " +
+            "and transport graph edges",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Zero-param signatures () => R " +
-        "are valid and not flagged. " +
-        "Currently type-level only — " +
-        "runtime signatures commented out",
-    related:
+            "are valid and not flagged. " +
+            "Currently type-level only — " +
+            "runtime signatures commented out",
+    ),
+    related: field(
+        "related",
         "require-extracted-types, " + "transport-graph, " + "valid-generics",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);

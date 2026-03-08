@@ -11,50 +11,67 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "../type-based/type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/restrict-return-count",
+    avoid: field(
+        "avoid",
         "Early returns / guard " +
-        "clauses. Multiple return " +
-        "paths. If-else chains " +
-        "returning from each branch",
-    fix:
+            "clauses. Multiple return " +
+            "paths. If-else chains " +
+            "returning from each branch",
+    ),
+    fix: field(
+        "fix",
         "Ternary for 2-3 branches. " +
-        "Nullish coalescing chain " +
-        "(tryA(x) ?? tryB(x) ?? " +
-        "fallback) for T|undefined " +
-        "dispatch. Map-based " +
-        "dispatch for 4+ branches",
-    flags:
+            "Nullish coalescing chain " +
+            "(tryA(x) ?? tryB(x) ?? " +
+            "fallback) for T|undefined" +
+            " dispatch. Record " +
+            "dispatch for 4+ branches",
+    ),
+    flags: field(
+        "flags",
         "More than 1 return statement " +
-        "per function, or any " +
-        "non-final return " +
-        "(early return)",
-    philosophy:
+            "per function, or any " +
+            "non-final return " +
+            "(early return)",
+    ),
+    philosophy: field(
+        "philosophy",
         "Single return = total arrow. " +
-        "One input path, one output " +
-        "path, both visible in the " +
-        "type signature. The " +
-        "implementation is determined " +
-        "by the type, not by which " +
-        "branch executes",
-    pitfalls:
+            "One input path, one output " +
+            "path, both visible in the " +
+            "type signature. The " +
+            "implementation is determined " +
+            "by the type, not by which " +
+            "branch executes",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Arrow expression bodies " +
-        "have no ReturnStatement " +
-        "node — invisible to this " +
-        "rule. Guard clauses " +
-        "(if (bad) return) are " +
-        "always flagged even with " +
-        "1 total return. Do not " +
-        "use switch+let — " +
-        "functional/no-let bans " +
-        "let entirely",
-    related:
+            "have no ReturnStatement " +
+            "node — invisible to this " +
+            "rule. Guard clauses " +
+            "(if (bad) return) are " +
+            "always flagged even with " +
+            "1 total return. Do not " +
+            "use switch+let — " +
+            "functional/no-let bans " +
+            "let entirely",
+    ),
+    related: field(
+        "related",
         "max-total-depth, " +
-        "complexity, " +
-        "functional/no-let, " +
-        "consistent-type-assertions",
+            "complexity, " +
+            "functional/no-let, " +
+            "consistent-type-assertions",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " count={{count}} max={{max}}";

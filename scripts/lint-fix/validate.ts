@@ -56,15 +56,21 @@ const tryReadLintMeta: TTryRead = async (path) => {
 
 type TCheckExternalRule = (
     id: string,
-    registry: Map<string, TLintMeta>,
+    registry: ReadonlyArray<TLintMeta>,
 ) => boolean;
 
-const checkExternalRule: TCheckExternalRule = (id, registry) =>
-    registry.has(id);
+const checkExternalRule: TCheckExternalRule = (
+    id,
+    registry,
+) =>
+    registry.some(
+        (meta: TLintMeta) =>
+            meta.rule === id,
+    );
 
 type TValidate = (
     configPath: string,
-    registry: Map<string, TLintMeta>,
+    registry: ReadonlyArray<TLintMeta>,
 ) => Promise<TValidationResult>;
 
 const validate: TValidate = async (configPath, registry) => {

@@ -9,37 +9,54 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/cardinality-isomorphic-families",
+    avoid: field(
+        "avoid",
         "Generic type families over " +
-        "the same finite domain with " +
-        "identical cardinality profiles " +
-        "that are secretly isomorphic",
-    fix:
+            "the same finite domain with " +
+            "identical cardinality profiles " +
+            "that are secretly isomorphic",
+    ),
+    fix: field(
+        "fix",
         "Unify the two generic types " +
-        "into a single parameterized " +
-        "type if they agree pointwise " +
-        "over their shared domain",
-    flags:
+            "into a single parameterized " +
+            "type if they agree pointwise " +
+            "over their shared domain",
+    ),
+    flags: field(
+        "flags",
         "Two generic types with the " +
-        "same constraint that have " +
-        "identical cardinality profiles " +
-        "(union members, record fields, " +
-        "tuple elements)",
-    philosophy:
+            "same constraint that have " +
+            "identical cardinality profiles " +
+            "(union members, record fields, " +
+            "tuple elements)",
+    ),
+    philosophy: field(
+        "philosophy",
         "Extends structural deduplication " +
-        "into the parameterized case. " +
-        "Two type families that agree " +
-        "pointwise are isomorphic " +
-        "functors and should be unified",
-    pitfalls:
+            "into the parameterized case. " +
+            "Two type families that agree " +
+            "pointwise are isomorphic " +
+            "functors and should be unified",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Only compares first type " +
-        "parameter constraint. Uses " +
-        "module-level mutable array",
-    related:
+            "parameter constraint. Uses " +
+            "module-level mutable array",
+    ),
+    related: field(
+        "related",
         "type-distance, " + "no-duplicate-type-structure, " + "fiber-coherence",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{first}}, {{second}}";

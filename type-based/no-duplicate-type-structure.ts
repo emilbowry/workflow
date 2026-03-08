@@ -11,45 +11,62 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    flags:
+    rule:
+        "local/no-duplicate-type-structure",
+    flags: field(
+        "flags",
         "Two or more type aliases " +
-        "with identical canonical " +
-        "structural representation",
-    fix:
+            "with identical canonical " +
+            "structural representation",
+    ),
+    fix: field(
+        "fix",
         "Remove duplicate, reuse " +
-        "the existing type alias. " +
-        "If semantically distinct, " +
-        "differentiate the structure",
-    pitfalls:
+            "the existing type alias. " +
+            "If semantically distinct, " +
+            "differentiate the structure",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Uses module-level Map that " +
-        "persists across files in a " +
-        "lint run. clearFile handles " +
-        "re-linting. Canonical string" +
-        " comparison is nominal — " +
-        "renamed but structurally " +
-        "identical types are still " +
-        "caught",
-    avoid:
+            "persists across files in a " +
+            "lint run. clearFile handles " +
+            "re-linting. Canonical string" +
+            " comparison is nominal — " +
+            "renamed but structurally " +
+            "identical types are still " +
+            "caught",
+    ),
+    avoid: field(
+        "avoid",
         "Introducing new type aliases" +
-        " without checking for " +
-        "existing structurally " +
-        "identical types",
-    related:
+            " without checking for " +
+            "existing structurally " +
+            "identical types",
+    ),
+    related: field(
+        "related",
         "enforce-record-type, " +
-        "require-extracted-types, " +
-        "max-type-nesting, " +
-        "consistent-type-definitions",
-    philosophy:
+            "require-extracted-types, " +
+            "max-type-nesting, " +
+            "consistent-type-definitions",
+    ),
+    philosophy: field(
+        "philosophy",
         "Two types with identical " +
-        "structure are the same " +
-        "type. Catches redundancy at" +
-        " lint time per-issue before" +
-        " duplicates enter the " +
-        "codebase and diverge across" +
-        " issues",
+            "structure are the same " +
+            "type. Catches redundancy at" +
+            " lint time per-issue before" +
+            " duplicates enter the " +
+            "codebase and diverge across" +
+            " issues",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{names}}";

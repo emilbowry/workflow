@@ -9,41 +9,58 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    avoid:
+    rule:
+        "local/finite-domain-return-widening",
+    avoid: field(
+        "avoid",
         "Returning bare string from " +
-        "functions whose input is a " +
-        "finite domain (literal or " +
-        "literal union)",
-    fix:
+            "functions whose input is a " +
+            "finite domain (literal or " +
+            "literal union)",
+    ),
+    fix: field(
+        "fix",
         "Replace bare string return " +
-        "with a literal union that " +
-        "maps each input variant to " +
-        "a specific output. The " +
-        "function becomes a lookup " +
-        "table",
-    flags:
+            "with a literal union that " +
+            "maps each input variant to " +
+            "a specific output. The " +
+            "function becomes a lookup " +
+            "table",
+    ),
+    flags: field(
+        "flags",
         "Function from finite domain " +
-        "returns bare 'string' — " +
-        "prefer a literal union " +
-        "return type",
-    philosophy:
+            "returns bare 'string' — " +
+            "prefer a literal union " +
+            "return type",
+    ),
+    philosophy: field(
+        "philosophy",
         "Finite domains should " +
-        "propagate. If the input " +
-        "space is enumerable, the " +
-        "output space should be too. " +
-        "Makes the function decidable " +
-        "and exhaustively testable",
-    pitfalls:
+            "propagate. If the input " +
+            "space is enumerable, the " +
+            "output space should be too. " +
+            "Makes the function decidable " +
+            "and exhaustively testable",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Only checks TSFunctionType " +
-        "inside TSTypeAliasDeclaration. " +
-        "Does not check implementation " +
-        "return values, only type-level " +
-        "annotations",
-    related:
+            "inside TSTypeAliasDeclaration. " +
+            "Does not check implementation " +
+            "return values, only type-level " +
+            "annotations",
+    ),
+    related: field(
+        "related",
         "require-rest-params-tuple, " + "transport-graph, " + "valid-generics",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);

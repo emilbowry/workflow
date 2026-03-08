@@ -9,37 +9,55 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
-import { lintMetaToMsg } from "./type-based.types";
+import {
+    field,
+    lintMetaToMsg,
+} from "./type-based.types";
 
 type TRule = ESLintUtils.RuleModule<"tooManyNested", [number]>;
 
 export const LINT_META: TLintMeta = {
-    flags:
+    rule:
+        "local/max-type-nesting",
+    flags: field(
+        "flags",
         "More than 1 nested type " +
-        "construct (TSTypeLiteral or " +
-        "TSTupleType) in a type alias",
-    fix:
+            "construct (TSTypeLiteral or " +
+            "TSTupleType) in a type alias",
+    ),
+    fix: field(
+        "fix",
         "Extract inner type literals " +
-        "and tuples into named type " +
-        "aliases",
-    pitfalls:
+            "and tuples into named type " +
+            "aliases",
+    ),
+    pitfalls: field(
+        "pitfalls",
         "Counts occurrences, not " +
-        "depth. Two sibling type " +
-        "literals at the same level " +
-        "both increment the counter",
-    avoid: "Inline anonymous type " + "structures within type " + "aliases",
-    related:
+            "depth. Two sibling type " +
+            "literals at the same level " +
+            "both increment the counter",
+    ),
+    avoid: field(
+        "avoid",
+        "Inline anonymous type " + "structures within type " + "aliases",
+    ),
+    related: field(
+        "related",
         "require-extracted-types, " +
-        "no-duplicate-type-structure," +
-        " no-single-field-type",
-    philosophy:
+            "no-duplicate-type-structure," +
+            " no-single-field-type",
+    ),
+    philosophy: field(
+        "philosophy",
         "Flat named types are " +
-        "independently comparable, " +
-        "composable, and visible as " +
-        "nodes in the type graph. " +
-        "Inline structures are " +
-        "invisible to structural " +
-        "comparison",
+            "independently comparable, " +
+            "composable, and visible as " +
+            "nodes in the type graph. " +
+            "Inline structures are " +
+            "invisible to structural " +
+            "comparison",
+    ),
 };
 
 const MSG: string = lintMetaToMsg(LINT_META) + " count={{count}} max={{max}}";
