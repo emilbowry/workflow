@@ -56,13 +56,15 @@ export type TLintMeta = {
     readonly rule: string;
 };
 
-type TField = <T extends TLintKey>(
-    ...args: [tag: T, value: string]
-) => TLintValue<T>;
+type TFieldArgs<T extends TLintKey> = [tag: T, value: string];
+
+type TField = <T extends TLintKey>(...args: TFieldArgs<T>) => TLintValue<T>;
 
 export const field: TField = (tag, value) => `<${tag}>${value}</${tag}>`;
 
-type TLintMetaToMsg = (...args: [meta: TLintMeta]) => string;
+type TLintMetaToMsgArgs = [meta: TLintMeta];
+
+type TLintMetaToMsg = (...args: TLintMetaToMsgArgs) => string;
 
 export const lintMetaToMsg: TLintMetaToMsg = (meta) =>
     "<lint_meta>" +
