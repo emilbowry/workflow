@@ -50,13 +50,12 @@ export const LINT_META: TLintMeta = {
     ),
     philosophy: field(
         "philosophy",
-        "Flat named types are " +
-            "independently comparable, " +
-            "composable, and visible as " +
-            "nodes in the type graph. " +
-            "Inline structures are " +
-            "invisible to structural " +
-            "comparison",
+        "A.(B.(C.(...))) = A.X where " +
+            "X = B.(C.(...)). Nested type " +
+            "composition always factors " +
+            "through a named intermediate " +
+            "— the extraction is the " +
+            "factorization made explicit",
     ),
 };
 
