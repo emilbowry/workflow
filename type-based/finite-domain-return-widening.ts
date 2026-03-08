@@ -117,16 +117,21 @@ const paramHasFiniteDomain: TParamHasFiniteDomain = (param) => {
 const hasFiniteParam: THasFiniteParam = (params) =>
     params.some(paramHasFiniteDomain);
 
+type TRetIsBareStringArgs = [TOptionalTypeNode];
+type TRetIsBareString = (...args: TRetIsBareStringArgs) => boolean;
+
+const retIsBareString: TRetIsBareString = (ret) => {
+    const isBare: boolean = ret !== undefined && isBareString(ret);
+    return isBare;
+};
+
 const checkNode: TCheckNode<TRule> = (context, node) => {
     const body: TSESTree.TypeNode = node.typeAnnotation;
-    if (body.type !== AST_NODE_TYPES.TSFunctionType) {
-        return;
-    }
-    const ret: TOptionalTypeNode = getReturnType(body);
-    if (ret === undefined) {
-        return;
-    }
-    if (hasFiniteParam(body.params) && isBareString(ret)) {
+    if (
+        body.type === AST_NODE_TYPES.TSFunctionType &&
+        hasFiniteParam(body.params) &&
+        retIsBareString(getReturnType(body))
+    ) {
         context.report({
             messageId: "finiteReturnWidening",
             node,
