@@ -91,7 +91,7 @@ const cleanEnv: TCleanEnv = () => {
     return env;
 };
 
-const AGENT_TIMEOUT_MS: number = 300_000;
+const AGENT_TIMEOUT_MS: number = 900_000;
 
 const invokeAgent: TInvokeAgent = async (config) => {
     const cmd: string =
