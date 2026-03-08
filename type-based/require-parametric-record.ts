@@ -95,13 +95,13 @@ type TRule = ESLintUtils.RuleModule<
 const PARAMETRIC: RegExp =
     /type\s+\w+<(\w+)\s+extends\s+[^>]+>\s*=\s*Record<\1,\s*\w+<\1>>/;
 
-type TIsValidArgs = [src: string];
+type TIsValidArgs = [string];
 
 type TIsValid = (...args: TIsValidArgs) => boolean;
 
 const isValid: TIsValid = (src) => PARAMETRIC.test(src);
 
-type TIsRefWithArgArgs = [node: TSESTree.TypeNode, name: string];
+type TIsRefWithArgArgs = [TSESTree.TypeNode, string];
 
 type TIsRefWithArg = (...args: TIsRefWithArgArgs) => boolean;
 
@@ -115,7 +115,7 @@ const isRefWithArg: TIsRefWithArg = (node, name) =>
             param.typeName.name === name,
     );
 
-type TMappedArgs = [mapped: TSESTree.TSMappedType];
+type TMappedArgs = [TSESTree.TSMappedType];
 
 type TGetMappedKeyName = (...args: TMappedArgs) => string;
 
@@ -127,8 +127,8 @@ const getMappedValue: TGetMappedValue = (mapped) =>
     mapped.typeAnnotation ?? undefined;
 
 type TCheckMappedArgs = [
-    context: Parameters<TRule["create"]>[0],
-    node: TSESTree.TSTypeAliasDeclaration,
+    Parameters<TRule["create"]>[0],
+    TSESTree.TSTypeAliasDeclaration,
 ];
 
 type TCheckMapped = (...args: TCheckMappedArgs) => void;
