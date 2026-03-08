@@ -16,19 +16,40 @@ const createWorktree: TCreateWorktree = async (filePath) => {
     const worktreePath: string = ".worktrees/" + fileHash;
     const fileName: string = basename(filePath);
     const branch: string = "lint-fix/" + fileName;
+    await execAsync("git worktree prune");
     try {
-        await execAsync(
-            "git worktree remove " +
-                JSON.stringify(worktreePath) +
-                " --force",
-        );
+        const result = await execAsync("git worktree list --porcelain");
+        const lines: ReadonlyArray<string> =
+            result.stdout.split("\n");
+        const branchSuffix: string =
+            "refs/heads/" + branch;
+        let stalePath: string = "";
+        for (const line of lines) {
+            if (line.startsWith("worktree ")) {
+                stalePath = line.slice("worktree ".length);
+            }
+            if (
+                line.startsWith("branch ") &&
+                line.slice("branch ".length) ===
+                    branchSuffix &&
+                stalePath.length > 0
+            ) {
+                await execAsync(
+                    "git worktree remove " +
+                        JSON.stringify(stalePath) +
+                        " --force",
+                );
+            }
+        }
     } catch {
-        /* worktree may not exist yet */
+        /* no stale worktrees */
     }
     try {
-        await execAsync("git branch -D " + JSON.stringify(branch));
+        await execAsync(
+            "git branch -D " + JSON.stringify(branch),
+        );
     } catch {
-        /* branch may not exist yet */
+        /* branch may not exist */
     }
     await execAsync(
         "git worktree add " +
