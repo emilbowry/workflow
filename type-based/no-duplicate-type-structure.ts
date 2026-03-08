@@ -118,22 +118,42 @@ const handleConstructSignature: THandleConstructSig = (member) => {
 
 type TCanonicalMember = (member: TSESTree.TypeElement) => string;
 
-type TMaybeMemberHandler = TCanonicalMember | undefined;
+type TTryMember = (
+    member: TSESTree.TypeElement,
+) => TMaybeString;
 
-const MEMBER_MAP: Map<string, TCanonicalMember> = new Map<
-    string,
-    TCanonicalMember
->([
-    [AST_NODE_TYPES.TSPropertySignature, handlePropertySignature],
-    [AST_NODE_TYPES.TSCallSignatureDeclaration, handleCallSignature],
-    [AST_NODE_TYPES.TSIndexSignature, handleIndexSignature],
-    [AST_NODE_TYPES.TSMethodSignature, handleMethodSignature],
-]);
+const tryPropertySig: TTryMember = (member) =>
+    member.type === AST_NODE_TYPES.TSPropertySignature
+        ? handlePropertySignature(member)
+        : undefined;
 
-const canonicalMember: TCanonicalMember = (member) => {
-    const handler: TMaybeMemberHandler = MEMBER_MAP.get(member.type);
-    return handler ? handler(member) : handleConstructSignature(member);
-};
+const tryCallSig: TTryMember = (member) =>
+    member.type === AST_NODE_TYPES.TSCallSignatureDeclaration
+        ? handleCallSignature(member)
+        : undefined;
+
+const tryIndexSig: TTryMember = (member) =>
+    member.type === AST_NODE_TYPES.TSIndexSignature
+        ? handleIndexSignature(member)
+        : undefined;
+
+const tryMethodSig: TTryMember = (member) =>
+    member.type === AST_NODE_TYPES.TSMethodSignature
+        ? handleMethodSignature(member)
+        : undefined;
+
+const memberFallback: TCanonicalMember = (member) =>
+    member.type ===
+    AST_NODE_TYPES.TSConstructSignatureDeclaration
+        ? handleConstructSignature(member)
+        : member.type;
+
+const canonicalMember: TCanonicalMember = (member) =>
+    tryPropertySig(member) ??
+    tryCallSig(member) ??
+    tryIndexSig(member) ??
+    tryMethodSig(member) ??
+    memberFallback(member);
 
 type TKeywordMap = Map<string, string>;
 
@@ -290,61 +310,98 @@ type TMaybeString = string | undefined;
 
 type TTryDispatch = (node: TSESTree.TypeNode) => TMaybeString;
 
-/*
-    To me the only reason this was used was to bypass the complexity issue
+const tryTypeLiteral: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeLiteral
+        ? handleTypeLiteral(node)
+        : undefined;
 
-    They all are structurely identical and the type is identical
-*/
+const tryUnionType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSUnionType
+        ? handleUnionType(node)
+        : undefined;
 
-type TMaybeCanonical = TCanonical | undefined;
+const tryIntersectionType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSIntersectionType
+        ? handleIntersectionType(node)
+        : undefined;
 
-const COMPOSITE_MAP: Map<string, TCanonical> = new Map<string, TCanonical>([
-    [AST_NODE_TYPES.TSTypeLiteral, handleTypeLiteral],
-    [AST_NODE_TYPES.TSUnionType, handleUnionType],
-    [AST_NODE_TYPES.TSIntersectionType, handleIntersectionType],
-]);
+const tryTypeReference: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeReference
+        ? handleTypeReference(node)
+        : undefined;
 
-const tryComposite: TTryDispatch = (node) => {
-    const handler: TMaybeCanonical = COMPOSITE_MAP.get(node.type);
-    return handler ? handler(node) : undefined;
-};
+const tryFunctionType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSFunctionType
+        ? handleFunctionType(node)
+        : undefined;
 
-const REFERENCE_MAP: Map<string, TCanonical> = new Map<string, TCanonical>([
-    [AST_NODE_TYPES.TSTypeReference, handleTypeReference],
-    [AST_NODE_TYPES.TSFunctionType, handleFunctionType],
-    [AST_NODE_TYPES.TSArrayType, handleArrayType],
-    [AST_NODE_TYPES.TSTypeOperator, handleTypeOperator],
-]);
+const tryArrayType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSArrayType
+        ? handleArrayType(node)
+        : undefined;
 
-const tryReference: TTryDispatch = (node) => {
-    const handler: TMaybeCanonical = REFERENCE_MAP.get(node.type);
-    return handler ? handler(node) : undefined;
-};
+const tryTypeOperator: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeOperator
+        ? handleTypeOperator(node)
+        : undefined;
 
-const LITERAL_MAP: Map<string, TCanonical> = new Map<string, TCanonical>([
-    [AST_NODE_TYPES.TSLiteralType, handleLiteralType],
-    [AST_NODE_TYPES.TSTupleType, handleTupleType],
-    [AST_NODE_TYPES.TSIndexedAccessType, handleIndexedAccessType],
-]);
+const tryLiteralType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSLiteralType
+        ? handleLiteralType(node)
+        : undefined;
 
-const tryLiteral: TTryDispatch = (node) => {
-    const handler: TMaybeCanonical = LITERAL_MAP.get(node.type);
-    return handler ? handler(node) : undefined;
-};
+const tryTupleType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTupleType
+        ? handleTupleType(node)
+        : undefined;
 
-const ADVANCED_MAP: Map<string, TCanonical> = new Map<string, TCanonical>([
-    [AST_NODE_TYPES.TSTypeQuery, handleTypeQuery],
-    [AST_NODE_TYPES.TSConditionalType, handleConditionalType],
-    [AST_NODE_TYPES.TSMappedType, handleMappedType],
-    [AST_NODE_TYPES.TSInferType, handleInferType],
-]);
+const tryIndexedAccessType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSIndexedAccessType
+        ? handleIndexedAccessType(node)
+        : undefined;
 
-const tryAdvanced: TTryDispatch = (node) => {
-    const handler: TMaybeCanonical = ADVANCED_MAP.get(node.type);
-    return handler ? handler(node) : undefined;
-};
+const tryTypeQuery: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSTypeQuery
+        ? handleTypeQuery(node)
+        : undefined;
 
-// conveniantly exactly has a cyclomatic complexity of 5
+const tryConditionalType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSConditionalType
+        ? handleConditionalType(node)
+        : undefined;
+
+const tryMappedType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSMappedType
+        ? handleMappedType(node)
+        : undefined;
+
+const tryInferType: TTryDispatch = (node) =>
+    node.type === AST_NODE_TYPES.TSInferType
+        ? handleInferType(node)
+        : undefined;
+
+const tryComposite: TTryDispatch = (node) =>
+    tryTypeLiteral(node) ??
+    tryUnionType(node) ??
+    tryIntersectionType(node);
+
+const tryReference: TTryDispatch = (node) =>
+    tryTypeReference(node) ??
+    tryFunctionType(node) ??
+    tryArrayType(node) ??
+    tryTypeOperator(node);
+
+const tryLiteral: TTryDispatch = (node) =>
+    tryLiteralType(node) ??
+    tryTupleType(node) ??
+    tryIndexedAccessType(node);
+
+const tryAdvanced: TTryDispatch = (node) =>
+    tryTypeQuery(node) ??
+    tryConditionalType(node) ??
+    tryMappedType(node) ??
+    tryInferType(node);
+
 const dispatchNode: TCanonical = (node) =>
     tryComposite(node) ??
     tryReference(node) ??
