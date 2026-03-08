@@ -70,20 +70,23 @@ type TFunctionNode =
     // | TSESTree.FunctionExpression
     TSESTree.TSFunctionType | TSESTree.TSCallSignatureDeclaration;
 
-type TIsRestWithTypeRef = (param: TSESTree.Parameter) => boolean;
+type TIsRestWithTypeRefArgs = [param: TSESTree.Parameter];
+type TIsRestWithTypeRef = (...args: TIsRestWithTypeRefArgs) => boolean;
 
 const isRestWithTypeRef: TIsRestWithTypeRef = (param) =>
     param.type === AST_NODE_TYPES.RestElement &&
     param.typeAnnotation?.typeAnnotation.type ===
         AST_NODE_TYPES.TSTypeReference;
 
-type TIsValidSignature = (node: TFunctionNode) => boolean;
+type TFunctionNodeArgs = [node: TFunctionNode];
+type TIsValidSignature = (...args: TFunctionNodeArgs) => boolean;
 
 const isValidSignature: TIsValidSignature = (node) =>
     node.params.length === 0 ||
     (node.params.length === 1 && isRestWithTypeRef(node.params[0]));
 
-type TCheckNode = (context: TContext<TRule>, node: TFunctionNode) => void;
+type TCheckNodeArgs = [context: TContext<TRule>, node: TFunctionNode];
+type TCheckNode = (...args: TCheckNodeArgs) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (!isValidSignature(node)) {
@@ -94,12 +97,10 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type THandler = (node: TFunctionNode) => void;
+type THandler = (...args: TFunctionNodeArgs) => void;
 
-type TMakeHandler = (
-    checkNode: TCheckNode,
-    context: TContext<TRule>,
-) => THandler;
+type TMakeHandlerArgs = [checkNode: TCheckNode, context: TContext<TRule>];
+type TMakeHandler = (...args: TMakeHandlerArgs) => THandler;
 
 const makeHandler: TMakeHandler = (checkNode, context) =>
     (
