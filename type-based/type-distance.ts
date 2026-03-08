@@ -74,12 +74,16 @@ type TRule = ESLintUtils.RuleModule<"typeDistance">;
 
 type TMaybeAnn = TSESTree.TSTypeAnnotation | undefined;
 
-type TAnnotationStr = (ann: TMaybeAnn, fallback: string) => string;
+type TAnnotationStrArgs = [TMaybeAnn, string];
+
+type TAnnotationStr = (...args: TAnnotationStrArgs) => string;
 
 const annotationStr: TAnnotationStr = (ann, fallback) =>
     ann ? canonicalType(ann.typeAnnotation) : fallback;
 
-type TKeyName = (key: TSESTree.PropertyName) => string;
+type TPropertyNameArgs = [TSESTree.PropertyName];
+
+type TKeyName = (...args: TPropertyNameArgs) => string;
 
 const keyName: TKeyName = (key) =>
     key.type === AST_NODE_TYPES.Identifier
@@ -88,7 +92,9 @@ const keyName: TKeyName = (key) =>
             ? String(key.value)
             : key.type;
 
-type TCanonicalType = (node: TSESTree.TypeNode) => string;
+type TTypeNodeArgs = [TSESTree.TypeNode];
+
+type TCanonicalType = (...args: TTypeNodeArgs) => string;
 
 const canonicalType: TCanonicalType = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
@@ -99,21 +105,27 @@ const canonicalType: TCanonicalType = (node) =>
                 ? node.types.map(canonicalType).join("&")
                 : node.type;
 
-type THandleTypeLiteral = (node: TSESTree.TSTypeLiteral) => string;
+type TTypeLiteralArgs = [TSESTree.TSTypeLiteral];
+
+type THandleTypeLiteral = (...args: TTypeLiteralArgs) => string;
 
 const handleTypeLiteral: THandleTypeLiteral = (node) => {
     const members: string = node.members.map(canonicalMember).join(";");
     return "{" + members + "}";
 };
 
-type TCanonicalMember = (member: TSESTree.TypeElement) => string;
+type TTypeElementArgs = [TSESTree.TypeElement];
+
+type TCanonicalMember = (...args: TTypeElementArgs) => string;
 
 const canonicalMember: TCanonicalMember = (member) =>
     member.type === AST_NODE_TYPES.TSPropertySignature
         ? handlePropSig(member)
         : member.type;
 
-type THandlePropSig = (member: TSESTree.TSPropertySignature) => string;
+type TPropSigArgs = [TSESTree.TSPropertySignature];
+
+type THandlePropSig = (...args: TPropSigArgs) => string;
 
 const handlePropSig: THandlePropSig = (member) => {
     const key: string = keyName(member.key);
@@ -126,35 +138,36 @@ const handlePropSig: THandlePropSig = (member) => {
 type TKeyValuePair = readonly [key: string, value: string];
 
 type TMemberToPairOpt = (
-    member: TSESTree.TypeElement,
+    ...args: TTypeElementArgs
 ) => ReadonlyArray<TKeyValuePair>;
 
 const memberToPairOpt: TMemberToPairOpt = (member) =>
     member.type === AST_NODE_TYPES.TSPropertySignature ? [toPair(member)] : [];
 
-type TExtractPairs = (node: TSESTree.TypeNode) => ReadonlyArray<TKeyValuePair>;
+type TExtractPairs = (...args: TTypeNodeArgs) => ReadonlyArray<TKeyValuePair>;
 
 const extractPairs: TExtractPairs = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
         ? node.members.flatMap(memberToPairOpt)
         : [];
 
-type TToPair = (member: TSESTree.TSPropertySignature) => TKeyValuePair;
+type TToPair = (...args: TPropSigArgs) => TKeyValuePair;
 
 const toPair: TToPair = (member) => [
     keyName(member.key),
     annotationStr(member.typeAnnotation, "any"),
 ];
 
-type TKeysOf = (pairs: ReadonlyArray<TKeyValuePair>) => ReadonlySet<string>;
+type TPairsArgs = [ReadonlyArray<TKeyValuePair>];
+
+type TKeysOf = (...args: TPairsArgs) => ReadonlySet<string>;
 
 const keysOf: TKeysOf = (pairs) =>
     new Set(pairs.map((pair: TKeyValuePair) => pair[0]));
 
-type TJaccardSimilarity = (
-    a: ReadonlySet<string>,
-    b: ReadonlySet<string>,
-) => number;
+type TSetPairArgs = [ReadonlySet<string>, ReadonlySet<string>];
+
+type TJaccardSimilarity = (...args: TSetPairArgs) => number;
 
 const jaccardSimilarity: TJaccardSimilarity = (setA, setB) => {
     const union: Set<string> = new Set([...setA, ...setB]);
@@ -172,18 +185,16 @@ type TValueMap = ReadonlyMap<string, string>;
 
 type TValueMapEntry = [string, string];
 
-type TToValueMap = (pairs: ReadonlyArray<TKeyValuePair>) => TValueMap;
+type TToValueMap = (...args: TPairsArgs) => TValueMap;
 
 const toValueMap: TToValueMap = (pairs) =>
     new Map(
         pairs.map((pair: TKeyValuePair): TValueMapEntry => [pair[0], pair[1]]),
     );
 
-type TValueSimilarity = (
-    a: TValueMap,
-    b: TValueMap,
-    shared: ReadonlyArray<string>,
-) => number;
+type TValueSimArgs = [TValueMap, TValueMap, ReadonlyArray<string>];
+
+type TValueSimilarity = (...args: TValueSimArgs) => number;
 
 const valueSimilarity: TValueSimilarity = (mapA, mapB, shared) => {
     if (shared.length === 0) {
@@ -195,18 +206,17 @@ const valueSimilarity: TValueSimilarity = (mapA, mapB, shared) => {
     return matching / shared.length;
 };
 
-type TSharedKeys = (
-    a: ReadonlySet<string>,
-    b: ReadonlySet<string>,
-) => ReadonlyArray<string>;
+type TSharedKeys = (...args: TSetPairArgs) => ReadonlyArray<string>;
 
 const sharedKeys: TSharedKeys = (setA, setB) =>
     [...setA].filter((k: string) => setB.has(k));
 
-type TComputeDistance = (
-    pairsA: ReadonlyArray<TKeyValuePair>,
-    pairsB: ReadonlyArray<TKeyValuePair>,
-) => number;
+type TDistanceArgs = [
+    ReadonlyArray<TKeyValuePair>,
+    ReadonlyArray<TKeyValuePair>,
+];
+
+type TComputeDistance = (...args: TDistanceArgs) => number;
 
 const computeDistance: TComputeDistance = (pairsA, pairsB) => {
     const keysA: ReadonlySet<string> = keysOf(pairsA);
@@ -233,10 +243,9 @@ type TEntries = Array<TEntry>;
 
 const entries: TEntries = [];
 
-type TRecordAlias = (
-    file: string,
-    node: TSESTree.TSTypeAliasDeclaration,
-) => void;
+type TRecordAliasArgs = [string, TSESTree.TSTypeAliasDeclaration];
+
+type TRecordAlias = (...args: TRecordAliasArgs) => void;
 
 const recordAlias: TRecordAlias = (file, node) => {
     const pairs: ReadonlyArray<TKeyValuePair> = extractPairs(
@@ -253,7 +262,9 @@ const recordAlias: TRecordAlias = (file, node) => {
     entries.push(entry);
 };
 
-type TIsSimilarPair = (a: TEntry, b: TEntry) => boolean;
+type TEntryPairArgs = [TEntry, TEntry];
+
+type TIsSimilarPair = (...args: TEntryPairArgs) => boolean;
 
 const isSimilarPair: TIsSimilarPair = (entryA, entryB) => {
     if (entryA.canonical === entryB.canonical) {
@@ -266,12 +277,9 @@ const isSimilarPair: TIsSimilarPair = (entryA, entryB) => {
     return dist >= THRESHOLD;
 };
 
-type TReportPair = (
-    context: TContext<TRule>,
-    file: string,
-    a: TEntry,
-    b: TEntry,
-) => void;
+type TReportPairArgs = [TContext<TRule>, string, TEntry, TEntry];
+
+type TReportPair = (...args: TReportPairArgs) => void;
 
 const reportPair: TReportPair = (context, file, entryA, entryB) => {
     if (entryA.file === file) {
@@ -290,7 +298,9 @@ const reportPair: TReportPair = (context, file, entryA, entryB) => {
     }
 };
 
-type TCheckPairs = (context: TContext<TRule>, file: string) => void;
+type TContextFileArgs = [TContext<TRule>, string];
+
+type TCheckPairs = (...args: TContextFileArgs) => void;
 
 const checkPairs: TCheckPairs = (context, file) => {
     for (const [i, entryA] of entries.entries()) {
@@ -302,9 +312,13 @@ const checkPairs: TCheckPairs = (context, file) => {
     }
 };
 
-type TEntryPredicate = (e: TEntry) => boolean;
+type TEntryArgs = [TEntry];
 
-type TMakeFileFilter = (file: string) => TEntryPredicate;
+type TEntryPredicate = (...args: TEntryArgs) => boolean;
+
+type TFileArgs = [string];
+
+type TMakeFileFilter = (...args: TFileArgs) => TEntryPredicate;
 
 const makeFileFilter: TMakeFileFilter = (file) =>
     (
@@ -312,7 +326,7 @@ const makeFileFilter: TMakeFileFilter = (file) =>
             e.file !== file
     )();
 
-type TClearFile = (file: string) => void;
+type TClearFile = (...args: TFileArgs) => void;
 
 const clearFile: TClearFile = (file) => {
     const keep: TEntryPredicate = makeFileFilter(file);
@@ -323,10 +337,7 @@ const clearFile: TClearFile = (file) => {
 
 type TExitHandler = () => void;
 
-type TMakeExitHandler = (
-    context: TContext<TRule>,
-    file: string,
-) => TExitHandler;
+type TMakeExitHandler = (...args: TContextFileArgs) => TExitHandler;
 
 const makeExitHandler: TMakeExitHandler = (context, file) =>
     (
@@ -334,7 +345,7 @@ const makeExitHandler: TMakeExitHandler = (context, file) =>
             checkPairs(context, file)
     )();
 
-type TMakeAliasHandler = (file: string) => THandler;
+type TMakeAliasHandler = (...args: TFileArgs) => THandler;
 
 const makeAliasHandler: TMakeAliasHandler = (file) =>
     (
