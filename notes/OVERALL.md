@@ -2,11 +2,17 @@
 
 ## Phase 1: LINT_META format + rule updates
 
+`TLintMeta` defines the grammar of the error message. Its fields (flags, fix, pitfalls, avoid, related, philosophy) compose into the MSG string at rule definition time. The MSG is the single source of truth — self-contained, no lookups. The downstream pipeline `error -> MSG -> parse -> inject` is a pure function of the MSG content. The parse step knows the grammar because `TLintMeta` defined it. This means the injection format can change freely without touching rule definitions.
+
+DESC is documentation only — a short imperative statement of what the rule checks.
+
+Reference material for deriving each rule's LINT_META fields is in `notes/lint_analysis.md`.
+
 1. Define `TLintMeta` type in `type-based/type-based.types.ts`
 2. Add `LINT_META` export to each custom rule file (`rules/*`, `type-based/*`):
-   - Rewrite MSG → diagnosis only, max ~80 chars
-   - Sharpen DESC → full semantic intent, imperative mood
-   - Add LINT_META const with: flags, fix, pitfalls, avoid, related
+   - DESC → short imperative description of what the rule checks
+   - MSG → composed from LINT_META fields, contains everything an agent needs to fix the error: diagnosis, fix patterns, pitfalls, patterns to avoid, related rules, philosophy
+   - Derive field content from `notes/lint_analysis.md`
 3. Create `scripts/lint-fix/external-rules.ts` — registry mapping external rule IDs (`@typescript-eslint/*`, `eslint/*`, `functional/*`) to `TLintMeta` objects
 4. Validate: every rule in `eslint.config.ts` has a corresponding `TLintMeta` (custom export or external registry entry)
 
@@ -40,6 +46,8 @@ Create `testing/` with end-to-end validation:
 6. Test: worktree lifecycle (create, commit, merge, cleanup)
 7. Test: retry cap and POST_MORTEM.json accumulation
 8. Integration test: run full workflow on a fixture file with real agent calls
+---
+<out-of-scope>
 
 ## Phase 4: Package
 
@@ -52,3 +60,4 @@ Package as reusable `@scope/lint-workflow`:
 5. Consumer can: `import { config } from "@scope/lint-workflow"` and `/lint-fix src/`
 6. Consumer can add own rules with LINT_META — orchestrator auto-discovers
 7. Document: README with setup, usage, adding custom rules
+</out-of-scope>

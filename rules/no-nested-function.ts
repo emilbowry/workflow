@@ -22,10 +22,54 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type {
     TContext,
     TCreate,
+    TLintMeta,
     TMeta,
 } from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
+
+export const LINT_META: TLintMeta = {
+    avoid:
+        "Closures that capture mutable " +
+        "outer scope. Nested arrow " +
+        "chains beyond the PA boundary",
+    fix:
+        "Three solutions: (1) Extract " +
+        "inner function to module " +
+        "scope with explicit " +
+        "parameters, (2) Nullary PA: " +
+        "(fn, ...params) => () => " +
+        "fn(...params), (3) IIFE " +
+        "thunk: (() => (node) => " +
+        "work)()",
+    flags:
+        "Parameterized function " +
+        "defined inside another " +
+        "parameterized function",
+    philosophy:
+        "Lambda lifting makes all " +
+        "dependencies explicit " +
+        "parameters in the type " +
+        "signature. No hidden " +
+        "wiring — the signature IS " +
+        "the specification of what " +
+        "the function touches",
+    pitfalls:
+        "Object literal method " +
+        "shorthands are NOT exempt " +
+        "— ESLint create() handler " +
+        "methods close over context " +
+        "and trigger the rule. The " +
+        "makeHandler(fn, ctx)() " +
+        "anti-pattern is a no-op " +
+        "(1 -> T ≅ T) — put the " +
+        "IIFE inside makeHandler " +
+        "instead",
+    related:
+        "max-lines-per-function, " +
+        "func-style, " +
+        "prefer-arrow-callback",
+};
 
 const MSG: string =
     "Nested function definition. " +
