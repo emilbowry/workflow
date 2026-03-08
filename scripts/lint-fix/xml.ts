@@ -14,31 +14,48 @@ const escapeXml: TEscaper = (text) =>
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
 
+type TStripLintMeta = (message: string) => string;
+
+const stripLintMeta: TStripLintMeta = (message) =>
+    message.replace(/<lint_meta>[\s\S]*?<\/lint_meta>\s*/g, "").trim();
+
 type TErrorsToXml = (errors: ReadonlyArray<TEslintError>) => string;
 
 const errorsToXml: TErrorsToXml = (errors) => {
-    const inner: string = errors
-        .map(
-            (err) =>
-                "  <error" +
-                ' rule="' +
-                escapeXml(err.ruleId) +
-                '"' +
-                ' severity="' +
-                String(err.severity) +
-                '"' +
-                ' line="' +
-                String(err.line) +
-                '"' +
-                ' col="' +
-                String(err.column) +
-                '"' +
-                ' message="' +
-                escapeXml(err.message) +
-                '" />',
-        )
+    const byRule: Map<string, ReadonlyArray<TEslintError>> = new Map();
+    errors.forEach((err) => {
+        const existing: ReadonlyArray<TEslintError> =
+            byRule.get(err.ruleId) ?? [];
+        byRule.set(err.ruleId, [...existing, err]);
+    });
+    const groups: string = Array.from(byRule.entries())
+        .map(([rule, errs]) => {
+            const locs: string = errs
+                .map(
+                    (e) =>
+                        '    <location line="' +
+                        String(e.line) +
+                        '" col="' +
+                        String(e.column) +
+                        '" message="' +
+                        escapeXml(stripLintMeta(e.message)) +
+                        '" />',
+                )
+                .join("\n");
+            return (
+                '  <rule name="' +
+                escapeXml(rule) +
+                '" severity="' +
+                String(errs[0].severity) +
+                '" count="' +
+                String(errs.length) +
+                '">\n' +
+                locs +
+                "\n  </rule>"
+            );
+        })
         .join("\n");
-    return "<errors>\n" + inner + "\n</errors>";
+    return "<errors>\n" + groups + "\n</errors>";
 };
 
 type TFileToXml = (path: string, content: string) => string;
@@ -79,7 +96,7 @@ const postMortemToXml: TPostMortemToXml = (pm) => {
                         '" line="' +
                         String(err.line) +
                         '" message="' +
-                        escapeXml(err.message) +
+                        escapeXml(stripLintMeta(err.message)) +
                         '" />',
                 )
                 .join("\n");
@@ -144,12 +161,31 @@ const planOptionToXml: TPlanOptionToXml = (option) => {
     );
 };
 
-type TTargetRuleToXml = (triage: TTriageResult) => string;
+type TLintMetaFields = {
+    flags: string;
+    fix: string;
+    pitfalls: string;
+    avoid: string;
+    related: string;
+    philosophy: string;
+} | undefined;
 
-const targetRuleToXml: TTargetRuleToXml = (triage) => {
+type TTargetRuleToXml = (triage: TTriageResult, meta: TLintMetaFields) => string;
+
+const targetRuleToXml: TTargetRuleToXml = (triage, meta) => {
     const locs: string = triage.locations
         .map((loc) => '    <location line="' + loc + '" />')
         .join("\n");
+    const metaXml: string = meta
+        ? "  <lint_meta>\n" +
+              "    <flags>" + escapeXml(meta.flags) + "</flags>\n" +
+              "    <fix>" + escapeXml(meta.fix) + "</fix>\n" +
+              "    <pitfalls>" + escapeXml(meta.pitfalls) + "</pitfalls>\n" +
+              "    <avoid>" + escapeXml(meta.avoid) + "</avoid>\n" +
+              "    <related>" + escapeXml(meta.related) + "</related>\n" +
+              "    <philosophy>" + escapeXml(meta.philosophy) + "</philosophy>\n" +
+              "  </lint_meta>"
+        : "";
     const rule: string =
         '  <rule name="' +
         escapeXml(triage.rule) +
@@ -162,7 +198,16 @@ const targetRuleToXml: TTargetRuleToXml = (triage) => {
         "  <suggested_approach>" +
         escapeXml(triage.suggested_approach) +
         "</suggested_approach>";
-    return "<target_rule>\n" + rule + "\n" + approach + "\n" + "</target_rule>";
+    return (
+        "<target_rule>\n" +
+        rule +
+        "\n" +
+        metaXml +
+        "\n" +
+        approach +
+        "\n" +
+        "</target_rule>"
+    );
 };
 
 export {

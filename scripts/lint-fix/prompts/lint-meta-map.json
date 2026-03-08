@@ -1,0 +1,370 @@
+{
+  "local/max-total-depth": {
+    "flags": "Indentation deeper than configured maximum (default 3 levels)",
+    "fix": "Extract deeply indented blocks into separate functions at module scope",
+    "pitfalls": "Indent auto-formatting on ternary chains cascades into new depth violations. Nested ternaries beyond 3 branches will always exceed the depth limit",
+    "avoid": "Nested ternaries beyond 3 branches. Deep if-chains. Inline JSX nesting",
+    "related": "restrict-return-count, complexity, no-nested-function, max-lines-per-function",
+    "philosophy": "Bounds structural complexity per generation. Shallow code is locally verifiable — each function readable in one pass without holding nesting context"
+  },
+  "local/no-nested-function": {
+    "flags": "Parameterized function inside another parameterized function. Two permitted nesting shapes: (1) Nullary PA — inner has zero params and is not parameterized inside parameterized, (2) IIFE thunk — (() => (node) => work)() collapses by the 1 -> T isomorphism",
+    "fix": "Three solutions: (1) Extract inner function to module scope, pass free variables as explicit args (lambda lifting). (2) Nullary PA: (fn, ...params) => () => fn(...params). (3) IIFE thunk: (() => (node) => work)()",
+    "pitfalls": "Object literal method shorthands are NOT exempt — { foo(node) { } } is a nested function expression not a method. The makeHandler(fn, ctx)() anti-pattern is a no-op (1 -> T ≅ T) — put the IIFE inside makeHandler. .bind() is never valid",
+    "avoid": "Closures capturing outer scope. .bind() for partial application — it is not a valid solution. Nested arrow chains beyond the PA boundary",
+    "related": "max-lines-per-function, func-style, prefer-arrow-callback",
+    "philosophy": "Lambda lifting (Johnsson 1985): every closure is mechanically eliminable by lifting free variables into parameters. Flat typed arrows with explicit params — the signature IS the specification"
+  },
+  "local/restrict-return-count": {
+    "flags": "More than 1 return statement per function, or any non-final return (early return)",
+    "fix": "Ternary for 2-3 branches. Nullish coalescing chain (tryA(x) ?? tryB(x) ?? fallback) for T|undefined dispatch. Record dispatch for 4+ branches",
+    "pitfalls": "Arrow expression bodies have no ReturnStatement node — invisible to this rule. Guard clauses (if (bad) return) are always flagged even with 1 total return. Do not use switch+let — functional/no-let bans let entirely. Max 3 ternary branches before prettier cascades into max-total-depth. For 4+ use try-dispatch or Record dispatch. Block body wrapping ternary in const+return triggers arrow-body-style — use expression body directly",
+    "avoid": "Early returns / guard clauses. Multiple return paths. If-else chains returning from each branch",
+    "related": "max-total-depth, complexity, functional/no-let, consistent-type-assertions, arrow-body-style",
+    "philosophy": "Single return = total arrow. One input path, one output path, both visible in the type signature. The implementation is determined by the type, not by which branch executes"
+  },
+  "local/enforce-record-type": {
+    "flags": "Type alias body is an object literal type (TSTypeLiteral)",
+    "fix": "Rewrite { key: T } as Record<K, V> or restructure",
+    "pitfalls": "Fires on all type literals including call/index/method signatures. For lookup tables needing T|undefined use try-dispatch — Record access never returns undefined",
+    "avoid": "Object literal types { key: T }. Use Record<K, V> for keyed structures",
+    "related": "no-single-field-type, no-duplicate-type-structure, require-parametric-record",
+    "philosophy": "There are only two concrete containers: Array (positional) and Record/mapped type (key-indexed). Since constant families are invalid (require-parametric-record), every product is dependent — Record<K, F<K>> or {[K in T]: F<K>}. Object literals are ad-hoc encodings of dependent products"
+  },
+  "local/max-type-nesting": {
+    "flags": "More than 1 nested type construct (TSTypeLiteral or TSTupleType) in a type alias",
+    "fix": "Extract inner type literals and tuples into named type aliases",
+    "pitfalls": "Counts occurrences, not depth. Two sibling type literals at the same level both increment the counter",
+    "avoid": "Inline anonymous type structures within type aliases",
+    "related": "require-extracted-types, no-duplicate-type-structure, no-single-field-type",
+    "philosophy": "A.(B.(C.(...))) = A.X where X = B.(C.(...)). Nested type composition always factors through a named intermediate — the extraction is the factorization made explicit"
+  },
+  "local/no-duplicate-type-structure": {
+    "flags": "Two or more type aliases with identical canonical structural representation",
+    "fix": "Remove duplicate, reuse the existing type alias. If semantically distinct, differentiate the structure",
+    "pitfalls": "Uses module-level Map that persists across files in a lint run. clearFile handles re-linting. Canonical string comparison is nominal — renamed but structurally identical types are still caught. TSNamedTupleMember labels collapse canonical forms — [node: A] and [node: B] both canonicalize to [TSNamedTupleMember]. Remove labels to expose actual types, or share one tuple for identical param signatures. Cross-file collisions with generic tuple wrappers — TSingleArg<T> collides with same-shape tuples in other files. Keep per-file named tuples with distinct unlabeled inner types. Phantom generic params to differentiate trigger valid-generics — share identical tuples or eliminate redundant functions instead",
+    "avoid": "Introducing new type aliases without checking for existing structurally identical types",
+    "related": "enforce-record-type, require-extracted-types, max-type-nesting, consistent-type-definitions, require-rest-params-tuple, valid-generics",
+    "philosophy": "Two types with identical structure are the same type. Catches redundancy at lint time per-issue before duplicates enter the codebase and diverge across issues"
+  },
+  "local/no-single-field-type": {
+    "flags": "Type alias with exactly one member in a type literal body (except call signatures)",
+    "fix": "Inline the single field type directly or combine with other fields",
+    "pitfalls": "Call signature types ({ (x: A): B }) are exempt — they are canonical function type form, not wrappers",
+    "avoid": "Single-property wrapper types. type TFoo = { value: string } — use string directly",
+    "related": "enforce-record-type, require-extracted-types, no-duplicate-type-structure",
+    "philosophy": "Every type must earn its existence structurally. A single-field wrapper adds indirection without information"
+  },
+  "local/require-extracted-function-type": {
+    "flags": "Inline type annotations that are not keywords or named references (TSTypeReference)",
+    "fix": "Extract to a named type alias: type TFoo = string | number; const x: TFoo = ...",
+    "pitfalls": "High volume — a function with 3 params + return + 2 locals could need 6 type aliases. Naming requires semantic thought, not mechanical substitution. Inline tuple types (TSTupleType) in annotation position are flagged — extract to named alias first. Lambda-lifting cascades into require-rest-params-tuple — new function signature needs its own tuple type. Do minimal fix only unless also targeting no-nested-function",
+    "avoid": "Inline unions, intersections, function types, tuple types, object literals in annotation position",
+    "related": "typedef, explicit-function-return-type, no-duplicate-type-structure, max-type-nesting, require-rest-params-tuple",
+    "philosophy": "Every value has a named type defined before the value exists. The type vocabulary IS the specification — readable without any implementation"
+  },
+  "local/require-parametric-record": {
+    "flags": "Record or mapped type without dependent product structure (value type does not reference key type parameter)",
+    "fix": "Add type parameter: type TFoo<T extends X> = Record<T, TBar<T>>. For mapped types: {[K in T]: F<K>}. Or replace with tuple if no parametric relationship exists",
+    "pitfalls": "Record check is regex-based on source text. Mapped type check uses AST. Complex formatting may not match regex. Value must be wrapped in a named type for Records",
+    "avoid": "Non-parametric Records like Record<string, number>. Degenerate mapped types like {[K in T]: string} where value ignores the index",
+    "related": "enforce-record-type, valid-generics, no-duplicate-type-structure",
+    "philosophy": "Products indexed by a finite domain must be dependent — the value must reference the index. Both Record<T, F<T>> and {[K in T]: F<K>} are dependent products. Degenerate forms collapse to constant families"
+  },
+  "local/valid-generics": {
+    "flags": "Degenerate generic (body is just the type parameter: type TId<T> = T) or homogeneous generic (all params passed straight through: type TFoo<A,B> = TBar<A,B>)",
+    "fix": "Degenerate: remove type parameter, use inner type directly. Homogeneous: remove generic params (make simple alias) or add transformation logic",
+    "pitfalls": "Detection uses string comparison of parameter names — renaming alone defeats the check. Intentionally nominal, not deep structural equivalence",
+    "avoid": "Identity functors. Pure-passthrough generics that add a name without adding a transformation",
+    "related": "require-parametric-record, no-duplicate-type-structure, require-extracted-types",
+    "philosophy": "Every generic must earn its existence by transforming its parameters — adding constraints, composing, partially applying. Trivial generics pollute the type graph with vacuous edges"
+  },
+  "local/require-rest-params-tuple": {
+    "flags": "Type-level function signature with positional parameters instead of rest-params tuple",
+    "fix": "Wrap parameters in a named tuple type and spread: type TArgs = [a: A, b: B]; type TFn = (...args: TArgs) => R",
+    "pitfalls": "Zero-param signatures () => R are valid and not flagged. Currently type-level only — runtime signatures commented out. Extracting structurally identical tuples for different functions triggers no-duplicate-type-structure — share one tuple when param signatures match. Inline tuples are TSTupleType not TSTypeReference — rule rejects them, must extract to named type alias. Type predicates (node is T) incompatible — no named param in rest-params form. Delete predicate, inline discriminant check instead. .bind() typing unreliable with rest-params tuples — TS may infer any[]. Use IIFE thunk instead. Single-element tuples are safe from no-single-field-type — that rule only checks TSTypeLiteral not TSTupleType",
+    "avoid": "Inline positional parameters in type-level function signatures. Named individual params like (a: A, b: B)",
+    "related": "require-extracted-types, transport-graph, valid-generics, no-duplicate-type-structure, no-single-field-type, enforce-record-type",
+    "philosophy": "Every function is an arrow A -> B between named types. Rest-params tuple makes the input a single named product, enabling mechanical comparison and transport graph edges"
+  },
+  "local/finite-domain-return-widening": {
+    "flags": "Function from finite domain returns bare 'string' — prefer a literal union return type",
+    "fix": "Replace bare string return with a literal union that maps each input variant to a specific output. The function becomes a lookup table",
+    "pitfalls": "Only checks TSFunctionType inside TSTypeAliasDeclaration. Does not check implementation return values, only type-level annotations",
+    "avoid": "Returning bare string from functions whose input is a finite domain (literal or literal union)",
+    "related": "require-rest-params-tuple, transport-graph, valid-generics",
+    "philosophy": "Finite domains should propagate. If the input space is enumerable, the output space should be too. Makes the function decidable and exhaustively testable"
+  },
+  "local/type-distance": {
+    "flags": "Two type aliases with structural similarity >= 0.75 (Jaccard similarity on keys and values)",
+    "fix": "Merge the two types into one if they represent the same concept, or add/remove fields to make the structural difference explicit",
+    "pitfalls": "Uses module-level mutable array for cross-type comparison. Exact duplicates (canonical match) are excluded — use no-duplicate-type-structure for those",
+    "avoid": "Near-duplicate type aliases with high Jaccard similarity that should be unified or made explicitly different",
+    "related": "no-duplicate-type-structure, cardinality-isomorphic-families, no-single-field-type",
+    "philosophy": "The type namespace is a set — no two names should describe the same shape. Near-duplicates indicate concept drift that should be resolved"
+  },
+  "local/cardinality-isomorphic-families": {
+    "flags": "Two generic types with the same constraint that have identical cardinality profiles (union members, record fields, tuple elements)",
+    "fix": "Unify the two generic types into a single parameterized type if they agree pointwise over their shared domain",
+    "pitfalls": "Only compares first type parameter constraint. Uses module-level mutable array",
+    "avoid": "Generic type families over the same finite domain with identical cardinality profiles that are secretly isomorphic",
+    "related": "type-distance, no-duplicate-type-structure, fiber-coherence",
+    "philosophy": "Let F, G : S -> FinSet be functors over a finite discrete category S. If |F(a)| = |G(a)| for all a in S, then F ~ G (naturality is vacuous over discrete S). The natural isomorphism witnesses a factorization: exists H : S x I -> FinSet with H(-,i0) ~ F and H(-,i1) ~ G — the two families are fibers of a single family parameterized by the missing index I"
+  },
+  "local/transport-graph": {
+    "flags": "Discriminated type with no edges in the transport graph — not used as domain or codomain of any function signature",
+    "fix": "Define a function type that uses the isolated type as domain or codomain: type TFn = (x: TIsolated) => TTarget",
+    "pitfalls": "Only checks within a single file. Exports buildTransportGraph and classifyEdge for fiber-coherence. string keyword return (TSStringKeyword) won't create edges — rule requires TSTypeReference. Return a named type not a keyword. Rest-params form (RestElement) won't create edges — fails param check. Must use inline params. CONFLICTS with require-rest-params-tuple",
+    "avoid": "Discriminated types (literal unions or constrained generics) that exist without any function signature connecting them",
+    "related": "fiber-coherence, require-rest-params-tuple, require-extracted-types",
+    "philosophy": "Types are nodes, functions are edges. The type graph must be connected — every type participates in the computation graph. Isolated nodes are dead types"
+  },
+  "local/fiber-coherence": {
+    "flags": "Two types connected by an isomorphic edge in the transport graph that have different cardinalities",
+    "fix": "Either adjust the types to have matching cardinalities (same number of variants/fields/elements) or reclassify the edge as a section",
+    "pitfalls": "Depends on transport-graph exports. Duplicates several helpers (TAliasEntry, isLiteralType, findConnected, etc.) — should extract to shared module",
+    "avoid": "Isomorphic edges between types with mismatched cardinalities — a bijection between sets of different size is a contradiction",
+    "related": "transport-graph, cardinality-isomorphic-families, type-distance",
+    "philosophy": "Structural promises must be backed by cardinality evidence. An isomorphism between a 3-variant union and a 5-variant union is a proof obligation that cannot be satisfied"
+  },
+  "@typescript-eslint/ban-ts-comment": {
+    "flags": "Usage of @ts-ignore, @ts-expect-error, or @ts-nocheck comments",
+    "fix": "Remove the directive. Fix the underlying type error instead",
+    "pitfalls": "None",
+    "avoid": "All ts-comment directives. No exceptions",
+    "related": "eslint-comments/no-use, ban-tslint-comment",
+    "philosophy": "Types are provable contracts. Overriding the checker voids the contract"
+  },
+  "@typescript-eslint/ban-tslint-comment": {
+    "flags": "Legacy TSLint directive comments (tslint:disable etc)",
+    "fix": "Remove the stale directive comment",
+    "pitfalls": "None",
+    "avoid": "All tslint directive comments",
+    "related": "ban-ts-comment, eslint-comments/no-use",
+    "philosophy": "Mechanical cleanup of legacy suppression directives"
+  },
+  "@typescript-eslint/consistent-generic-constructors": {
+    "flags": "Generic type args on constructor call instead of type annotation",
+    "fix": "Move generics to the variable declaration: const x: Array<T> = new Array()",
+    "pitfalls": "None",
+    "avoid": "const x = new Array<T>() — put generics on the left side",
+    "related": "typedef, require-extracted-types",
+    "philosophy": "Type annotation is the contract; right-hand side is implementation"
+  },
+  "@typescript-eslint/prefer-function-type": {
+    "flags": "Type literal with only a single call signature",
+    "fix": "Simplify { (): T } to () => T",
+    "pitfalls": "None",
+    "avoid": "Unnecessary structural wrapping of pure function types",
+    "related": "no-single-field-type, enforce-record-type",
+    "philosophy": "Reduce indirection for pure function types"
+  },
+  "@typescript-eslint/array-type": {
+    "flags": "T[] array syntax",
+    "fix": "Use Array<T> syntax. Tuples are still allowed",
+    "pitfalls": "Rule appears twice in config — deduplicate",
+    "avoid": "T[] syntax. Use Array<T> consistently",
+    "related": "consistent-type-definitions, enforce-record-type",
+    "philosophy": "One canonical form for containers. Array<T> is consistent with Record<K,V>"
+  },
+  "@typescript-eslint/consistent-type-assertions": {
+    "flags": "Any type assertion (as X or <X> syntax)",
+    "fix": "Remove assertion. Restructure code so TypeScript infers the correct type. Use switch dispatch or try-dispatch pattern",
+    "pitfalls": "Combined with no-unsafe-type-assertion, there is truly no way to assert",
+    "avoid": "All type assertions. Use type narrowing, switch dispatch, or try-dispatch instead",
+    "related": "no-unsafe-type-assertion, no-unnecessary-condition",
+    "philosophy": "Assertions are lies to the type checker. Every type must be provably correct through inference"
+  },
+  "@typescript-eslint/no-unsafe-type-assertion": {
+    "flags": "Type assertions that narrow to a more specific type",
+    "fix": "Use type narrowing via discriminated unions or switch",
+    "pitfalls": "Closes both directions with consistent-type-assertions: never",
+    "avoid": "All narrowing assertions",
+    "related": "consistent-type-assertions, no-unnecessary-condition",
+    "philosophy": "Every value must be the type it claims through inference alone"
+  },
+  "@typescript-eslint/consistent-type-definitions": {
+    "flags": "Interface declarations (interface keyword)",
+    "fix": "Convert to type alias: interface IFoo becomes type TFoo",
+    "pitfalls": "None",
+    "avoid": "Interface keyword. Use type exclusively",
+    "related": "no-duplicate-type-structure, enforce-record-type",
+    "philosophy": "One canonical form. Types are explicit, composable via intersection, fixed at definition site"
+  },
+  "@typescript-eslint/consistent-type-imports": {
+    "flags": "Non-type imports of type-only symbols",
+    "fix": "Use import type { }",
+    "pitfalls": "Update imports when value import becomes type-only after refactor",
+    "avoid": "Importing types without the type keyword",
+    "related": "consistent-type-exports",
+    "philosophy": "Separates type-level and value-level dependency graphs"
+  },
+  "@typescript-eslint/consistent-type-exports": {
+    "flags": "Type exports without export type keyword",
+    "fix": "Use export type { }",
+    "pitfalls": "None",
+    "avoid": "Exporting types without the type keyword",
+    "related": "consistent-type-imports",
+    "philosophy": "Separates type-level and value-level export graphs"
+  },
+  "@typescript-eslint/explicit-function-return-type": {
+    "flags": "Function without explicit return type annotation",
+    "fix": "Add : TReturnType. Create the type alias first if needed",
+    "pitfalls": "Combined with require-extracted-types, return type must be a keyword or named reference",
+    "avoid": "Relying on type inference for return types",
+    "related": "require-extracted-types, typedef",
+    "philosophy": "Every function advertises its output type. The stub is a binding contract"
+  },
+  "@typescript-eslint/typedef": {
+    "flags": "Variable declaration without type annotation",
+    "fix": "Add explicit type: const x: T = ...",
+    "pitfalls": "Combined with require-extracted-types, complex types need named aliases",
+    "avoid": "Implicit type inference on variable declarations",
+    "related": "require-extracted-types, explicit-function-return-type",
+    "philosophy": "No inference = no ambiguity. The type is the contract, stated explicitly"
+  },
+  "@typescript-eslint/no-deprecated": {
+    "flags": "Use of deprecated APIs",
+    "fix": "Replace with the current API equivalent",
+    "pitfalls": "None",
+    "avoid": "Deprecated interfaces",
+    "related": "None",
+    "philosophy": "Keeps codebase current. Prevents agents from generating code against outdated APIs"
+  },
+  "@typescript-eslint/no-duplicate-type-constituents": {
+    "flags": "Redundant members in unions (A | A) or intersections (A & A)",
+    "fix": "Remove the duplicate constituent",
+    "pitfalls": "None",
+    "avoid": "Duplicate members in union or intersection types",
+    "related": "no-duplicate-type-structure",
+    "philosophy": "A union with a duplicate member is not minimal. Canonicality at the constituent level"
+  },
+  "@typescript-eslint/no-explicit-any": {
+    "flags": "Usage of any type (except rest args)",
+    "fix": "Replace with a specific type or unknown",
+    "pitfalls": "Rest args are exempt (ignoreRestArgs: true)",
+    "avoid": "The any type in all positions except rest arguments",
+    "related": "no-unsafe-type-assertion, typedef",
+    "philosophy": "any is a hole in the type system. Every binding must have a real type contract"
+  },
+  "@typescript-eslint/method-signature-style": {
+    "flags": "Method signature syntax foo(x: A): B in type literals",
+    "fix": "Use property style: foo: (x: A) => B",
+    "pitfalls": "None",
+    "avoid": "Method signature syntax in type literals",
+    "related": "func-style, prefer-arrow-callback",
+    "philosophy": "Functions are values. Property form is consistent with const arrow pattern"
+  },
+  "@typescript-eslint/no-unnecessary-condition": {
+    "flags": "Conditions that are always truthy or always falsy",
+    "fix": "Remove condition. Use try-dispatch for T | undefined lookups",
+    "pitfalls": "Record<K,V>[k] returns V not V | undefined. Use try-dispatch for the undefined case",
+    "avoid": "Unnecessary ?? or ? on types that cannot be nullish",
+    "related": "consistent-type-assertions",
+    "philosophy": "Precise types mean fewer branches. Tighten the type to eliminate dead code"
+  },
+  "@typescript-eslint/no-confusing-void-expression": {
+    "flags": "Void expressions in non-statement position",
+    "fix": "Use statement form. Arrow shorthand is exempt",
+    "pitfalls": "ignoreArrowShorthand is enabled",
+    "avoid": "Void return values in expression position",
+    "related": "arrow-body-style",
+    "philosophy": "Void values should not appear where a value is expected"
+  },
+  "eslint-comments/no-use": {
+    "flags": "Any eslint disable comment (no exceptions)",
+    "fix": "Fix the underlying issue structurally. No suppression allowed",
+    "pitfalls": "allow: [] means zero exceptions",
+    "avoid": "All eslint-disable comments",
+    "related": "ban-ts-comment, no-warning-comments",
+    "philosophy": "No escape hatches. If lints pass, the code conforms to the algebra, period"
+  },
+  "functional/no-let": {
+    "flags": "Any let declaration",
+    "fix": "Use const. For dispatch: try/nullish-coalescing chain (tryA(x) ?? tryB(x) ?? fallback)",
+    "pitfalls": "No exceptions. switch+let is banned — use nullish coalescing chains or Record dispatch instead",
+    "avoid": "Mutable bindings. Use const exclusively",
+    "related": "restrict-return-count, consistent-type-assertions",
+    "philosophy": "Values do not change. Immutability makes reasoning local. Every binding is a fact stated once"
+  },
+  "arrow-body-style": {
+    "flags": "Block body when expression body suffices",
+    "fix": "Remove braces and return keyword: => expr",
+    "pitfalls": "Concise arrows have no ReturnStatement node — invisible to restrict-return-count",
+    "avoid": "Block body ({ return expr; }) when => expr suffices",
+    "related": "restrict-return-count, func-style",
+    "philosophy": "Expression-oriented code. A concise arrow is a pure mapping from input to output"
+  },
+  "func-style": {
+    "flags": "Function declarations (function keyword)",
+    "fix": "Convert to const arrow: const f: T = (...) => ...",
+    "pitfalls": "None",
+    "avoid": "function declarations. Use const arrow expressions",
+    "related": "prefer-arrow-callback, arrow-body-style",
+    "philosophy": "Functions are values. const bindings with types, not hoisted declarations"
+  },
+  "prefer-arrow-callback": {
+    "flags": "Function expression as callback",
+    "fix": "Replace with arrow function",
+    "pitfalls": "None",
+    "avoid": "function() {} in callback position",
+    "related": "func-style, arrow-body-style",
+    "philosophy": "Complement to func-style: expression. All functions are arrows"
+  },
+  "indent": {
+    "flags": "Non-4-space indentation",
+    "fix": "Restructure code to reduce indentation. Extract into smaller functions at module scope",
+    "pitfalls": "Indent auto-formatting on ternary chains cascades into max-total-depth errors",
+    "avoid": "Deep nesting. Ternary chains that push indentation beyond the depth limit",
+    "related": "max-total-depth, max-len",
+    "philosophy": "Consistent formatting. 4-space indent with SwitchCase: 1"
+  },
+  "max-len": {
+    "flags": "Lines exceeding 80 characters",
+    "fix": "Break into multiple lines. Use string concatenation for long strings. Extract sub-expressions",
+    "pitfalls": "Only URLs are exempt. Strings and template literals are NOT exempt",
+    "avoid": "Long lines. Template literals that cannot be broken across lines",
+    "related": "max-lines-per-function, require-extracted-types",
+    "philosophy": "Forces decomposition. A long line is a complex expression that has not been named"
+  },
+  "max-lines-per-function": {
+    "flags": "Functions exceeding 40 lines (including blanks and comments)",
+    "fix": "Extract helper functions at module scope",
+    "pitfalls": "Counts blank lines and comments. Combined with no-nested-function, helpers go to module scope",
+    "avoid": "Functions longer than 40 lines",
+    "related": "no-nested-function, complexity, max-total-depth",
+    "philosophy": "Hard ceiling on generation size. Every function fits on a screen and is reviewable in seconds"
+  },
+  "complexity": {
+    "flags": "Cyclomatic complexity exceeding 5",
+    "fix": "Extract branches into functions. Use try-dispatch pattern",
+    "pitfalls": "Each if, else if, case, &&, ||, ??, and ternary ? adds 1",
+    "avoid": "Deep branching logic. If-chains with many conditions",
+    "related": "restrict-return-count, max-total-depth, max-lines-per-function",
+    "philosophy": "Bounds decision space per function. Nearly linear logic — cheap per-function verification"
+  },
+  "no-warning-comments": {
+    "flags": "Comments containing prettier-ignore",
+    "fix": "Remove comment. Restructure code to work with prettier",
+    "pitfalls": "None",
+    "avoid": "prettier-ignore comments anywhere",
+    "related": "eslint-comments/no-use, ban-ts-comment",
+    "philosophy": "No escape hatches for formatting. Fix code structure, not suppress the formatter"
+  },
+  "no-restricted-syntax": {
+    "flags": "Type predicates (is keyword in return type)",
+    "fix": "Use discriminated unions or explicit type narrowing",
+    "pitfalls": "None",
+    "avoid": "Type predicate functions (x is T)",
+    "related": "consistent-type-assertions",
+    "philosophy": "Type predicates are refinement assertions — narrowing that depends on implementation correctness. Use discriminated unions for structural, decidable narrowing"
+  },
+  "id-length": {
+    "flags": "Identifiers shorter than 3 characters",
+    "fix": "Use descriptive names. Exceptions: id, i, j, k, x, y, z, _, fs, db, ui, el, e",
+    "pitfalls": "Property names are excluded (properties: never)",
+    "avoid": "Short identifiers outside the exceptions list",
+    "related": "None",
+    "philosophy": "Descriptive names carry meaning across issues. Self-documenting functions reduce context needed downstream"
+  }
+}

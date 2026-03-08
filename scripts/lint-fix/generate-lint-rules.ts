@@ -203,11 +203,42 @@ const CANONICAL_PATTERNS: string =
     "  </pattern>\n" +
     "</canonical_patterns>";
 
+type TMetaMapEntry = {
+    flags: string;
+    fix: string;
+    pitfalls: string;
+    avoid: string;
+    related: string;
+    philosophy: string;
+};
+
+type TMetaMap = Record<string, TMetaMapEntry>;
+
+type TBuildMetaMap = (
+    entries: ReadonlyArray<TLintMeta>,
+) => TMetaMap;
+
+const buildMetaMap: TBuildMetaMap = (entries) => {
+    const map: TMetaMap = {};
+    entries.forEach((meta) => {
+        map[meta.rule] = {
+            flags: stripTags(meta.flags),
+            fix: stripTags(meta.fix),
+            pitfalls: stripTags(meta.pitfalls),
+            avoid: stripTags(meta.avoid),
+            related: stripTags(meta.related),
+            philosophy: stripTags(meta.philosophy),
+        };
+    });
+    return map;
+};
+
 type TMain = () => void;
 
 const main: TMain = () => {
     const thisDir: string = dirname(fileURLToPath(import.meta.url));
     const outPath: string = resolve(thisDir, "prompts", "lint-rules.xml");
+    const metaPath: string = resolve(thisDir, "prompts", "lint-meta-map.json");
     const xml: string =
         buildLintRulesSection() +
         "\n\n" +
@@ -216,6 +247,12 @@ const main: TMain = () => {
         CANONICAL_PATTERNS +
         "\n";
     writeFileSync(outPath, xml, "utf-8");
+    const allEntries: ReadonlyArray<TLintMeta> = [
+        ...customRules,
+        ...externalRegistry,
+    ];
+    const metaMap: TMetaMap = buildMetaMap(allEntries);
+    writeFileSync(metaPath, JSON.stringify(metaMap, null, 2), "utf-8");
 };
 
 main();

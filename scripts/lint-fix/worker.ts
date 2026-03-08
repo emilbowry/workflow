@@ -1,8 +1,31 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import { readFileSync, writeFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
 const execAsync = promisify(exec);
+
+type TMetaMapEntry = {
+    flags: string;
+    fix: string;
+    pitfalls: string;
+    avoid: string;
+    related: string;
+    philosophy: string;
+};
+
+type TMetaMap = Record<string, TMetaMapEntry>;
+
+const metaMapPath: string = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "prompts",
+    "lint-meta-map.json",
+);
+
+const metaMap: TMetaMap = JSON.parse(
+    readFileSync(metaMapPath, "utf-8"),
+) as TMetaMap;
 import type {
     TEslintError,
     TPlan,
@@ -59,7 +82,8 @@ const buildPlan: TBuildPlan = async (
     rulesXml,
     postMortem,
 ) => {
-    const targetXml: string = targetRuleToXml(triage);
+    const meta: TMetaMapEntry | undefined = metaMap[triage.rule];
+    const targetXml: string = targetRuleToXml(triage, meta);
     const errXml: string = errorsToXml(errors);
     const fXml: string = fileToXml(filePath, original);
     const pmXml: string = postMortemToXml(postMortem);
