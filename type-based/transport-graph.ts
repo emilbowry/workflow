@@ -84,6 +84,15 @@ type TRule = ESLintUtils.RuleModule<"disconnectedType">;
 
 type TEdgeCardinality = "isomorphism" | "retraction" | "section";
 
+type TDualCardinality = (c: TEdgeCardinality) => TEdgeCardinality;
+
+export const dualCardinality: TDualCardinality = (c) =>
+    c === "isomorphism"
+        ? "isomorphism"
+        : c === "section"
+            ? "retraction"
+            : "section";
+
 type TEdge = {
     readonly cardinality: TEdgeCardinality;
     readonly domain: string;
