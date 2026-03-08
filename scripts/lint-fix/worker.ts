@@ -187,15 +187,26 @@ const runInnerLoop: TRunInnerLoop = async (
 ) => {
     const postMortem: Array<TPostMortemEntry> = [];
     for (let attempt: number = 1; attempt <= maxRetries; attempt++) {
-        const ok: boolean = await tryFix(
-            filePath,
-            triage,
-            errors,
-            rulesXml,
-            postMortem,
-            attempt,
-        );
-        if (ok) return true;
+        try {
+            const ok: boolean = await tryFix(
+                filePath,
+                triage,
+                errors,
+                rulesXml,
+                postMortem,
+                attempt,
+            );
+            if (ok) return true;
+        } catch (err: unknown) {
+            const msg =
+                err instanceof Error ? err.message : String(err);
+            console.error(
+                "  [attempt " +
+                    String(attempt) +
+                    "] agent error: " +
+                    msg,
+            );
+        }
     }
     return false;
 };
@@ -230,7 +241,17 @@ const runWorker: TRunWorker = async (filePath, rulesXml) => {
                 String(errors.length) +
                 " remaining)",
         );
-        const triage: TTriageResult = await triageFile(filePath, errors);
+        let triage: TTriageResult;
+        try {
+            triage = await triageFile(filePath, errors);
+        } catch (err: unknown) {
+            const msg =
+                err instanceof Error ? err.message : String(err);
+            console.error(
+                "[worker] " + filePath + " triage failed: " + msg,
+            );
+            break;
+        }
         console.log(
             "[worker] " +
                 filePath +
