@@ -154,7 +154,7 @@ type TFindComponents = (
 
 const findComponents: TFindComponents = (graph) =>
     graph.nodes.reduce<ReadonlyArray<ReadonlySet<string>>>((acc, node) => {
-        const alreadySeen: boolean = acc.some((c) => c.has(node));
+        const alreadySeen: boolean = acc.some((cmp) => cmp.has(node));
         if (alreadySeen) {
             return acc;
         }
@@ -198,9 +198,9 @@ const collectMismatches: TCollectMismatches = (
         if (!isIsoEdge(edge, fnEntries)) {
             return acc;
         }
-        const lc: number = cardinalities.get(edge.domain) ?? 1;
-        const rc: number = cardinalities.get(edge.codomain) ?? 1;
-        return lc === rc
+        const leftCard: number = cardinalities.get(edge.domain) ?? 1;
+        const rightCard: number = cardinalities.get(edge.codomain) ?? 1;
+        return leftCard === rightCard
             ? acc
             : [
                 ...acc,
@@ -239,8 +239,8 @@ const getConstraint: TGetConstraint = (param) => param.constraint ?? undefined;
 type THasFiniteConstraint = (param: TSESTree.TSTypeParameter) => boolean;
 
 const hasFiniteConstraint: THasFiniteConstraint = (param) => {
-    const c: TSESTree.TypeNode | undefined = getConstraint(param);
-    return c !== undefined && (isLiteralUnion(c) || isLiteralType(c));
+    const con: TSESTree.TypeNode | undefined = getConstraint(param);
+    return con !== undefined && (isLiteralUnion(con) || isLiteralType(con));
 };
 
 type TIsConstrainedGeneric = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
@@ -263,13 +263,13 @@ type TReportMismatches = (
 ) => void;
 
 const reportMismatches: TReportMismatches = (context, mismatches, entryMap) => {
-    for (const m of mismatches) {
-        const entry: TAliasEntry | undefined = entryMap.get(m.left);
+    for (const mismatch of mismatches) {
+        const entry: TAliasEntry | undefined = entryMap.get(mismatch.left);
         if (entry !== undefined) {
             context.report({
                 data: {
-                    left: m.left,
-                    right: m.right,
+                    left: mismatch.left,
+                    right: mismatch.right,
                 },
                 messageId: "fiberCoherence",
                 node: entry.node,
