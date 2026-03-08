@@ -128,21 +128,19 @@ type TKeyValuePair = {
     readonly value: string;
 };
 
+type TMemberToPairOpt = (
+    member: TSESTree.TypeElement,
+) => ReadonlyArray<TKeyValuePair>;
+
+const memberToPairOpt: TMemberToPairOpt = (member) =>
+    member.type === AST_NODE_TYPES.TSPropertySignature ? [toPair(member)] : [];
+
 type TExtractPairs = (node: TSESTree.TypeNode) => ReadonlyArray<TKeyValuePair>;
 
 const extractPairs: TExtractPairs = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
-        ? node.members.filter(isPropSig).map(toPair)
+        ? node.members.flatMap(memberToPairOpt)
         : [];
-
-type TIsPropSig = (
-    member: TSESTree.TypeElement,
-) => member is TSESTree.TSPropertySignature;
-
-const isPropSig: TIsPropSig = (
-    member,
-): member is TSESTree.TSPropertySignature =>
-    member.type === AST_NODE_TYPES.TSPropertySignature;
 
 type TToPair = (member: TSESTree.TSPropertySignature) => TKeyValuePair;
 
