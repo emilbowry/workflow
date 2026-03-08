@@ -85,10 +85,10 @@ const isFiniteDomain: TTypeNodePredicate = (node) =>
 const isBareString: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSStringKeyword;
 
+type TOptionalTypeNode = TSESTree.TypeNode | undefined;
+
 type TGetReturnTypeArgs = [TSESTree.TSFunctionType];
-type TGetReturnType = (
-    ...args: TGetReturnTypeArgs
-) => TSESTree.TypeNode | undefined;
+type TGetReturnType = (...args: TGetReturnTypeArgs) => TOptionalTypeNode;
 
 const getReturnType: TGetReturnType = (node) => node.returnType?.typeAnnotation;
 
@@ -98,7 +98,7 @@ type THasFiniteParam = (...args: THasFiniteParamArgs) => boolean;
 type TGetParamAnnotationArgs = [TSESTree.Parameter];
 type TGetParamAnnotation = (
     ...args: TGetParamAnnotationArgs
-) => TSESTree.TypeNode | undefined;
+) => TOptionalTypeNode;
 
 const getParamAnnotation: TGetParamAnnotation = (param) =>
     param.type === AST_NODE_TYPES.Identifier
@@ -107,18 +107,22 @@ const getParamAnnotation: TGetParamAnnotation = (param) =>
             ? param.typeAnnotation.typeAnnotation
             : undefined;
 
+type TParamHasFiniteDomain = (...args: TGetParamAnnotationArgs) => boolean;
+
+const paramHasFiniteDomain: TParamHasFiniteDomain = (param) => {
+    const ann: TOptionalTypeNode = getParamAnnotation(param);
+    return ann !== undefined && isFiniteDomain(ann);
+};
+
 const hasFiniteParam: THasFiniteParam = (params) =>
-    params.some((param: TSESTree.Parameter) => {
-        const ann: TSESTree.TypeNode | undefined = getParamAnnotation(param);
-        return ann !== undefined && isFiniteDomain(ann);
-    });
+    params.some(paramHasFiniteDomain);
 
 const checkNode: TCheckNode<TRule> = (context, node) => {
     const body: TSESTree.TypeNode = node.typeAnnotation;
     if (body.type !== AST_NODE_TYPES.TSFunctionType) {
         return;
     }
-    const ret: TSESTree.TypeNode | undefined = getReturnType(body);
+    const ret: TOptionalTypeNode = getReturnType(body);
     if (ret === undefined) {
         return;
     }
