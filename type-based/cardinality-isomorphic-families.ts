@@ -242,14 +242,15 @@ type TRecordGeneric = (
 ) => void;
 
 const recordGeneric: TRecordGeneric = (file, node) => {
-    if (!hasTypeParams(node)) {
-        return;
+    if (hasTypeParams(node)) {
+        const name: string = node.id.name;
+        const group: string = getConstraintGroup(node);
+        const profile: ReadonlyArray<number> = bodyCardinality(
+            node.typeAnnotation,
+        );
+        const entry: TEntry = [file, name, group, profile, node];
+        collected.push(entry);
     }
-    const name: string = node.id.name;
-    const group: string = getConstraintGroup(node);
-    const profile: ReadonlyArray<number> = bodyCardinality(node.typeAnnotation);
-    const entry: TEntry = [file, name, group, profile, node];
-    collected.push(entry);
 };
 
 type TMakeAliasHandler = (file: string) => THandler;
