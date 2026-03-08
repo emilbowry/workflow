@@ -81,14 +81,14 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"degenerateGeneric" | "homogeneousGeneric">;
 
-type TAliasNodeArgs = [node: TSESTree.TSTypeAliasDeclaration];
+type TAliasNodeArgs = [TSESTree.TSTypeAliasDeclaration];
 
 type TNodePredicate = (...args: TAliasNodeArgs) => boolean;
 
 const hasTypeParams: TNodePredicate = (node) =>
     node.typeParameters !== undefined && node.typeParameters.params.length > 0;
 
-type TIsBodyAParamArgs = [paramNames: ReadonlyArray<string>, bodyName: string];
+type TIsBodyAParamArgs = [ReadonlyArray<string>, string];
 
 type TIsBodyAParam = (...args: TIsBodyAParamArgs) => boolean;
 
@@ -103,7 +103,7 @@ const getRefName: TCanonical = (body) =>
 
 type TGetParamNames = (...args: TAliasNodeArgs) => ReadonlyArray<string>;
 
-type TTypeParamArgs = [param: TSESTree.TSTypeParameter];
+type TTypeParamArgs = [TSESTree.TSTypeParameter];
 
 type TParamToName = (...args: TTypeParamArgs) => string;
 
@@ -124,17 +124,14 @@ const argToName: TCanonical = (arg) =>
         ? arg.typeName.name
         : "";
 
-type TTypeRefArgs = [ref: TSESTree.TSTypeReference];
+type TTypeRefArgs = [TSESTree.TSTypeReference];
 
 type TGetTypeArgNames = (...args: TTypeRefArgs) => ReadonlyArray<string>;
 
 const getTypeArgNames: TGetTypeArgNames = (ref) =>
     (ref.typeArguments?.params ?? []).map(argToName);
 
-type TParamsMatchArgs = [
-    paramNames: ReadonlyArray<string>,
-    argNames: ReadonlyArray<string>,
-];
+type TParamsMatchArgs = [ReadonlyArray<string>, ReadonlyArray<string>];
 
 type TParamsMatch = (...args: TParamsMatchArgs) => boolean;
 
