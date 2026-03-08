@@ -2,18 +2,64 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type {
     TContext,
     TCreate,
+    TLintMeta,
     TMeta,
     TSchema,
 } from "../type-based/type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
+import { field, lintMetaToMsg } from "../type-based/type-based.types";
+
+export const LINT_META: TLintMeta = {
+    rule: "local/max-total-depth",
+    avoid: field(
+        "avoid",
+        "Nested ternaries beyond 3 " +
+            "branches. Deep if-chains. " +
+            "Inline JSX nesting",
+    ),
+    fix: field(
+        "fix",
+        "Extract deeply indented " +
+            "blocks into separate " +
+            "functions at module scope",
+    ),
+    flags: field(
+        "flags",
+        "Indentation deeper than " +
+            "configured maximum " +
+            "(default 3 levels)",
+    ),
+    philosophy: field(
+        "philosophy",
+        "Bounds structural complexity " +
+            "per generation. Shallow code " +
+            "is locally verifiable — each " +
+            "function readable in one pass " +
+            "without holding nesting " +
+            "context",
+    ),
+    pitfalls: field(
+        "pitfalls",
+        "Indent auto-formatting on " +
+            "ternary chains cascades " +
+            "into new depth violations." +
+            " Nested ternaries beyond " +
+            "3 branches will always " +
+            "exceed the depth limit",
+    ),
+    related: field(
+        "related",
+        "restrict-return-count, " +
+            "complexity, " +
+            "no-nested-function, " +
+            "max-lines-per-function",
+    ),
+};
+
 const INDENT_SIZE: number = 4;
-const MSG: string =
-    "Indentation depth ({{depth}}) " +
-    "exceeds maximum of {{max}}. " +
-    "Extract into a separate " +
-    "component or function.";
+const MSG: string = lintMetaToMsg(LINT_META) + " depth={{depth}} max={{max}}";
 
 const DESC: string = "Enforce a maximum indentation " + "depth for all code.";
 

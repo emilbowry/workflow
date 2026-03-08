@@ -1,20 +1,61 @@
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { TRule } from "../rules/max-total-depth";
 import type {
     TContext,
     TMeta,
     TNodeHandler,
+    TLintMeta,
     TReportFn,
 } from "./type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
-const MSG: string =
-    "Type alias contains " +
-    "{{count}} nested type " +
-    "constructs, maximum " +
-    "allowed is {{max}}. " +
-    "Extract to named types.";
+import { field, lintMetaToMsg } from "./type-based.types";
+
+type TRule = ESLintUtils.RuleModule<"tooManyNested", [number]>;
+
+export const LINT_META: TLintMeta = {
+    rule: "local/max-type-nesting",
+    flags: field(
+        "flags",
+        "More than 1 nested type " +
+            "construct (TSTypeLiteral or " +
+            "TSTupleType) in a type alias",
+    ),
+    fix: field(
+        "fix",
+        "Extract inner type literals " +
+            "and tuples into named type " +
+            "aliases",
+    ),
+    pitfalls: field(
+        "pitfalls",
+        "Counts occurrences, not " +
+            "depth. Two sibling type " +
+            "literals at the same level " +
+            "both increment the counter",
+    ),
+    avoid: field(
+        "avoid",
+        "Inline anonymous type " + "structures within type " + "aliases",
+    ),
+    related: field(
+        "related",
+        "require-extracted-types, " +
+            "no-duplicate-type-structure," +
+            " no-single-field-type",
+    ),
+    philosophy: field(
+        "philosophy",
+        "A.(B.(C.(...))) = A.X where " +
+            "X = B.(C.(...)). Nested type " +
+            "composition always factors " +
+            "through a named intermediate " +
+            "— the extraction is the " +
+            "factorization made explicit",
+    ),
+};
+
+const MSG: string = lintMetaToMsg(LINT_META) + " count={{count}} max={{max}}";
 
 const DESC: string =
     "Enforce a maximum number " +
@@ -55,7 +96,7 @@ const report: TReportFn<TRule> = (ctx, node, count, max) => {
             count: String(count),
             max: String(max),
         },
-        messageId: "tooDeep",
+        messageId: "tooManyNested",
         node,
     });
 };
@@ -94,7 +135,7 @@ const meta: TMeta<TRule> = {
         description: DESC,
     },
     messages: {
-        tooDeep: MSG,
+        tooManyNested: MSG,
     },
     schema: [
         {

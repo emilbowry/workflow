@@ -5,12 +5,67 @@ import type {
     TCreate,
     THandler,
     TMeta,
+    TLintMeta,
     TRefIdentName,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-const MSG: string = "Types {{names}} are " + "structurally identical.";
+import { field, lintMetaToMsg } from "./type-based.types";
+
+export const LINT_META: TLintMeta = {
+    rule: "local/no-duplicate-type-structure",
+    flags: field(
+        "flags",
+        "Two or more type aliases " +
+            "with identical canonical " +
+            "structural representation",
+    ),
+    fix: field(
+        "fix",
+        "Remove duplicate, reuse " +
+            "the existing type alias. " +
+            "If semantically distinct, " +
+            "differentiate the structure",
+    ),
+    pitfalls: field(
+        "pitfalls",
+        "Uses module-level Map that " +
+            "persists across files in a " +
+            "lint run. clearFile handles " +
+            "re-linting. Canonical string" +
+            " comparison is nominal — " +
+            "renamed but structurally " +
+            "identical types are still " +
+            "caught",
+    ),
+    avoid: field(
+        "avoid",
+        "Introducing new type aliases" +
+            " without checking for " +
+            "existing structurally " +
+            "identical types",
+    ),
+    related: field(
+        "related",
+        "enforce-record-type, " +
+            "require-extracted-types, " +
+            "max-type-nesting, " +
+            "consistent-type-definitions",
+    ),
+    philosophy: field(
+        "philosophy",
+        "Two types with identical " +
+            "structure are the same " +
+            "type. Catches redundancy at" +
+            " lint time per-issue before" +
+            " duplicates enter the " +
+            "codebase and diverge across" +
+            " issues",
+    ),
+};
+
+const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{names}}";
 
 const DESC: string =
     "Disallow multiple type " +
@@ -118,9 +173,7 @@ const handleConstructSignature: THandleConstructSig = (member) => {
 
 type TCanonicalMember = (member: TSESTree.TypeElement) => string;
 
-type TTryMember = (
-    member: TSESTree.TypeElement,
-) => TMaybeString;
+type TTryMember = (member: TSESTree.TypeElement) => TMaybeString;
 
 const tryPropertySig: TTryMember = (member) =>
     member.type === AST_NODE_TYPES.TSPropertySignature
@@ -143,8 +196,7 @@ const tryMethodSig: TTryMember = (member) =>
         : undefined;
 
 const memberFallback: TCanonicalMember = (member) =>
-    member.type ===
-    AST_NODE_TYPES.TSConstructSignatureDeclaration
+    member.type === AST_NODE_TYPES.TSConstructSignatureDeclaration
         ? handleConstructSignature(member)
         : member.type;
 
@@ -381,9 +433,7 @@ const tryInferType: TTryDispatch = (node) =>
         : undefined;
 
 const tryComposite: TTryDispatch = (node) =>
-    tryTypeLiteral(node) ??
-    tryUnionType(node) ??
-    tryIntersectionType(node);
+    tryTypeLiteral(node) ?? tryUnionType(node) ?? tryIntersectionType(node);
 
 const tryReference: TTryDispatch = (node) =>
     tryTypeReference(node) ??
@@ -392,9 +442,7 @@ const tryReference: TTryDispatch = (node) =>
     tryTypeOperator(node);
 
 const tryLiteral: TTryDispatch = (node) =>
-    tryLiteralType(node) ??
-    tryTupleType(node) ??
-    tryIndexedAccessType(node);
+    tryLiteralType(node) ?? tryTupleType(node) ?? tryIndexedAccessType(node);
 
 const tryAdvanced: TTryDispatch = (node) =>
     tryTypeQuery(node) ??

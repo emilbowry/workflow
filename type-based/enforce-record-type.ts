@@ -4,12 +4,61 @@ import type {
     TCreate,
     THandler,
     TMakeHandler,
+    TLintMeta,
     TTypeNodePredicate,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-const MSG: string = "Use Record<K, V> instead of " + "an object literal type.";
+import { field, lintMetaToMsg } from "./type-based.types";
+
+export const LINT_META: TLintMeta = {
+    rule: "local/enforce-record-type",
+    flags: field(
+        "flags",
+        "Type alias body is an object " + "literal type (TSTypeLiteral)",
+    ),
+    fix: field("fix", "Rewrite { key: T } as " + "Record<K, V> or restructure"),
+    pitfalls: field(
+        "pitfalls",
+        "Fires on all type literals " +
+            "including call/index/method " +
+            "signatures. For lookup " +
+            "tables needing T|undefined" +
+            " use try-dispatch — " +
+            "Record access never " +
+            "returns undefined",
+    ),
+    avoid: field(
+        "avoid",
+        "Object literal types " +
+            "{ key: T }. Use Record<K, V>" +
+            " for keyed structures",
+    ),
+    related: field(
+        "related",
+        "no-single-field-type, " +
+            "no-duplicate-type-" +
+            "structure, " +
+            "require-parametric-record",
+    ),
+    philosophy: field(
+        "philosophy",
+        "There are only two concrete " +
+            "containers: Array (positional) " +
+            "and Record/mapped type " +
+            "(key-indexed). Since constant " +
+            "families are invalid " +
+            "(require-parametric-record), " +
+            "every product is dependent — " +
+            "Record<K, F<K>> or " +
+            "{[K in T]: F<K>}. Object " +
+            "literals are ad-hoc encodings " +
+            "of dependent products",
+    ),
+};
+
+const MSG: string = lintMetaToMsg(LINT_META);
 
 const DESC: string =
     "Enforce Record for all " + "object-literal type definitions.";

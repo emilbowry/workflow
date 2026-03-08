@@ -4,19 +4,77 @@ import type {
     TCheckNode,
     TCreate,
     THandler,
+    TLintMeta,
     TMakeHandler,
     TRefIdentName,
 } from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-const DEGENERATE_MSG: string =
-    "Degenerate generic: type alias " + "body is just the type parameter.";
+import { field, lintMetaToMsg } from "./type-based.types";
 
-const HOMOGENEOUS_MSG: string =
-    "Homogeneous generic: type alias " +
-    "passes type parameters straight " +
-    "through to another generic.";
+export const LINT_META: TLintMeta = {
+    rule: "local/valid-generics",
+    flags: field(
+        "flags",
+        "Degenerate generic (body " +
+            "is just the type parameter" +
+            ": type TId<T> = T) or " +
+            "homogeneous generic (all " +
+            "params passed straight " +
+            "through: type TFoo<A,B> " +
+            "= TBar<A,B>)",
+    ),
+    fix: field(
+        "fix",
+        "Degenerate: remove type " +
+            "parameter, use inner type" +
+            " directly. Homogeneous: " +
+            "remove generic params " +
+            "(make simple alias) or " +
+            "add transformation logic",
+    ),
+    pitfalls: field(
+        "pitfalls",
+        "Detection uses string " +
+            "comparison of parameter " +
+            "names — renaming alone " +
+            "defeats the check. " +
+            "Intentionally nominal, " +
+            "not deep structural " +
+            "equivalence",
+    ),
+    avoid: field(
+        "avoid",
+        "Identity functors. Pure-" +
+            "passthrough generics that" +
+            " add a name without " +
+            "adding a transformation",
+    ),
+    related: field(
+        "related",
+        "require-parametric-" +
+            "record, no-duplicate-" +
+            "type-structure, require-" +
+            "extracted-types",
+    ),
+    philosophy: field(
+        "philosophy",
+        "Every generic must earn " +
+            "its existence by " +
+            "transforming its " +
+            "parameters — adding " +
+            "constraints, composing, " +
+            "partially applying. " +
+            "Trivial generics pollute" +
+            " the type graph with " +
+            "vacuous edges",
+    ),
+};
+
+const DEGENERATE_MSG: string = lintMetaToMsg(LINT_META) + " (degenerate)";
+
+const HOMOGENEOUS_MSG: string = lintMetaToMsg(LINT_META) + " (homogeneous)";
 
 const DESC: string =
     "Disallow degenerate and " + "homogeneous generic type aliases.";
