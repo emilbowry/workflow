@@ -38,7 +38,7 @@ export const LINT_META: TLintMeta = {
         "pitfalls",
         "Detection uses string " +
             "comparison of parameter " +
-            "names — renaming alone " +
+            "names \u2014 renaming alone " +
             "defeats the check. " +
             "Intentionally nominal, " +
             "not deep structural " +
@@ -63,7 +63,7 @@ export const LINT_META: TLintMeta = {
         "Every generic must earn " +
             "its existence by " +
             "transforming its " +
-            "parameters — adding " +
+            "parameters \u2014 adding " +
             "constraints, composing, " +
             "partially applying. " +
             "Trivial generics pollute" +
@@ -81,15 +81,16 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"degenerateGeneric" | "homogeneousGeneric">;
 
-type TNodePredicate = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
+type TAliasNodeArgs = [node: TSESTree.TSTypeAliasDeclaration];
+
+type TNodePredicate = (...args: TAliasNodeArgs) => boolean;
 
 const hasTypeParams: TNodePredicate = (node) =>
     node.typeParameters !== undefined && node.typeParameters.params.length > 0;
 
-type TIsBodyAParam = (
-    paramNames: ReadonlyArray<string>,
-    bodyName: string,
-) => boolean;
+type TIsBodyAParamArgs = [paramNames: ReadonlyArray<string>, bodyName: string];
+
+type TIsBodyAParam = (...args: TIsBodyAParamArgs) => boolean;
 
 const isBodyAParam: TIsBodyAParam = (paramNames, bodyName) =>
     bodyName !== "" && paramNames.includes(bodyName);
@@ -100,11 +101,11 @@ const refIdentName: TRefIdentName = (ref) =>
 const getRefName: TCanonical = (body) =>
     body.type === AST_NODE_TYPES.TSTypeReference ? refIdentName(body) : "";
 
-type TGetParamNames = (
-    node: TSESTree.TSTypeAliasDeclaration,
-) => ReadonlyArray<string>;
+type TGetParamNames = (...args: TAliasNodeArgs) => ReadonlyArray<string>;
 
-type TParamToName = (param: TSESTree.TSTypeParameter) => string;
+type TTypeParamArgs = [param: TSESTree.TSTypeParameter];
+
+type TParamToName = (...args: TTypeParamArgs) => string;
 
 const paramToName: TParamToName = (param) => param.name.name;
 
@@ -123,17 +124,19 @@ const argToName: TCanonical = (arg) =>
         ? arg.typeName.name
         : "";
 
-type TGetTypeArgNames = (
-    ref: TSESTree.TSTypeReference,
-) => ReadonlyArray<string>;
+type TTypeRefArgs = [ref: TSESTree.TSTypeReference];
+
+type TGetTypeArgNames = (...args: TTypeRefArgs) => ReadonlyArray<string>;
 
 const getTypeArgNames: TGetTypeArgNames = (ref) =>
     (ref.typeArguments?.params ?? []).map(argToName);
 
-type TParamsMatch = (
+type TParamsMatchArgs = [
     paramNames: ReadonlyArray<string>,
     argNames: ReadonlyArray<string>,
-) => boolean;
+];
+
+type TParamsMatch = (...args: TParamsMatchArgs) => boolean;
 
 const SEP: string = "\0";
 
