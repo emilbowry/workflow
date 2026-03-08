@@ -95,9 +95,9 @@ type TRule = ESLintUtils.RuleModule<
 const PARAMETRIC: RegExp =
     /type\s+\w+<(\w+)\s+extends\s+[^>]+>\s*=\s*Record<\1,\s*\w+<\1>>/;
 
-type TIsValidArgs = [string];
+type TSingleStringArg = [string];
 
-type TIsValid = (...args: TIsValidArgs) => boolean;
+type TIsValid = (...args: TSingleStringArg) => boolean;
 
 const isValid: TIsValid = (src) => PARAMETRIC.test(src);
 
@@ -105,9 +105,7 @@ type TParamPredicateArgs = [TSESTree.TypeNode];
 
 type TParamPredicate = (...args: TParamPredicateArgs) => boolean;
 
-type TMakePredicateArgs = [string];
-
-type TMakePredicate = (...args: TMakePredicateArgs) => TParamPredicate;
+type TMakePredicate = (...args: TSingleStringArg) => TParamPredicate;
 
 const makePredicate: TMakePredicate = (name) =>
     (
