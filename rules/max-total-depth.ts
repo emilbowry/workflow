@@ -69,7 +69,9 @@ type TMatch = null | RegExpMatchArray;
 
 type TSourceCode = TContext<TRule>["sourceCode"];
 
-type TStringToNumber = (input: string) => number;
+type TTextInputArgs = [input: string];
+
+type TStringToNumber = (...args: TTextInputArgs) => number;
 
 const getTabDepth: TStringToNumber = (leading) => {
     const matches: TMatch = leading.match(/\t/g);
@@ -86,20 +88,22 @@ const getDepth: TStringToNumber = (leading) => {
 
 type TReportData = [string, string];
 
-type TMakeData = (depth: number, max: number) => TReportData;
+type TNumberPairArgs = [first: number, second: number];
+
+type TMakeData = (...args: TNumberPairArgs) => TReportData;
 
 const makeData: TMakeData = (depth, max) => [String(depth), String(max)];
 
 type TLoc = TSESTree.SourceLocation;
 
-type TMakeLoc = (lineNum: number, len: number) => TLoc;
+type TMakeLoc = (...args: TNumberPairArgs) => TLoc;
 
 const makeLoc: TMakeLoc = (lineNum, len) => ({
     end: { column: len, line: lineNum },
     start: { column: 0, line: lineNum },
 });
 
-type TGetLeading = (line: string) => string;
+type TGetLeading = (...args: TTextInputArgs) => string;
 
 const getLeading: TGetLeading = (line) => {
     const match: TMatch = line.match(/^(\s*)/);
@@ -107,13 +111,15 @@ const getLeading: TGetLeading = (line) => {
     return match === null ? empty : match[1];
 };
 
-type TCheckLine = (
+type TCheckLineArgs = [
     context: TContext<TRule>,
     node: TSESTree.Program,
     max: number,
     line: string,
     idx: number,
-) => void;
+];
+
+type TCheckLine = (...args: TCheckLineArgs) => void;
 
 const checkLine: TCheckLine = (context, node, max, line, idx) => {
     const hasContent: boolean = line.trim() !== "";
@@ -131,14 +137,18 @@ const checkLine: TCheckLine = (context, node, max, line, idx) => {
     }
 };
 
-type TLineHandler = (line: string, idx: number) => void;
+type TLineHandlerArgs = [line: string, idx: number];
 
-type TMakeLineHandler = (
+type TLineHandler = (...args: TLineHandlerArgs) => void;
+
+type TMakeLineHandlerArgs = [
     checkLine: TCheckLine,
     context: TContext<TRule>,
     node: TSESTree.Program,
     max: number,
-) => TLineHandler;
+];
+
+type TMakeLineHandler = (...args: TMakeLineHandlerArgs) => TLineHandler;
 
 const makeLineHandler: TMakeLineHandler = (checkLine, context, node, max) =>
     (
@@ -146,11 +156,13 @@ const makeLineHandler: TMakeLineHandler = (checkLine, context, node, max) =>
             checkLine(context, node, max, line, idx)
     )();
 
-type TCheckLines = (
+type TCheckLinesArgs = [
     context: TContext<TRule>,
     node: TSESTree.Program,
     max: number,
-) => void;
+];
+
+type TCheckLines = (...args: TCheckLinesArgs) => void;
 
 const checkLines: TCheckLines = (context, node, max) => {
     const sourceCode: TSourceCode = context.sourceCode;
@@ -165,12 +177,18 @@ const checkLines: TCheckLines = (context, node, max) => {
     lines.forEach(handler);
 };
 
-type TProgramHandler = (node: TSESTree.Program) => void;
+type TProgramHandlerArgs = [node: TSESTree.Program];
 
-type TMakeProgramHandler = (
+type TProgramHandler = (...args: TProgramHandlerArgs) => void;
+
+type TMakeProgramHandlerArgs = [
     checkLines: TCheckLines,
     context: TContext<TRule>,
     max: number,
+];
+
+type TMakeProgramHandler = (
+    ...args: TMakeProgramHandlerArgs
 ) => TProgramHandler;
 
 const makeProgramHandler: TMakeProgramHandler = (checkLines, context, max) =>
