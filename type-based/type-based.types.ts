@@ -8,17 +8,17 @@ export type TCreate<TRule extends TBaseRule> = TRule["create"];
 
 export type TMeta<TRule extends TBaseRule> = TRule["meta"];
 
-type THandlerArgs = [node: TSESTree.TSTypeAliasDeclaration];
+type THandlerArgs = [TSESTree.TSTypeAliasDeclaration];
 
 export type THandler = (...args: THandlerArgs) => void;
 
-type TNodeHandlerArgs = [node: TSESTree.Node];
+type TNodeHandlerArgs = [TSESTree.Node];
 
 export type TNodeHandler = (...args: TNodeHandlerArgs) => void;
 
 type TCheckNodeArgs<TRule extends TBaseRule> = [
-    ctx: TContext<TRule>,
-    node: TSESTree.TSTypeAliasDeclaration,
+    TContext<TRule>,
+    TSESTree.TSTypeAliasDeclaration,
 ];
 
 export type TCheckNode<TRule extends TBaseRule> = (
@@ -26,8 +26,8 @@ export type TCheckNode<TRule extends TBaseRule> = (
 ) => void;
 
 type TMakeHandlerArgs<TRule extends TBaseRule> = [
-    checkNode: TCheckNode<TRule>,
-    context: TContext<TRule>,
+    TCheckNode<TRule>,
+    TContext<TRule>,
 ];
 
 export type TMakeHandler<TRule extends TBaseRule> = (
@@ -37,21 +37,21 @@ export type TMakeHandler<TRule extends TBaseRule> = (
 export type TSchema<TRule extends TBaseRule> = TMeta<TRule>["schema"];
 
 type TReportFnArgs<TRule extends TBaseRule> = [
-    ctx: TContext<TRule>,
-    node: TSESTree.Node,
-    count: number,
-    max: number,
+    TContext<TRule>,
+    TSESTree.Node,
+    number,
+    number,
 ];
 
 export type TReportFn<TRule extends TBaseRule> = (
     ...args: TReportFnArgs<TRule>
 ) => void;
 
-type TTypeNodeArgs = [node: TSESTree.TypeNode];
+type TTypeNodeArgs = [TSESTree.TypeNode];
 
 export type TCanonical = (...args: TTypeNodeArgs) => string;
 
-type TRefIdentNameArgs = [ref: TSESTree.TSTypeReference];
+type TRefIdentNameArgs = [TSESTree.TSTypeReference];
 
 export type TRefIdentName = (...args: TRefIdentNameArgs) => string;
 
@@ -76,13 +76,13 @@ export type TLintMeta = {
     readonly rule: string;
 };
 
-type TFieldArgs<T extends TLintKey> = [tag: T, value: string];
+type TFieldArgs<T extends TLintKey> = [T, string];
 
 type TField = <T extends TLintKey>(...args: TFieldArgs<T>) => TLintValue<T>;
 
 export const field: TField = (tag, value) => `<${tag}>${value}</${tag}>`;
 
-type TLintMetaToMsgArgs = [meta: TLintMeta];
+type TLintMetaToMsgArgs = [TLintMeta];
 
 type TLintMetaToMsg = (...args: TLintMetaToMsgArgs) => string;
 
