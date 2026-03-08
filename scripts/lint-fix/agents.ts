@@ -58,16 +58,34 @@ type TInvokeAgent = (config: TAgentConfig) => Promise<TAgentResponse>;
 
 type TCleanEnv = () => NodeJS.ProcessEnv;
 
+const STRIP_KEYS: ReadonlyArray<string> = [
+    "CLAUDE_CODE_REMOTE",
+    "CLAUDE_CODE_SESSION_ID",
+    "CLAUDE_CODE_REMOTE_SESSION_ID",
+    "CLAUDE_CODE_CONTAINER_ID",
+    "CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR",
+    "CLAUDE_CODE_DEBUG",
+    "CLAUDE_CODE_EMIT_TOOL_USE_SUMMARIES",
+    "CLAUDE_CODE_DIAGNOSTICS_FILE",
+    "CLAUDE_CODE_ENTRYPOINT",
+    "CLAUDE_CODE_VERSION",
+    "CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION",
+    "CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE",
+    "CLAUDE_CODE_REMOTE_SEND_KEEPALIVES",
+    "CLAUDE_CODE_POST_FOR_SESSION_INGRESS_V2",
+    "CLAUDE_CODE_PROXY_RESOLVES_HOSTS",
+    "CLAUDE_CODE_BASE_REF",
+    "CLAUDE_AUTO_BACKGROUND_TASKS",
+    "CLAUDE_AFTER_LAST_COMPACT",
+    "CLAUDE_ENABLE_STREAM_WATCHDOG",
+    "CLAUDECODE",
+    "GLOBAL_AGENT_HTTP_PROXY",
+    "GLOBAL_AGENT_HTTPS_PROXY",
+];
+
 const cleanEnv: TCleanEnv = () => {
     const env: NodeJS.ProcessEnv = { ...process.env };
-    const keysToRemove: ReadonlyArray<string> = Object.keys(env).filter(
-        (key) =>
-            key.startsWith("CLAUDE") ||
-            key.startsWith("ANTHROPIC") ||
-            key === "GLOBAL_AGENT_HTTP_PROXY" ||
-            key === "GLOBAL_AGENT_HTTPS_PROXY",
-    );
-    keysToRemove.forEach((key) => {
+    STRIP_KEYS.forEach((key) => {
         delete env[key];
     });
     return env;
@@ -96,7 +114,12 @@ const invokeAgent: TInvokeAgent = async (config) => {
             content: raw.trim(),
         };
     } catch (err: unknown) {
-        const execErr = err as { killed?: boolean; signal?: string };
+        const execErr = err as {
+            killed?: boolean;
+            signal?: string;
+            stderr?: string;
+            message?: string;
+        };
         if (execErr.killed || execErr.signal === "SIGTERM") {
             console.error(
                 "  [timeout] claude --print timed out after " +
@@ -104,6 +127,17 @@ const invokeAgent: TInvokeAgent = async (config) => {
                     "s (model: " +
                     config.model +
                     ")",
+            );
+        } else {
+            const detail: string =
+                (execErr.stderr ?? execErr.message ?? "unknown error")
+                    .trim()
+                    .slice(0, 300);
+            console.error(
+                "  [agent] claude --print failed (model: " +
+                    config.model +
+                    "): " +
+                    detail,
             );
         }
         return {
