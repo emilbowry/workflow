@@ -1,65 +1,29 @@
-import type {
-    TLintMeta,
-} from "../../type-based/type-based.types";
+import type { TLintMeta } from "../../type-based/type-based.types";
 
 import { writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
-import {
-    LINT_META as maxTotalDepth,
-} from "../../rules/max-total-depth";
-import {
-    LINT_META as noNestedFunction,
-} from "../../rules/no-nested-function";
-import {
-    LINT_META as restrictReturnCount,
-} from "../../rules/restrict-return-count";
-import {
-    LINT_META as enforceRecordType,
-} from "../../type-based/enforce-record-type";
-import {
-    LINT_META as maxTypeNesting,
-} from "../../type-based/max-type-nesting";
-import {
-    LINT_META as noDuplicateTypeStructure,
-} from "../../type-based/no-duplicate-type-structure";
-import {
-    LINT_META as noSingleFieldType,
-} from "../../type-based/no-single-field-type";
-import {
-    LINT_META as requireExtractedTypes,
-} from "../../type-based/require-extracted-types";
-import {
-    LINT_META as requireParametricRecord,
-} from "../../type-based/require-parametric-record";
-import {
-    LINT_META as validGenerics,
-} from "../../type-based/valid-generics";
-import {
-    LINT_META as requireRestParamsTuple,
-} from "../../rules/require-rest-params-tuple";
-import {
-    LINT_META as finiteDomainReturnWidening,
-} from "../../type-based/finite-domain-return-widening";
-import {
-    LINT_META as typeDistance,
-} from "../../type-based/type-distance";
-import {
-    LINT_META as cardinalityIsomorphicFamilies,
-} from "../../type-based/cardinality-isomorphic-families";
-import {
-    LINT_META as transportGraph,
-} from "../../type-based/transport-graph";
-import {
-    LINT_META as fiberCoherence,
-} from "../../type-based/fiber-coherence";
+import { LINT_META as maxTotalDepth } from "../../rules/max-total-depth";
+import { LINT_META as noNestedFunction } from "../../rules/no-nested-function";
+import { LINT_META as restrictReturnCount } from "../../rules/restrict-return-count";
+import { LINT_META as enforceRecordType } from "../../type-based/enforce-record-type";
+import { LINT_META as maxTypeNesting } from "../../type-based/max-type-nesting";
+import { LINT_META as noDuplicateTypeStructure } from "../../type-based/no-duplicate-type-structure";
+import { LINT_META as noSingleFieldType } from "../../type-based/no-single-field-type";
+import { LINT_META as requireExtractedTypes } from "../../type-based/require-extracted-types";
+import { LINT_META as requireParametricRecord } from "../../type-based/require-parametric-record";
+import { LINT_META as validGenerics } from "../../type-based/valid-generics";
+import { LINT_META as requireRestParamsTuple } from "../../rules/require-rest-params-tuple";
+import { LINT_META as finiteDomainReturnWidening } from "../../type-based/finite-domain-return-widening";
+import { LINT_META as typeDistance } from "../../type-based/type-distance";
+import { LINT_META as cardinalityIsomorphicFamilies } from "../../type-based/cardinality-isomorphic-families";
+import { LINT_META as transportGraph } from "../../type-based/transport-graph";
+import { LINT_META as fiberCoherence } from "../../type-based/fiber-coherence";
 
 import externalRegistry from "./external-rules";
 
-type TEscaper = (
-    ...args: [text: string]
-) => string;
+type TEscaper = (...args: [text: string]) => string;
 
 const escapeXml: TEscaper = (text) =>
     text
@@ -87,30 +51,18 @@ const customRules: ReadonlyArray<TLintMeta> = [
     fiberCoherence,
 ];
 
-type TRuleXmlBuilder = (
-    ...args: [meta: TLintMeta]
-) => string;
+type TRuleXmlBuilder = (...args: [meta: TLintMeta]) => string;
 
-type TStripTags = (
-    ...args: [tagged: string]
-) => string;
+type TStripTags = (...args: [tagged: string]) => string;
 
 const stripTags: TStripTags = (tagged) =>
-    tagged.replace(
-        /^<[^>]+>([\s\S]*)<\/[^>]+>$/,
-        "$1",
-    );
+    tagged.replace(/^<[^>]+>([\s\S]*)<\/[^>]+>$/, "$1");
 
 const buildRuleXml: TRuleXmlBuilder = (meta) => {
     const name: string = meta.rule;
     const flags: string =
-        "    <flags>" +
-        escapeXml(stripTags(meta.flags)) +
-        "</flags>";
-    const fix: string =
-        "    <fix>" +
-        escapeXml(stripTags(meta.fix)) +
-        "</fix>";
+        "    <flags>" + escapeXml(stripTags(meta.flags)) + "</flags>";
+    const fix: string = "    <fix>" + escapeXml(stripTags(meta.fix)) + "</fix>";
     return (
         '  <rule name="' +
         escapeXml(name) +
@@ -130,13 +82,8 @@ const buildLintRulesSection: TXmlBuilder = () => {
         ...customRules,
         ...externalRegistry,
     ];
-    const rules: string =
-        allEntries.map(buildRuleXml).join("\n");
-    return (
-        "<lint_rules>\n" +
-        rules +
-        "\n</lint_rules>"
-    );
+    const rules: string = allEntries.map(buildRuleXml).join("\n");
+    return "<lint_rules>\n" + rules + "\n</lint_rules>";
 };
 
 const RULE_INTERACTIONS: string =
@@ -259,14 +206,8 @@ const CANONICAL_PATTERNS: string =
 type TMain = () => void;
 
 const main: TMain = () => {
-    const thisDir: string = dirname(
-        fileURLToPath(import.meta.url),
-    );
-    const outPath: string = resolve(
-        thisDir,
-        "prompts",
-        "lint-rules.xml",
-    );
+    const thisDir: string = dirname(fileURLToPath(import.meta.url));
+    const outPath: string = resolve(thisDir, "prompts", "lint-rules.xml");
     const xml: string =
         buildLintRulesSection() +
         "\n\n" +

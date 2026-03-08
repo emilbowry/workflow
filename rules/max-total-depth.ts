@@ -9,14 +9,10 @@ import type {
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "../type-based/type-based.types";
+import { field, lintMetaToMsg } from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/max-total-depth",
+    rule: "local/max-total-depth",
     avoid: field(
         "avoid",
         "Nested ternaries beyond 3 " +

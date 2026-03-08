@@ -9,14 +9,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/transport-graph",
+    rule: "local/transport-graph",
     avoid: field(
         "avoid",
         "Discriminated types (literal " +

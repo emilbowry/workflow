@@ -133,12 +133,7 @@ const tryFix: TTryFix = async (
     attempt,
 ) => {
     console.log(
-        "  [attempt " +
-            String(attempt) +
-            "] " +
-            filePath +
-            " — " +
-            triage.rule,
+        "  [attempt " + String(attempt) + "] " + filePath + " — " + triage.rule,
     );
     const original: string = readFileSync(filePath, "utf-8");
     console.log("  [attempt " + String(attempt) + "] planning fix...");
@@ -198,13 +193,9 @@ const runInnerLoop: TRunInnerLoop = async (
             );
             if (ok) return true;
         } catch (err: unknown) {
-            const msg =
-                err instanceof Error ? err.message : String(err);
+            const msg = err instanceof Error ? err.message : String(err);
             console.error(
-                "  [attempt " +
-                    String(attempt) +
-                    "] agent error: " +
-                    msg,
+                "  [attempt " + String(attempt) + "] agent error: " + msg,
             );
         }
     }
@@ -245,11 +236,8 @@ const runWorker: TRunWorker = async (filePath, rulesXml) => {
         try {
             triage = await triageFile(filePath, errors);
         } catch (err: unknown) {
-            const msg =
-                err instanceof Error ? err.message : String(err);
-            console.error(
-                "[worker] " + filePath + " triage failed: " + msg,
-            );
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error("[worker] " + filePath + " triage failed: " + msg);
             break;
         }
         console.log(
@@ -287,9 +275,7 @@ const runWorker: TRunWorker = async (filePath, rulesXml) => {
             );
         } else {
             skipped.push(triage.rule);
-            console.log(
-                "[worker] " + filePath + " SKIPPED: " + triage.rule,
-            );
+            console.log("[worker] " + filePath + " SKIPPED: " + triage.rule);
         }
         errors = await scanFile(filePath);
         if (!fixed) {

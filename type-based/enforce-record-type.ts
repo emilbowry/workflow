@@ -10,22 +10,15 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/enforce-record-type",
+    rule: "local/enforce-record-type",
     flags: field(
         "flags",
         "Type alias body is an object " + "literal type (TSTypeLiteral)",
     ),
-    fix: field(
-        "fix",
-        "Rewrite { key: T } as " + "Record<K, V> or restructure",
-    ),
+    fix: field("fix", "Rewrite { key: T } as " + "Record<K, V> or restructure"),
     pitfalls: field(
         "pitfalls",
         "Fires on all type literals " +

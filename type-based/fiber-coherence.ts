@@ -10,16 +10,12 @@ import type { TTransportGraph } from "./transport-graph";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 import { buildTransportGraph, classifyEdge } from "./transport-graph";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/fiber-coherence",
+    rule: "local/fiber-coherence",
     avoid: field(
         "avoid",
         "Isomorphic edges between " +

@@ -28,14 +28,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "../type-based/type-based.types";
+import { field, lintMetaToMsg } from "../type-based/type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/no-nested-function",
+    rule: "local/no-nested-function",
     avoid: field(
         "avoid",
         "Closures capturing outer " +

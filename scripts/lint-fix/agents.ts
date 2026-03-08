@@ -129,10 +129,13 @@ const invokeAgent: TInvokeAgent = async (config) => {
                     ")",
             );
         } else {
-            const detail: string =
-                (execErr.stderr ?? execErr.message ?? "unknown error")
-                    .trim()
-                    .slice(0, 300);
+            const detail: string = (
+                execErr.stderr ??
+                execErr.message ??
+                "unknown error"
+            )
+                .trim()
+                .slice(0, 300);
             console.error(
                 "  [agent] claude --print failed (model: " +
                     config.model +

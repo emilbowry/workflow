@@ -11,14 +11,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/no-duplicate-type-structure",
+    rule: "local/no-duplicate-type-structure",
     flags: field(
         "flags",
         "Two or more type aliases " +

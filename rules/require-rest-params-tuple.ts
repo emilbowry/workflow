@@ -6,16 +6,12 @@ import type {
     TMeta,
 } from "../type-based/type-based.types";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "../type-based/type-based.types";
+import { field, lintMetaToMsg } from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/require-rest-params-tuple",
+    rule: "local/require-rest-params-tuple",
     avoid: field(
         "avoid",
         "Inline positional parameters " +

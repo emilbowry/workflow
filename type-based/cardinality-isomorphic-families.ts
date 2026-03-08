@@ -9,14 +9,10 @@ import type {
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
-import {
-    field,
-    lintMetaToMsg,
-} from "./type-based.types";
+import { field, lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    rule:
-        "local/cardinality-isomorphic-families",
+    rule: "local/cardinality-isomorphic-families",
     avoid: field(
         "avoid",
         "Generic type families over " +
