@@ -139,9 +139,17 @@ const invokeAnalyser: TInvokeAnalyser = async (errorsXml, fileXml) => {
         systemPrompt: parts.system,
         userPrompt: parts.user,
     });
-    const parsed: TTriageResult = JSON.parse(
-        extractJson(response.content),
-    ) as TTriageResult;
+    if (!response.success || response.content.length === 0) {
+        throw new Error("[agent] analyser (haiku) returned empty response");
+    }
+    const jsonStr: string = extractJson(response.content);
+    if (jsonStr.length === 0 || jsonStr[0] !== "{") {
+        throw new Error(
+            "[agent] analyser (haiku) returned non-JSON: " +
+                response.content.slice(0, 200),
+        );
+    }
+    const parsed: TTriageResult = JSON.parse(jsonStr) as TTriageResult;
     return parsed;
 };
 
@@ -175,7 +183,17 @@ const invokePlanner: TInvokePlanner = async (
         systemPrompt: parts.system,
         userPrompt: parts.user,
     });
-    const outer = JSON.parse(extractJson(response.content)) as { plan?: TPlan };
+    if (!response.success || response.content.length === 0) {
+        throw new Error("[agent] planner (opus) returned empty response");
+    }
+    const jsonStr: string = extractJson(response.content);
+    if (jsonStr.length === 0 || jsonStr[0] !== "{") {
+        throw new Error(
+            "[agent] planner (opus) returned non-JSON: " +
+                response.content.slice(0, 200),
+        );
+    }
+    const outer = JSON.parse(jsonStr) as { plan?: TPlan };
     const plan: TPlan = outer.plan ? outer.plan : (outer as unknown as TPlan);
     return plan;
 };
@@ -204,7 +222,17 @@ const invokeImplementor: TInvokeImplementor = async (
         systemPrompt: parts.system,
         userPrompt: parts.user,
     });
-    const parsed = JSON.parse(extractJson(response.content)) as {
+    if (!response.success || response.content.length === 0) {
+        throw new Error("[agent] implementor (sonnet) returned empty response");
+    }
+    const jsonStr: string = extractJson(response.content);
+    if (jsonStr.length === 0 || jsonStr[0] !== "{") {
+        throw new Error(
+            "[agent] implementor (sonnet) returned non-JSON: " +
+                response.content.slice(0, 200),
+        );
+    }
+    const parsed = JSON.parse(jsonStr) as {
         fixed_file: string;
     };
     return parsed.fixed_file;
