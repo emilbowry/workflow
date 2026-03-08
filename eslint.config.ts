@@ -16,6 +16,12 @@ import requireParametricRecord from "./type-based/require-parametric-record.ts";
 import validGenerics from "./type-based/valid-generics.ts";
 import enforceRecordType from "./type-based/enforce-record-type.ts";
 import functional from "eslint-plugin-functional";
+import requireRestParamsTuple from "./rules/require-rest-params-tuple.ts";
+import finiteDomainReturnWidening from "./type-based/finite-domain-return-widening.ts";
+import typeDistance from "./type-based/type-distance.ts";
+import cardinalityIsomorphicFamilies from "./type-based/cardinality-isomorphic-families.ts";
+import transportGraph from "./type-based/transport-graph.ts";
+import fiberCoherence from "./type-based/fiber-coherence.ts";
 
 export default defineConfig(
     {
@@ -55,6 +61,12 @@ export default defineConfig(
                     "require-parametric-record": requireParametricRecord,
                     "valid-generics": validGenerics,
                     "enforce-record-type": enforceRecordType,
+                    "require-rest-params-tuple": requireRestParamsTuple,
+                    "finite-domain-return-widening": finiteDomainReturnWidening,
+                    "type-distance": typeDistance,
+                    "cardinality-isomorphic-families": cardinalityIsomorphicFamilies,
+                    "transport-graph": transportGraph,
+                    "fiber-coherence": fiberCoherence,
                 },
             },
             "eslint-comments": eslintComments,
@@ -189,6 +201,12 @@ export default defineConfig(
             "local/enforce-record-type": "error",
             "functional/no-let": "error",
             "functional/immutable-data": "error",
+            "local/require-rest-params-tuple": "error",
+            "local/finite-domain-return-widening": "error",
+            "local/type-distance": "warn",
+            "local/cardinality-isomorphic-families": "warn",
+            "local/transport-graph": "error",
+            "local/fiber-coherence": "error",
             "max-len": [
                 "error",
                 {
