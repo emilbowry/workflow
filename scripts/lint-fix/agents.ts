@@ -56,6 +56,25 @@ const splitTemplate: TSplitTemplate = (filled) => {
 
 type TInvokeAgent = (config: TAgentConfig) => Promise<TAgentResponse>;
 
+type TCleanEnv = () => NodeJS.ProcessEnv;
+
+const cleanEnv: TCleanEnv = () => {
+    const env: NodeJS.ProcessEnv = { ...process.env };
+    const keysToRemove: ReadonlyArray<string> = Object.keys(env).filter(
+        (key) =>
+            key.startsWith("CLAUDE") ||
+            key.startsWith("ANTHROPIC") ||
+            key === "GLOBAL_AGENT_HTTP_PROXY" ||
+            key === "GLOBAL_AGENT_HTTPS_PROXY",
+    );
+    keysToRemove.forEach((key) => {
+        delete env[key];
+    });
+    return env;
+};
+
+const AGENT_TIMEOUT_MS: number = 120_000;
+
 const invokeAgent: TInvokeAgent = async (config) => {
     const cmd: string =
         "claude --print" +
@@ -68,13 +87,25 @@ const invokeAgent: TInvokeAgent = async (config) => {
     try {
         const result = await execAsync(cmd, {
             maxBuffer: 10 * 1024 * 1024,
+            timeout: AGENT_TIMEOUT_MS,
+            env: cleanEnv(),
         });
         const raw: string = result.stdout;
         return {
             success: raw.length > 0,
             content: raw.trim(),
         };
-    } catch {
+    } catch (err: unknown) {
+        const execErr = err as { killed?: boolean; signal?: string };
+        if (execErr.killed || execErr.signal === "SIGTERM") {
+            console.error(
+                "  [timeout] claude --print timed out after " +
+                    String(AGENT_TIMEOUT_MS / 1000) +
+                    "s (model: " +
+                    config.model +
+                    ")",
+            );
+        }
         return {
             success: false,
             content: "",
@@ -96,6 +127,7 @@ type TInvokeAnalyser = (
 ) => Promise<TTriageResult>;
 
 const invokeAnalyser: TInvokeAnalyser = async (errorsXml, fileXml) => {
+    console.log("    [agent] invoking analyser (haiku)...");
     const template: string = readPrompt("lint-analyser.xml");
     const filled: string = injectSlots(template, {
         ERRORS: errorsXml,
@@ -128,6 +160,7 @@ const invokePlanner: TInvokePlanner = async (
     rulesXml,
     postMortemXml,
 ) => {
+    console.log("    [agent] invoking planner (opus)...");
     const template: string = readPrompt("fix-planner.xml");
     const filled: string = injectSlots(template, {
         TARGET_RULE: targetXml,
@@ -158,6 +191,7 @@ const invokeImplementor: TInvokeImplementor = async (
     errorsXml,
     fileXml,
 ) => {
+    console.log("    [agent] invoking implementor (sonnet)...");
     const template: string = readPrompt("fix-implementor.xml");
     const filled: string = injectSlots(template, {
         CHOSEN_OPTION: optionXml,
