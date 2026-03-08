@@ -132,7 +132,16 @@ const tryFix: TTryFix = async (
     postMortem,
     attempt,
 ) => {
+    console.log(
+        "  [attempt " +
+            String(attempt) +
+            "] " +
+            filePath +
+            " — " +
+            triage.rule,
+    );
     const original: string = readFileSync(filePath, "utf-8");
+    console.log("  [attempt " + String(attempt) + "] planning fix...");
     const plan: TPlan = await buildPlan(
         filePath,
         original,
@@ -141,8 +150,10 @@ const tryFix: TTryFix = async (
         rulesXml,
         postMortem,
     );
+    console.log("  [attempt " + String(attempt) + "] applying fix...");
     const fixed: string = await applyFix(filePath, errors, original, plan);
     writeFileSync(filePath, fixed, "utf-8");
+    console.log("  [attempt " + String(attempt) + "] verifying...");
     const result: TVerifyResult = await verifyFix(filePath, triage.rule);
     if (result.passed) {
         await doCommit(filePath, triage, plan, postMortem);
@@ -202,9 +213,33 @@ const triageFile: TTriageFile = async (filePath, errors) => {
 const runWorker: TRunWorker = async (filePath, rulesXml) => {
     let commits: number = 0;
     const skipped: Array<string> = [];
+    console.log("[worker] scanning: " + filePath);
     let errors = await scanFile(filePath);
+    console.log(
+        "[worker] " + filePath + ": " + String(errors.length) + " error(s)",
+    );
+    let round: number = 0;
     while (errors.length > 0) {
+        round++;
+        console.log(
+            "[worker] " +
+                filePath +
+                " round " +
+                String(round) +
+                " (" +
+                String(errors.length) +
+                " remaining)",
+        );
         const triage: TTriageResult = await triageFile(filePath, errors);
+        console.log(
+            "[worker] " +
+                filePath +
+                " targeting rule: " +
+                triage.rule +
+                " (" +
+                String(triage.count) +
+                " occurrences)",
+        );
         const isWarning: boolean = errors
             .filter((e) => e.ruleId === triage.rule)
             .every((e) => e.severity === 1);
@@ -220,14 +255,35 @@ const runWorker: TRunWorker = async (filePath, rulesXml) => {
         );
         if (fixed) {
             commits++;
+            console.log(
+                "[worker] " +
+                    filePath +
+                    " FIXED: " +
+                    triage.rule +
+                    " (commit #" +
+                    String(commits) +
+                    ")",
+            );
         } else {
             skipped.push(triage.rule);
+            console.log(
+                "[worker] " + filePath + " SKIPPED: " + triage.rule,
+            );
         }
         errors = await scanFile(filePath);
         if (!fixed) {
             errors = errors.filter((e) => e.ruleId !== triage.rule);
         }
     }
+    console.log(
+        "[worker] " +
+            filePath +
+            " done: " +
+            String(commits) +
+            " commit(s), " +
+            String(skipped.length) +
+            " skipped",
+    );
     return { filePath, commits, skipped };
 };
 
