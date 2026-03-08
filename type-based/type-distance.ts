@@ -154,21 +154,21 @@ const toPair: TToPair = (member) => ({
 type TKeysOf = (pairs: ReadonlyArray<TKeyValuePair>) => ReadonlySet<string>;
 
 const keysOf: TKeysOf = (pairs) =>
-    new Set(pairs.map((p: TKeyValuePair) => p.key));
+    new Set(pairs.map((pair: TKeyValuePair) => pair.key));
 
 type TJaccardSimilarity = (
     a: ReadonlySet<string>,
     b: ReadonlySet<string>,
 ) => number;
 
-const jaccardSimilarity: TJaccardSimilarity = (a, b) => {
-    const union: Set<string> = new Set([...a, ...b]);
+const jaccardSimilarity: TJaccardSimilarity = (setA, setB) => {
+    const union: Set<string> = new Set([...setA, ...setB]);
     const unionSize: number = union.size;
     if (unionSize === 0) {
         return 1;
     }
-    const intersectionSize: number = [...a].filter((k: string) =>
-        b.has(k),
+    const intersectionSize: number = [...setA].filter((k: string) =>
+        setB.has(k),
     ).length;
     return intersectionSize / unionSize;
 };
@@ -179,7 +179,10 @@ type TToValueMap = (pairs: ReadonlyArray<TKeyValuePair>) => TValueMap;
 
 const toValueMap: TToValueMap = (pairs) =>
     new Map(
-        pairs.map((p: TKeyValuePair): [string, string] => [p.key, p.value]),
+        pairs.map((pair: TKeyValuePair): [string, string] => [
+            pair.key,
+            pair.value,
+        ]),
     );
 
 type TValueSimilarity = (
@@ -188,12 +191,12 @@ type TValueSimilarity = (
     shared: ReadonlyArray<string>,
 ) => number;
 
-const valueSimilarity: TValueSimilarity = (a, b, shared) => {
+const valueSimilarity: TValueSimilarity = (mapA, mapB, shared) => {
     if (shared.length === 0) {
         return 0;
     }
     const matching: number = shared.filter(
-        (k: string) => a.get(k) === b.get(k),
+        (k: string) => mapA.get(k) === mapB.get(k),
     ).length;
     return matching / shared.length;
 };
@@ -203,8 +206,8 @@ type TSharedKeys = (
     b: ReadonlySet<string>,
 ) => ReadonlyArray<string>;
 
-const sharedKeys: TSharedKeys = (a, b) =>
-    [...a].filter((k: string) => b.has(k));
+const sharedKeys: TSharedKeys = (setA, setB) =>
+    [...setA].filter((k: string) => setB.has(k));
 
 type TComputeDistance = (
     pairsA: ReadonlyArray<TKeyValuePair>,
@@ -256,14 +259,14 @@ const recordAlias: TRecordAlias = (file, node) => {
 
 type TIsSimilarPair = (a: TEntry, b: TEntry) => boolean;
 
-const isSimilarPair: TIsSimilarPair = (a, b) => {
-    if (a.canonical === b.canonical) {
+const isSimilarPair: TIsSimilarPair = (entryA, entryB) => {
+    if (entryA.canonical === entryB.canonical) {
         return false;
     }
-    if (a.pairs.length === 0 && b.pairs.length === 0) {
+    if (entryA.pairs.length === 0 && entryB.pairs.length === 0) {
         return false;
     }
-    const dist: number = computeDistance(a.pairs, b.pairs);
+    const dist: number = computeDistance(entryA.pairs, entryB.pairs);
     return dist >= THRESHOLD;
 };
 
@@ -274,19 +277,19 @@ type TReportPair = (
     b: TEntry,
 ) => void;
 
-const reportPair: TReportPair = (context, file, a, b) => {
-    if (a.file === file) {
+const reportPair: TReportPair = (context, file, entryA, entryB) => {
+    if (entryA.file === file) {
         context.report({
-            data: { nameA: a.name, nameB: b.name },
+            data: { nameA: entryA.name, nameB: entryB.name },
             messageId: "typeDistance",
-            node: a.node,
+            node: entryA.node,
         });
     }
-    if (b.file === file) {
+    if (entryB.file === file) {
         context.report({
-            data: { nameA: a.name, nameB: b.name },
+            data: { nameA: entryA.name, nameB: entryB.name },
             messageId: "typeDistance",
-            node: b.node,
+            node: entryB.node,
         });
     }
 };
@@ -294,10 +297,10 @@ const reportPair: TReportPair = (context, file, a, b) => {
 type TCheckPairs = (context: TContext<TRule>, file: string) => void;
 
 const checkPairs: TCheckPairs = (context, file) => {
-    for (const [i, a] of entries.entries()) {
-        for (const b of entries.slice(i + 1)) {
-            if (isSimilarPair(a, b)) {
-                reportPair(context, file, a, b);
+    for (const [i, entryA] of entries.entries()) {
+        for (const entryB of entries.slice(i + 1)) {
+            if (isSimilarPair(entryA, entryB)) {
+                reportPair(context, file, entryA, entryB);
             }
         }
     }
