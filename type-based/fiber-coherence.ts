@@ -128,11 +128,11 @@ const findConnected: TFindConnected = (start, adjacency) => {
         queue: ReadonlyArray<string>,
         visited: ReadonlySet<string>,
     ) => ReadonlySet<string> = (queue, visited) => {
-        if (queue.length === 0) {
+        const head: string | undefined = queue[0];
+        if (head === undefined) {
             return visited;
         }
-        const [head, ...tail]: readonly [string, ...ReadonlyArray<string>] =
-            queue as [string, ...ReadonlyArray<string>];
+        const tail: ReadonlyArray<string> = queue.slice(1);
         if (visited.has(head)) {
             return visit(tail, visited);
         }
