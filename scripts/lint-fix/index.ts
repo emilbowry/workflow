@@ -48,38 +48,41 @@ const installDeps: TInstallDeps = () => {
 
 type TCheckPrereqs = () => void;
 
+type TCheckBin = (name: string, localPath: string) => void;
+
+const checkBin: TCheckBin = (name, localPath) => {
+    try {
+        execSync(localPath + " --version", { stdio: "pipe", timeout: 30_000 });
+        console.log("[setup] " + name + " OK (local)");
+        return;
+    } catch {
+        /* fall through to global */
+    }
+    try {
+        execSync(name + " --version", { stdio: "pipe", timeout: 30_000 });
+        console.log("[setup] " + name + " OK (global)");
+    } catch {
+        throw new Error(
+            "[setup] " + name + " not found locally or globally.",
+        );
+    }
+};
+
 const checkPrereqs: TCheckPrereqs = () => {
     const localBin: string = resolve("node_modules", ".bin");
-    const checks: ReadonlyArray<{ cmd: string; name: string }> = [
-        { cmd: resolve(localBin, "eslint") + " --version", name: "eslint" },
-        {
-            cmd: resolve(localBin, "prettier") + " --version",
-            name: "prettier",
-        },
-    ];
-    for (const check of checks) {
-        try {
-            execSync(check.cmd, { stdio: "pipe", timeout: 30_000 });
-            console.log("[setup] " + check.name + " OK (local)");
-        } catch {
-            throw new Error(
-                "[setup] " +
-                    check.name +
-                    " not found in local node_modules. " +
-                    "npm install may have failed.",
-            );
-        }
-    }
+    checkBin("eslint", resolve(localBin, "eslint"));
+    checkBin("prettier", resolve(localBin, "prettier"));
     const requiredModules: ReadonlyArray<string> = ["jiti", "typescript-eslint"];
     for (const mod of requiredModules) {
+        const modPath: string = resolve("node_modules", mod, "package.json");
         try {
-            require.resolve(mod, { paths: [resolve("node_modules")] });
+            readFileSync(modPath);
             console.log("[setup] " + mod + " OK");
         } catch {
             throw new Error(
                 "[setup] " +
                     mod +
-                    " not found. npm install may have failed.",
+                    " not found in node_modules. npm install may have failed.",
             );
         }
     }
