@@ -30,8 +30,70 @@ const scanAll: TScanAll = async (paths) => {
 type TInstallDeps = () => void;
 
 const installDeps: TInstallDeps = () => {
-    console.log("Installing dependencies...");
-    execSync("npm install --legacy-peer-deps", { stdio: "pipe" });
+    console.log("[setup] Installing dependencies...");
+    try {
+        execSync("npm install --legacy-peer-deps", {
+            stdio: "inherit",
+            timeout: 120_000,
+        });
+    } catch (err: unknown) {
+        console.error("[setup] npm install failed, retrying without cache...");
+        execSync("npm cache clean --force && npm install --legacy-peer-deps", {
+            stdio: "inherit",
+            timeout: 120_000,
+        });
+    }
+    console.log("[setup] Dependencies installed.");
+};
+
+type TCheckPrereqs = () => void;
+
+type TCheckBin = (name: string, localPath: string) => void;
+
+const checkBin: TCheckBin = (name, localPath) => {
+    try {
+        execSync(localPath + " --version", { stdio: "pipe", timeout: 30_000 });
+        console.log("[setup] " + name + " OK (local)");
+        return;
+    } catch {
+        /* fall through to global */
+    }
+    try {
+        execSync(name + " --version", { stdio: "pipe", timeout: 30_000 });
+        console.log("[setup] " + name + " OK (global)");
+    } catch {
+        throw new Error(
+            "[setup] " + name + " not found locally or globally.",
+        );
+    }
+};
+
+const checkPrereqs: TCheckPrereqs = () => {
+    const localBin: string = resolve("node_modules", ".bin");
+    checkBin("eslint", resolve(localBin, "eslint"));
+    checkBin("prettier", resolve(localBin, "prettier"));
+    const requiredModules: ReadonlyArray<string> = ["jiti", "typescript-eslint"];
+    for (const mod of requiredModules) {
+        const modPath: string = resolve("node_modules", mod, "package.json");
+        try {
+            readFileSync(modPath);
+            console.log("[setup] " + mod + " OK");
+        } catch {
+            throw new Error(
+                "[setup] " +
+                    mod +
+                    " not found in node_modules. npm install may have failed.",
+            );
+        }
+    }
+    try {
+        execSync("claude --version", { stdio: "pipe", timeout: 10_000 });
+        console.log("[setup] claude CLI OK");
+    } catch {
+        throw new Error(
+            "[setup] claude CLI not found. Install with: npm i -g @anthropic-ai/claude-code",
+        );
+    }
 };
 
 import type { TWorktreeInfo } from "./types.ts";
@@ -82,25 +144,25 @@ const main: TMain = async (paths) => {
         return;
     }
     installDeps();
-    console.log("Scanning " + String(paths.length) + " path(s)...");
+    checkPrereqs();
+    console.log("[scan] Scanning " + String(paths.length) + " path(s)...");
     const rulesXml: string = getRulesXml();
     const mainBranch: string = getCurrentBranch();
     const errorMap: TErrorMap = await scanAll(paths);
     if (errorMap.size === 0) {
-        console.log("No errors found.");
+        console.log("[scan] No errors found.");
         return;
     }
     console.log(
-        "Found errors in " +
+        "[scan] Found errors in " +
             String(errorMap.size) +
-            " file(s). Dispatching " +
-            "workers...",
+            " file(s). Dispatching workers...",
     );
     const files: ReadonlyArray<string> = Array.from(errorMap.keys());
     const outputs: ReadonlyArray<TWorkerOutput> = await Promise.all(
         files.map((f) => processFile(f, rulesXml)),
     );
-    console.log("Workers done. Merging results...");
+    console.log("[merge] Workers done. Merging results...");
     for (const output of outputs) {
         if (output.result.commits > 0) {
             await mergeWorktree(output.info, mainBranch);

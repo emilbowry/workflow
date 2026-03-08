@@ -1,13 +1,31 @@
 import { execSync, exec } from "child_process";
 import { promisify } from "util";
+import { resolve } from "path";
 import type { TEslintError, TErrorMap } from "./types.ts";
 
 const execAsync = promisify(exec);
 
+const LOCAL_ESLINT: string = resolve("node_modules", ".bin", "eslint");
+const LOCAL_PRETTIER: string = resolve("node_modules", ".bin", "prettier");
+
+type TResolveBin = (localPath: string, name: string) => string;
+
+const resolveBin: TResolveBin = (localPath, name) => {
+    try {
+        execSync(localPath + " --version", { stdio: "pipe" });
+        return localPath;
+    } catch {
+        return name;
+    }
+};
+
+const ESLINT_BIN: string = resolveBin(LOCAL_ESLINT, "eslint");
+const PRETTIER_BIN: string = resolveBin(LOCAL_PRETTIER, "prettier");
+
 type TRunPrettier = (filePath: string) => Promise<void>;
 
 const runPrettier: TRunPrettier = async (filePath) => {
-    await execAsync("npx prettier --write " + JSON.stringify(filePath));
+    await execAsync(PRETTIER_BIN + " --write " + JSON.stringify(filePath));
 };
 
 type TEslintRawMessage = {
@@ -29,7 +47,8 @@ const runEslint: TRunEslint = async (filePath) => {
     const raw: string = await (async () => {
         try {
             const result = await execAsync(
-                "npx eslint --fix" +
+                ESLINT_BIN +
+                    " --fix" +
                     " --format json " +
                     JSON.stringify(filePath),
                 { maxBuffer: 10 * 1024 * 1024 },
@@ -90,7 +109,7 @@ type TRunPrettierBatch = (filePaths: ReadonlyArray<string>) => void;
 
 const runPrettierBatch: TRunPrettierBatch = (filePaths) => {
     const quoted: string = filePaths.map((fp) => JSON.stringify(fp)).join(" ");
-    execSync("npx prettier --write " + quoted, {
+    execSync(PRETTIER_BIN + " --write " + quoted, {
         stdio: "pipe",
     });
 };
@@ -103,7 +122,7 @@ const runEslintBatch: TRunEslintBatch = (filePaths) => {
     const quoted: string = filePaths.map((fp) => JSON.stringify(fp)).join(" ");
     const raw: string = (() => {
         try {
-            return execSync("npx eslint --fix --format json " + quoted, {
+            return execSync(ESLINT_BIN + " --fix --format json " + quoted, {
                 stdio: "pipe",
                 maxBuffer: 10 * 1024 * 1024,
             }).toString();
