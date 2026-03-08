@@ -293,8 +293,8 @@ const findConnected: TFindConnected = (start, adjacency) => {
         if (queue.length === 0) {
             return visited;
         }
-        const [head, ...tail]: readonly [string, ...ReadonlyArray<string>] =
-            queue as [string, ...ReadonlyArray<string>];
+        const head: string = queue[0];
+        const tail: ReadonlyArray<string> = queue.slice(1);
         if (visited.has(head)) {
             return visit(tail, visited);
         }
