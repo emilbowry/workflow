@@ -176,7 +176,7 @@ export default defineConfig(
             */
             "@typescript-eslint/no-unnecessary-condition": "error",
             "local/restrict-return-count": ["error", 1],
-            indent: ["error", 4, { SwitchCase: 1 }],
+            indent: ["error", 4],
             "local/max-total-depth": ["error", 3],
             "local/require-extracted-function-type": "error",
             // "local/prefer-call-signature": "error",
@@ -188,6 +188,7 @@ export default defineConfig(
             "local/valid-generics": "error",
             "local/enforce-record-type": "error",
             "functional/no-let": "error",
+            "functional/immutable-data": "error",
             "max-len": [
                 "error",
                 {
@@ -233,7 +234,44 @@ export default defineConfig(
                 "error",
                 {
                     selector: "TSTypePredicate",
-                    message: "Type predicates (is) are not allowed.",
+                    message:
+                        "Type predicates (is) " +
+                        "are not allowed.",
+                },
+                {
+                    selector:
+                        "TSTypeReference" +
+                        '[typeName.name="Partial"]',
+                    message:
+                        "Partial<T> is banned. " +
+                        "Use total types.",
+                },
+                {
+                    selector:
+                        "TSPropertySignature" +
+                        "[optional=true]",
+                    message:
+                        "Optional fields are " +
+                        "banned. Use total types " +
+                        "with explicit unions.",
+                },
+                {
+                    selector: "ThrowStatement",
+                    message:
+                        "throw is banned. " +
+                        "Use Result types.",
+                },
+                {
+                    selector: "TryStatement",
+                    message:
+                        "try/catch is banned. " +
+                        "Use Result types.",
+                },
+                {
+                    selector: "SwitchStatement",
+                    message:
+                        "switch is banned. Use " +
+                        "exhaustive maps.",
                 },
             ],
             "@typescript-eslint/no-confusing-void-expression": [
