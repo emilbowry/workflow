@@ -69,7 +69,8 @@ const shouldReport: TTypeNodePredicate = (node) =>
     node.members.length === 1 &&
     node.members[0].type !== AST_NODE_TYPES.TSCallSignatureDeclaration;
 
-type TMakeHandler = (context: TContext<TRule>) => THandler;
+type TMakeHandlerArgs = [context: TContext<TRule>];
+type TMakeHandler = (...args: TMakeHandlerArgs) => THandler;
 
 const handleNode: TCheckNode<TRule> = (context, node) => {
     const ann: TSESTree.TypeNode = node.typeAnnotation;
