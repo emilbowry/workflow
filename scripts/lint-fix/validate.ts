@@ -59,14 +59,8 @@ type TCheckExternalRule = (
     registry: ReadonlyArray<TLintMeta>,
 ) => boolean;
 
-const checkExternalRule: TCheckExternalRule = (
-    id,
-    registry,
-) =>
-    registry.some(
-        (meta: TLintMeta) =>
-            meta.rule === id,
-    );
+const checkExternalRule: TCheckExternalRule = (id, registry) =>
+    registry.some((meta: TLintMeta) => meta.rule === id);
 
 type TValidate = (
     configPath: string,

@@ -62,9 +62,7 @@ const checkBin: TCheckBin = (name, localPath) => {
         execSync(name + " --version", { stdio: "pipe", timeout: 30_000 });
         console.log("[setup] " + name + " OK (global)");
     } catch {
-        throw new Error(
-            "[setup] " + name + " not found locally or globally.",
-        );
+        throw new Error("[setup] " + name + " not found locally or globally.");
     }
 };
 
@@ -72,7 +70,10 @@ const checkPrereqs: TCheckPrereqs = () => {
     const localBin: string = resolve("node_modules", ".bin");
     checkBin("eslint", resolve(localBin, "eslint"));
     checkBin("prettier", resolve(localBin, "prettier"));
-    const requiredModules: ReadonlyArray<string> = ["jiti", "typescript-eslint"];
+    const requiredModules: ReadonlyArray<string> = [
+        "jiti",
+        "typescript-eslint",
+    ];
     for (const mod of requiredModules) {
         const modPath: string = resolve("node_modules", mod, "package.json");
         try {
