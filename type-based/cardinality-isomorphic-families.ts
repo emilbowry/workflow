@@ -130,7 +130,9 @@ const hasTypeParams: THasTypeParams = (node) =>
 type TGetConstraintGroup = (node: TSESTree.TSTypeAliasDeclaration) => string;
 
 const getConstraintGroup: TGetConstraintGroup = (node) =>
-    hasTypeParams(node) ? constraintKey(node.typeParameters!.params[0]) : "";
+    node.typeParameters !== undefined
+        ? constraintKey(node.typeParameters.params[0])
+        : "";
 
 type TGroupMap = Map<string, Array<TEntry>>;
 
