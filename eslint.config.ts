@@ -206,8 +206,8 @@ export default defineConfig(
             "local/finite-domain-return-widening": "error",
             "local/type-distance": "warn",
             "local/cardinality-isomorphic-families": "warn",
-            "local/transport-graph": "warn",
-            "local/fiber-coherence": "warn",
+            "local/transport-graph": "error",
+            "local/fiber-coherence": "error",
             "max-len": [
                 "error",
                 {
