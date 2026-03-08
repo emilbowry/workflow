@@ -113,11 +113,6 @@ const isRefWithArg: TIsRefWithArg = (node, name) =>
             param.typeName.name === name,
     );
 
-type TIsMapped = (node: TSESTree.TypeNode) => node is TSESTree.TSMappedType;
-
-const isMappedType: TIsMapped = (node): node is TSESTree.TSMappedType =>
-    node.type === AST_NODE_TYPES.TSMappedType;
-
 type TGetMappedKeyName = (...args: [mapped: TSESTree.TSMappedType]) => string;
 
 const getMappedKeyName: TGetMappedKeyName = (mapped) => mapped.key.name;
@@ -138,7 +133,7 @@ type TCheckMapped = (
 
 const checkMapped: TCheckMapped = (context, node) => {
     const body: TSESTree.TypeNode = node.typeAnnotation;
-    if (!isMappedType(body)) {
+    if (body.type !== AST_NODE_TYPES.TSMappedType) {
         return;
     }
     const keyName: string = getMappedKeyName(body);
