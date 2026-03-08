@@ -108,8 +108,8 @@ const getParamAnnotation: (
             : undefined;
 
 const hasFiniteParam: THasFiniteParam = (params) =>
-    params.some((p: TSESTree.Parameter) => {
-        const ann: TSESTree.TypeNode | undefined = getParamAnnotation(p);
+    params.some((param: TSESTree.Parameter) => {
+        const ann: TSESTree.TypeNode | undefined = getParamAnnotation(param);
         return ann !== undefined && isFiniteDomain(ann);
     });
 
