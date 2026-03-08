@@ -16,6 +16,20 @@ const createWorktree: TCreateWorktree = async (filePath) => {
     const worktreePath: string = ".worktrees/" + fileHash;
     const fileName: string = basename(filePath);
     const branch: string = "lint-fix/" + fileName;
+    try {
+        await execAsync(
+            "git worktree remove " +
+                JSON.stringify(worktreePath) +
+                " --force",
+        );
+    } catch {
+        /* worktree may not exist yet */
+    }
+    try {
+        await execAsync("git branch -D " + JSON.stringify(branch));
+    } catch {
+        /* branch may not exist yet */
+    }
     await execAsync(
         "git worktree add " +
             JSON.stringify(worktreePath) +

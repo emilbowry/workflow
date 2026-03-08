@@ -21,8 +21,8 @@ import {
 } from "./xml.ts";
 import { composeCommitMessage, commitFile } from "./commit.ts";
 
-const MAX_RETRIES_ERROR: number = 5;
-const MAX_RETRIES_WARNING: number = 1;
+const MAX_RETRIES_ERROR: number = Infinity;
+const MAX_RETRIES_WARNING: number = 3;
 
 type TRunWorker = (
     filePath: string,
