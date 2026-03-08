@@ -15,3 +15,7 @@ The orchestrator will:
 6. A summary is printed at the end
 
 Wait for the script to complete and report the summary.
+
+IMPORTANT: Do NOT commit or push any changes yourself. The script handles all
+commits internally (both auto-fix formatting commits and worker fix commits).
+Your only job is to run the script and report the output.
