@@ -51,7 +51,18 @@ export const LINT_META: TLintMeta = {
             "single file. Exports " +
             "buildTransportGraph and " +
             "classifyEdge for " +
-            "fiber-coherence",
+            "fiber-coherence. string " +
+            "keyword return " +
+            "(TSStringKeyword) won't " +
+            "create edges — rule " +
+            "requires TSTypeReference. " +
+            "Return a named type not a " +
+            "keyword. Rest-params form " +
+            "(RestElement) won't create " +
+            "edges — fails param check. " +
+            "Must use inline params. " +
+            "CONFLICTS with require-rest" +
+            "-params-tuple",
     ),
     related: field(
         "related",

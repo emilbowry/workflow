@@ -1,7 +1,4 @@
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
+import { spawn } from "child_process";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import type {
@@ -91,71 +88,106 @@ const cleanEnv: TCleanEnv = () => {
     return env;
 };
 
-const AGENT_TIMEOUT_MS: number = 120_000;
+type TModelTimeouts = Readonly<Record<string, number>>;
+
+const MODEL_TIMEOUTS: TModelTimeouts = {
+    haiku: 900_000,
+    sonnet: 900_000,
+    opus: 900_000,
+};
 
 const invokeAgent: TInvokeAgent = async (config) => {
-    const cmd: string =
-        "claude --print" +
-        " --model " +
-        config.model +
-        " --system-prompt " +
-        JSON.stringify(config.systemPrompt) +
-        " " +
-        JSON.stringify(config.userPrompt);
-    try {
-        const result = await execAsync(cmd, {
-            maxBuffer: 10 * 1024 * 1024,
-            timeout: AGENT_TIMEOUT_MS,
+    const timeoutMs: number = MODEL_TIMEOUTS[config.model] ?? 120_000;
+    const promptKB: number = Math.round(
+        Buffer.byteLength(config.systemPrompt + config.userPrompt) / 1024,
+    );
+    console.log(
+        "    [agent] spawn claude --print" +
+            " (model: " +
+            config.model +
+            ", timeout: " +
+            String(timeoutMs / 1000) +
+            "s" +
+            ", prompt: " +
+            String(promptKB) +
+            "KB)",
+    );
+    const startMs: number = Date.now();
+    const args: ReadonlyArray<string> = [
+        "--print",
+        "--model",
+        config.model,
+        "--system-prompt",
+        config.systemPrompt,
+        config.userPrompt,
+    ];
+    return new Promise((resolve) => {
+        const proc = spawn("claude", args, {
             env: cleanEnv(),
+            stdio: ["ignore", "pipe", "pipe"],
         });
-        const raw: string = result.stdout;
-        return {
-            success: raw.length > 0,
-            content: raw.trim(),
-        };
-    } catch (err: unknown) {
-        const execErr = err as {
-            killed?: boolean;
-            signal?: string;
-            stderr?: string;
-            message?: string;
-        };
-        if (execErr.killed || execErr.signal === "SIGTERM") {
+        let stdout: string = "";
+        proc.stdout.on("data", (chunk: Buffer) => {
+            stdout += chunk.toString();
+        });
+        proc.stderr.on("data", (chunk: Buffer) => {
+            const line: string = chunk.toString().trimEnd();
+            if (line.length > 0) {
+                console.error("    [" + config.model + "] " + line);
+            }
+        });
+        const timer: NodeJS.Timeout = setTimeout(() => {
             console.error(
-                "  [timeout] claude --print timed out after " +
-                    String(AGENT_TIMEOUT_MS / 1000) +
+                "    [timeout] killing claude --print after " +
+                    String(timeoutMs / 1000) +
                     "s (model: " +
                     config.model +
                     ")",
             );
-        } else {
-            const detail: string = (
-                execErr.stderr ??
-                execErr.message ??
-                "unknown error"
-            )
-                .trim()
-                .slice(0, 300);
-            console.error(
-                "  [agent] claude --print failed (model: " +
-                    config.model +
-                    "): " +
-                    detail,
+            proc.kill("SIGTERM");
+        }, timeoutMs);
+        proc.on("error", (err: Error) => {
+            clearTimeout(timer);
+            console.error("    [agent] spawn error: " + err.message);
+            resolve({ success: false, content: "" });
+        });
+        proc.on("close", (code: number | null) => {
+            clearTimeout(timer);
+            const elapsedSec: number = Math.round(
+                (Date.now() - startMs) / 1000,
             );
-        }
-        return {
-            success: false,
-            content: "",
-        };
-    }
+            console.log(
+                "    [agent] exited" +
+                    " (model: " +
+                    config.model +
+                    ", code: " +
+                    String(code) +
+                    ", " +
+                    String(elapsedSec) +
+                    "s)",
+            );
+            const ok: boolean = code === 0 && stdout.length > 0;
+            resolve({
+                success: ok,
+                content: ok ? stdout.trim() : "",
+            });
+        });
+    });
 };
 
 type TExtractJson = (text: string) => string;
 
 const extractJson: TExtractJson = (text) => {
     const start: number = text.indexOf("{");
-    const end: number = text.lastIndexOf("}");
-    return start >= 0 && end > start ? text.slice(start, end + 1) : text;
+    if (start < 0) return text;
+    let depth: number = 0;
+    for (let i: number = start; i < text.length; i++) {
+        const ch: string = text[i];
+        if (ch === "{") depth++;
+        if (ch === "}") depth--;
+        if (depth === 0) return text.slice(start, i + 1);
+    }
+    return text.slice(start);
 };
 
 type TInvokeAnalyser = (

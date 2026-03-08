@@ -47,11 +47,37 @@ export const LINT_META: TLintMeta = {
         "Zero-param signatures () => R " +
             "are valid and not flagged. " +
             "Currently type-level only — " +
-            "runtime signatures commented out",
+            "runtime signatures commented " +
+            "out. Extracting structurally " +
+            "identical tuples for different " +
+            "functions triggers no-duplicate" +
+            "-type-structure — share one " +
+            "tuple when param signatures " +
+            "match. Inline tuples are " +
+            "TSTupleType not TSTypeReference" +
+            " — rule rejects them, must " +
+            "extract to named type alias. " +
+            "Type predicates (node is T) " +
+            "incompatible — no named param " +
+            "in rest-params form. Delete " +
+            "predicate, inline discriminant " +
+            "check instead. .bind() typing " +
+            "unreliable with rest-params " +
+            "tuples — TS may infer any[]. " +
+            "Use IIFE thunk instead. " +
+            "Single-element tuples are safe" +
+            " from no-single-field-type — " +
+            "that rule only checks " +
+            "TSTypeLiteral not TSTupleType",
     ),
     related: field(
         "related",
-        "require-extracted-types, " + "transport-graph, " + "valid-generics",
+        "require-extracted-types, " +
+            "transport-graph, " +
+            "valid-generics, " +
+            "no-duplicate-type-structure, " +
+            "no-single-field-type, " +
+            "enforce-record-type",
     ),
 };
 

@@ -34,13 +34,13 @@ const installDeps: TInstallDeps = () => {
     try {
         execSync("npm install --legacy-peer-deps", {
             stdio: "inherit",
-            timeout: 120_000,
+            timeout: 900_000,
         });
     } catch (err: unknown) {
         console.error("[setup] npm install failed, retrying without cache...");
         execSync("npm cache clean --force && npm install --legacy-peer-deps", {
             stdio: "inherit",
-            timeout: 120_000,
+            timeout: 900_000,
         });
     }
     console.log("[setup] Dependencies installed.");
@@ -146,6 +146,19 @@ const main: TMain = async (paths) => {
     }
     installDeps();
     checkPrereqs();
+    console.log("[setup] Cleaning stale worktrees and branches...");
+    execSync("git worktree prune", { stdio: "pipe" });
+    const staleBranches: string = execSync("git branch --list 'lint-fix/*'", {
+        encoding: "utf-8",
+    }).trim();
+    if (staleBranches.length > 0) {
+        const branchNames: string = staleBranches
+            .split("\n")
+            .map((b) => b.trim())
+            .join(" ");
+        execSync("git branch -D " + branchNames, { stdio: "pipe" });
+        console.log("[setup] Deleted stale branches: " + branchNames);
+    }
     console.log("[scan] Scanning " + String(paths.length) + " path(s)...");
     const rulesXml: string = getRulesXml();
     const mainBranch: string = getCurrentBranch();

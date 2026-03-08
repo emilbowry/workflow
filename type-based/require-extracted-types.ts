@@ -34,7 +34,17 @@ export const LINT_META: TLintMeta = {
             "type aliases. Naming " +
             "requires semantic thought," +
             " not mechanical " +
-            "substitution",
+            "substitution. Inline tuple " +
+            "types (TSTupleType) in " +
+            "annotation position are " +
+            "flagged — extract to named " +
+            "alias first. Lambda-lifting " +
+            "cascades into require-rest-" +
+            "params-tuple — new function " +
+            "signature needs its own " +
+            "tuple type. Do minimal fix " +
+            "only unless also targeting " +
+            "no-nested-function",
     ),
     avoid: field(
         "avoid",
@@ -50,7 +60,8 @@ export const LINT_META: TLintMeta = {
             "explicit-function-return-" +
             "type, no-duplicate-type-" +
             "structure, max-type-" +
-            "nesting",
+            "nesting, require-rest-" +
+            "params-tuple",
     ),
     philosophy: field(
         "philosophy",

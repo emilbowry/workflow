@@ -37,7 +37,28 @@ export const LINT_META: TLintMeta = {
             " comparison is nominal — " +
             "renamed but structurally " +
             "identical types are still " +
-            "caught",
+            "caught. TSNamedTupleMember " +
+            "labels collapse canonical " +
+            "forms — [node: A] and " +
+            "[node: B] both canonicalize " +
+            "to [TSNamedTupleMember]. " +
+            "Remove labels to expose " +
+            "actual types, or share one " +
+            "tuple for identical param " +
+            "signatures. Cross-file " +
+            "collisions with generic " +
+            "tuple wrappers — " +
+            "TSingleArg<T> collides with " +
+            "same-shape tuples in other " +
+            "files. Keep per-file named " +
+            "tuples with distinct " +
+            "unlabeled inner types. " +
+            "Phantom generic params to " +
+            "differentiate trigger " +
+            "valid-generics — share " +
+            "identical tuples or " +
+            "eliminate redundant " +
+            "functions instead",
     ),
     avoid: field(
         "avoid",
@@ -51,7 +72,9 @@ export const LINT_META: TLintMeta = {
         "enforce-record-type, " +
             "require-extracted-types, " +
             "max-type-nesting, " +
-            "consistent-type-definitions",
+            "consistent-type-definitions, " +
+            "require-rest-params-tuple, " +
+            "valid-generics",
     ),
     philosophy: field(
         "philosophy",

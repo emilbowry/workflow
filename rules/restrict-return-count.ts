@@ -59,14 +59,24 @@ export const LINT_META: TLintMeta = {
             "1 total return. Do not " +
             "use switch+let — " +
             "functional/no-let bans " +
-            "let entirely",
+            "let entirely. Max 3 " +
+            "ternary branches before " +
+            "prettier cascades into " +
+            "max-total-depth. For 4+ " +
+            "use try-dispatch or " +
+            "Record dispatch. Block " +
+            "body wrapping ternary in " +
+            "const+return triggers " +
+            "arrow-body-style — use " +
+            "expression body directly",
     ),
     related: field(
         "related",
         "max-total-depth, " +
             "complexity, " +
             "functional/no-let, " +
-            "consistent-type-assertions",
+            "consistent-type-assertions, " +
+            "arrow-body-style",
     ),
 };
 
