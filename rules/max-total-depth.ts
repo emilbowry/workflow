@@ -32,12 +32,12 @@ export const LINT_META: TLintMeta = {
         "without holding nesting " +
         "context",
     pitfalls:
-        "eslint --fix on indent + " +
-        "ternary chains cascades into " +
-        "new depth violations. Run " +
-        "prettier first, then lint. " +
-        "Only use eslint --fix for " +
-        "indent on non-ternary code",
+        "Indent auto-formatting on " +
+        "ternary chains cascades " +
+        "into new depth violations." +
+        " Nested ternaries beyond " +
+        "3 branches will always " +
+        "exceed the depth limit",
     related:
         "restrict-return-count, " +
         "complexity, " +

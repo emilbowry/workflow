@@ -640,20 +640,22 @@ const registry: TExternalRegistry = new Map([
                 "Non-4-space " +
                 "indentation",
             fix:
-                "Auto-fixable. WARNING" +
-                ": --fix on ternaries " +
-                "cascades into depth " +
-                "violations",
+                "Restructure code to " +
+                "reduce indentation. " +
+                "Extract into smaller " +
+                "functions at module " +
+                "scope",
             pitfalls:
-                "Ternary + indent " +
-                "--fix = cascading " +
+                "Indent auto-formatting" +
+                " on ternary chains " +
+                "cascades into " +
                 "max-total-depth " +
-                "errors. Use prettier " +
-                "first",
+                "errors",
             avoid:
-                "Running eslint --fix " +
-                "indent on ternary-" +
-                "heavy code",
+                "Deep nesting. Ternary" +
+                " chains that push " +
+                "indentation beyond " +
+                "the depth limit",
             related:
                 "max-total-depth, " +
                 "max-len",
