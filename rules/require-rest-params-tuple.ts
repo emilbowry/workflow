@@ -22,9 +22,9 @@ const DESC: string =
 type TRule = ESLintUtils.RuleModule<"nonTupleParams">;
 
 type TFunctionNode =
-    | TSESTree.ArrowFunctionExpression
-    | TSESTree.FunctionDeclaration
-    | TSESTree.FunctionExpression
+    // | TSESTree.ArrowFunctionExpression
+    // | TSESTree.FunctionDeclaration
+    // | TSESTree.FunctionExpression
     | TSESTree.TSFunctionType
     | TSESTree.TSCallSignatureDeclaration;
 
@@ -79,9 +79,9 @@ const create: TCreate<TRule> = (context) => {
     const handler: THandler =
         makeHandler(checkNode, context);
     return {
-        ArrowFunctionExpression: handler,
-        FunctionDeclaration: handler,
-        FunctionExpression: handler,
+        // ArrowFunctionExpression: handler,
+        // FunctionDeclaration: handler,
+        // FunctionExpression: handler,
         TSCallSignatureDeclaration: handler,
         TSFunctionType: handler,
     };
