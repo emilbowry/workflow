@@ -93,17 +93,11 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type TMakeReportArgs = [checkFn: TCheckNode, context: TContext<TRule>];
-type TMakeReport = (...args: TMakeReportArgs) => TReport;
-
-const makeReport: TMakeReport = (checkFn, context) =>
-    (
-        () => (node: TSESTree.TSTypeAnnotation) =>
-            checkFn(context, node)
-    )();
-
 const create: TCreate<TRule> = (context) => {
-    const handler: TReport = makeReport(checkNode, context);
+    const handler: TReport = (
+        () => (node: TSESTree.TSTypeAnnotation) =>
+            checkNode(context, node)
+    )();
     return {
         TSTypeAnnotation: handler,
     };
