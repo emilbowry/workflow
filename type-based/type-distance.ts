@@ -173,14 +173,15 @@ const jaccardSimilarity: TJaccardSimilarity = (setA, setB) => {
 
 type TValueMap = ReadonlyMap<string, string>;
 
+type TValueMapEntry = [string, string];
+
 type TToValueMap = (pairs: ReadonlyArray<TKeyValuePair>) => TValueMap;
 
 const toValueMap: TToValueMap = (pairs) =>
     new Map(
-        pairs.map((pair: TKeyValuePair): [string, string] => [
-            pair.key,
-            pair.value,
-        ]),
+        pairs.map(
+            (pair: TKeyValuePair): TValueMapEntry => [pair.key, pair.value],
+        ),
     );
 
 type TValueSimilarity = (
