@@ -65,7 +65,8 @@ const DESC: string =
 
 type TStack = Array<number>; // a little insane, what caused this
 
-type TStackOp = (stack: TStack) => TStack;
+type TStackOpArgs = [stack: TStack];
+type TStackOp = (...args: TStackOpArgs) => TStack;
 
 const push: TStackOp = (stack) => [...stack, 0];
 
@@ -80,7 +81,8 @@ const increment: TStackOp = (stack) => {
 
 type TState = [number, TStack];
 
-type TEnter = (state: TState) => void;
+type TEnterArgs = [state: TState];
+type TEnter = (...args: TEnterArgs) => void;
 
 const enter: TEnter = (state) => {
     state[1] = push(state[1]);
@@ -101,11 +103,8 @@ const report: TReportFn<TRule> = (ctx, node, count, max) => {
     });
 };
 
-type TCheck = (
-    state: TState,
-    ctx: TContext<TRule>,
-    node: TSESTree.Node,
-) => void;
+type TCheckArgs = [state: TState, ctx: TContext<TRule>, node: TSESTree.Node];
+type TCheck = (...args: TCheckArgs) => void;
 
 const check: TCheck = (state, ctx, node) => {
     if (state[1].length > 0) {
@@ -118,11 +117,8 @@ const check: TCheck = (state, ctx, node) => {
     }
 };
 
-type TMakeHandler = (
-    check: TCheck,
-    state: TState,
-    ctx: TContext<TRule>,
-) => TNodeHandler;
+type TMakeHandlerArgs = [check: TCheck, state: TState, ctx: TContext<TRule>];
+type TMakeHandler = (...args: TMakeHandlerArgs) => TNodeHandler;
 
 const makeHandler: TMakeHandler = (check, state, ctx) =>
     (
