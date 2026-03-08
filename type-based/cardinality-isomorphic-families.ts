@@ -158,12 +158,12 @@ type TFindPairs = (entries: ReadonlyArray<TEntry>) => ReadonlyArray<TPair>;
 
 const findIsomorphicPairs: TFindPairs = (entries) => {
     const pairs: Array<TPair> = [];
-    for (const [i, a] of entries.entries()) {
-        for (const b of entries.slice(i + 1)) {
-            const kA: string = profileKey(a[3]);
-            const kB: string = profileKey(b[3]);
-            if (kA === kB) {
-                pairs.push([a, b]);
+    for (const [i, entryA] of entries.entries()) {
+        for (const entryB of entries.slice(i + 1)) {
+            const keyA: string = profileKey(entryA[3]);
+            const keyB: string = profileKey(entryB[3]);
+            if (keyA === keyB) {
+                pairs.push([entryA, entryB]);
             }
         }
     }
