@@ -47,7 +47,7 @@ export const LINT_META: TLintMeta = {
             "witnesses a factorization: " +
             "exists H : S x I -> FinSet " +
             "with H(-,i0) ~ F and " +
-            "H(-,i1) ~ G — the two " +
+            "H(-,i1) ~ G \u2014 the two " +
             "families are fibers of a " +
             "single family parameterized " +
             "by the missing index I",
@@ -83,6 +83,8 @@ type TEntry = readonly [
 ];
 
 type TCollected = Array<TEntry>;
+
+type TGroupLookup = TCollected | undefined;
 
 type TConstraintKey = (param: TSESTree.TSTypeParameter) => string;
 
@@ -142,7 +144,7 @@ const buildGroups: TBuildGroups = (items) => {
     const groups: TGroupMap = new Map();
     for (const entry of items) {
         const key: string = entry[2];
-        const existing: Array<TEntry> | undefined = groups.get(key);
+        const existing: TGroupLookup = groups.get(key);
         if (existing) {
             existing.push(entry);
         } else {
