@@ -1,4 +1,10 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TContext,
+    TCreate,
+    TMeta,
+    TSchema,
+} from "../type-based/type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -11,17 +17,13 @@ const MSG: string =
 
 const DESC: string = "Enforce a maximum indentation " + "depth for all code.";
 
-type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
-
-type TContext = Parameters<TRule["create"]>[0];
+export type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
 
 type TMatch = null | RegExpMatchArray;
 
-type TSourceCode = TContext["sourceCode"];
+type TSourceCode = TContext<TRule>["sourceCode"];
 
-type TStringToNumber = {
-    (input: string): number;
-};
+type TStringToNumber = (input: string) => number;
 
 const getTabDepth: TStringToNumber = (leading) => {
     const matches: TMatch = leading.match(/\t/g);
@@ -36,42 +38,22 @@ const getDepth: TStringToNumber = (leading) => {
     return hasTab ? getTabDepth(leading) : spaceDepth;
 };
 
-type TReportData = {
-    depth: string;
-    max: string;
-};
+type TReportData = [string, string];
 
-type TMakeData = {
-    (depth: number, max: number): TReportData;
-};
+type TMakeData = (depth: number, max: number) => TReportData;
 
-const makeData: TMakeData = (depth, max) => ({
-    depth: String(depth),
-    max: String(max),
-});
+const makeData: TMakeData = (depth, max) => [String(depth), String(max)];
 
-type TPosition = {
-    column: number;
-    line: number;
-};
+type TLoc = TSESTree.SourceLocation;
 
-type TLoc = {
-    end: TPosition;
-    start: TPosition;
-};
-
-type TMakeLoc = {
-    (lineNum: number, len: number): TLoc;
-};
+type TMakeLoc = (lineNum: number, len: number) => TLoc;
 
 const makeLoc: TMakeLoc = (lineNum, len) => ({
     end: { column: len, line: lineNum },
     start: { column: 0, line: lineNum },
 });
 
-type TGetLeading = {
-    (line: string): string;
-};
+type TGetLeading = (line: string) => string;
 
 const getLeading: TGetLeading = (line) => {
     const match: TMatch = line.match(/^(\s*)/);
@@ -79,27 +61,23 @@ const getLeading: TGetLeading = (line) => {
     return match === null ? empty : match[1];
 };
 
-type TCheckLine = {
-    (
-        context: TContext,
-        node: TSESTree.Program,
-        max: number,
-        line: string,
-        idx: number,
-    ): void;
-};
+type TCheckLine = (
+    context: TContext<TRule>,
+    node: TSESTree.Program,
+    max: number,
+    line: string,
+    idx: number,
+) => void;
 
 const checkLine: TCheckLine = (context, node, max, line, idx) => {
-    const isEmpty: boolean = line.trim() === "";
-    if (isEmpty) {
-        return;
-    }
+    const hasContent: boolean = line.trim() !== "";
     const leading: string = getLeading(line);
     const depth: number = getDepth(leading);
-    const tooDeep: boolean = depth > max;
+    const tooDeep: boolean = hasContent && depth > max;
     if (tooDeep) {
+        const pair: TReportData = makeData(depth, max);
         context.report({
-            data: makeData(depth, max),
+            data: { depth: pair[0], max: pair[1] },
             loc: makeLoc(idx + 1, line.length),
             messageId: "tooDeep",
             node,
@@ -107,42 +85,67 @@ const checkLine: TCheckLine = (context, node, max, line, idx) => {
     }
 };
 
-type TCheckLines = {
-    (context: TContext, node: TSESTree.Program, max: number): void;
-};
+type TLineHandler = (line: string, idx: number) => void;
+
+type TMakeLineHandler = (
+    checkLine: TCheckLine,
+    context: TContext<TRule>,
+    node: TSESTree.Program,
+    max: number,
+) => TLineHandler;
+
+const makeLineHandler: TMakeLineHandler = (checkLine, context, node, max) =>
+    (
+        () => (line: string, idx: number) =>
+            checkLine(context, node, max, line, idx)
+    )();
+
+type TCheckLines = (
+    context: TContext<TRule>,
+    node: TSESTree.Program,
+    max: number,
+) => void;
 
 const checkLines: TCheckLines = (context, node, max) => {
     const sourceCode: TSourceCode = context.sourceCode;
     const text: string = sourceCode.getText();
     const lines: Array<string> = text.split("\n");
-    lines.forEach((line, idx) => {
-        checkLine(context, node, max, line, idx);
-    });
+    const handler: TLineHandler = makeLineHandler(
+        checkLine,
+        context,
+        node,
+        max,
+    );
+    lines.forEach(handler);
 };
 
-type TCreate = TRule["create"];
+type TProgramHandler = (node: TSESTree.Program) => void;
 
-const create: TCreate = (context) => {
+type TMakeProgramHandler = (
+    checkLines: TCheckLines,
+    context: TContext<TRule>,
+    max: number,
+) => TProgramHandler;
+
+const makeProgramHandler: TMakeProgramHandler = (checkLines, context, max) =>
+    (
+        () => (node: TSESTree.Program) =>
+            checkLines(context, node, max)
+    )();
+
+const create: TCreate<TRule> = (context) => {
     const max: number = context.options[0];
-    return {
-        "Program:exit"(node: TSESTree.Program): void {
-            checkLines(context, node, max);
-        },
-    };
+    const handler: TProgramHandler = makeProgramHandler(
+        checkLines,
+        context,
+        max,
+    );
+    return { "Program:exit": handler };
 };
 
-type TSchemaType = "integer" | "number";
+const schema: TSchema<TRule> = [{ minimum: 1, type: "integer" }];
 
-type TSchema = {
-    minimum: number;
-    type: TSchemaType;
-};
-
-const schema: Array<TSchema> = [{ minimum: 1, type: "integer" }];
-
-type TMeta = TRule["meta"];
-
-const meta: TMeta = {
+const meta: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { tooDeep: MSG },
     schema,

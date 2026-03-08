@@ -13,12 +13,17 @@
     thunk layer between them is a valid PA boundary.
     An IIFE thunk collapses by 1 → T ≅ T.
 
-    const collapse = 
-    <A extends unknown[], R>( f: (...args: A) => () => R ):    
+    const collapse =
+    <A extends unknown[], R>( f: (...args: A) => () => R ):
         (...args: A) => R => (...args) => f(...args)();
 */
 
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TContext,
+    TCreate,
+    TMeta,
+} from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -37,8 +42,6 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"nestedFunction">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
 type TFunctionNode =
     | TSESTree.ArrowFunctionExpression
     | TSESTree.FunctionDeclaration
@@ -48,36 +51,36 @@ type TMaybeNode = TSESTree.Node | undefined;
 
 type TFnParamCount = (node: TSESTree.Node) => number;
 
-const fnParamCount: TFnParamCount = (node) => {
-    let count: number = -1;
-    switch (node.type) {
-        case AST_NODE_TYPES.ArrowFunctionExpression:
-        case AST_NODE_TYPES.FunctionDeclaration:
-        case AST_NODE_TYPES.FunctionExpression:
-            count = node.params.length;
-            break;
-    }
-    return count;
-};
+const fnParamCount: TFnParamCount = (node) =>
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionDeclaration ||
+    node.type === AST_NODE_TYPES.FunctionExpression
+        ? node.params.length
+        : -1;
 
 type TParentIsParameterized = (node: TSESTree.Node) => boolean;
 
-const parentIsParameterized: TParentIsParameterized = (node) => {
-    let current: TMaybeNode = node.parent;
-    let result: number = -1;
-    while (current && result < 0) {
-        result = fnParamCount(current);
-        current = current.parent;
-    }
-    return result > 0;
-};
+type TFindParentParamCount = (node: TMaybeNode) => number;
+
+const findParentParamCount: TFindParentParamCount = (node) =>
+    !node
+        ? -1
+        : fnParamCount(node) >= 0
+            ? fnParamCount(node)
+            : findParentParamCount(node.parent);
+
+const parentIsParameterized: TParentIsParameterized = (node) =>
+    findParentParamCount(node.parent) > 0;
 
 type TFunctionPredicate = (node: TFunctionNode) => boolean;
 
 const shouldReport: TFunctionPredicate = (node) =>
     node.params.length > 0 && parentIsParameterized(node);
 
-type TCheckNode = (context: TContext, node: TFunctionNode) => void;
+type TCheckNode = (
+    context: TContext<TRule>,
+    node: TFunctionNode,
+) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (shouldReport(node)) {
@@ -90,7 +93,10 @@ const checkNode: TCheckNode = (context, node) => {
 
 type THandler = (node: TFunctionNode) => void;
 
-type TMakeHandler = (checkNode: TCheckNode, context: TContext) => THandler;
+type TMakeHandler = (
+    checkNode: TCheckNode,
+    context: TContext<TRule>,
+) => THandler;
 
 const makeHandler: TMakeHandler = (checkNode, context) =>
     (
@@ -98,9 +104,7 @@ const makeHandler: TMakeHandler = (checkNode, context) =>
             checkNode(context, node)
     )();
 
-type TCreate = TRule["create"];
-
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(checkNode, context);
     return {
         ArrowFunctionExpression: handler,
@@ -109,9 +113,7 @@ const create: TCreate = (context) => {
     };
 };
 
-type TMeta = TRule["meta"];
-
-const META: TMeta = {
+const META: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { nestedFunction: MSG },
     schema: [],

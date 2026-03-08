@@ -1,4 +1,5 @@
-
+**HISTORIC ARTEFACT, DO NOT USE AS CONCRETE RULES OR EVIDENCE**
+<!-- 
 High Level To Do
 **Modifications and Improvements**
 1. `no-duplicate-type-structure.ts` misses an important case, consider these two types:
@@ -351,4 +352,4 @@ Implicit field correspondence (§2.1 case 4) — detecting that "pending" ↔ "i
 Discriminant flow analysis (§2.3) — the entire method of tracing discriminant values through pattern matches, field assignments, return values. This was abstract interpretation over function bodies.
 All "concrete signals" — switch(a.status) where branches set fields, f(g(h(x))) call chains, records where actual keys/values witness the transport. All require inspecting runtime behavior.
 Co-occurrence in mapping functions as a fiber signal (§3.3) — "a single function destructures A to construct B." That's body-level.
-Implementation phase 2 was entirely "discriminant flow analysis" — scanning pattern-match sites, tracking what values flow into, following through to target types. All gone.
+Implementation phase 2 was entirely "discriminant flow analysis" — scanning pattern-match sites, tracking what values flow into, following through to target types. All gone. -->

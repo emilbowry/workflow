@@ -1,4 +1,11 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TCheckNode,
+    TContext,
+    TCreate,
+    THandler,
+    TTypeNodePredicate,
+} from "./type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -11,26 +18,14 @@ const DESC: string = "Disallow type aliases with " + "a single property field.";
 
 type TRule = ESLintUtils.RuleModule<"singleField">;
 
-type TContext = Parameters<TRule["create"]>[0];
-
-type TShouldReport = {
-    (node: TSESTree.TypeNode): boolean;
-};
-
-const shouldReport: TShouldReport = (node) =>
+const shouldReport: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral &&
     node.members.length === 1 &&
     node.members[0].type !== AST_NODE_TYPES.TSCallSignatureDeclaration;
 
-type THandler = {
-    (node: TSESTree.TSTypeAliasDeclaration): void;
-};
+type TMakeHandler = (context: TContext<TRule>) => THandler;
 
-type TMakeHandler = {
-    (context: TContext): THandler;
-};
-
-const makeHandler: TMakeHandler = (context) => (node) => {
+const handleNode: TCheckNode<TRule> = (context, node) => {
     const ann: TSESTree.TypeNode = node.typeAnnotation;
     if (shouldReport(ann)) {
         context.report({
@@ -40,9 +35,9 @@ const makeHandler: TMakeHandler = (context) => (node) => {
     }
 };
 
-type TCreate = TRule["create"];
+const makeHandler: TMakeHandler = (context) => handleNode.bind(null, context);
 
-const create: TCreate = (context) => {
+const create: TCreate<TRule> = (context) => {
     const handler: THandler = makeHandler(context);
     return {
         TSTypeAliasDeclaration: handler,

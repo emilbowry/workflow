@@ -1,4 +1,11 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { TRule } from "../rules/max-total-depth";
+import type {
+    TContext,
+    TMeta,
+    TNodeHandler,
+    TReportFn,
+} from "./type-based.types";
 
 import { ESLintUtils } from "@typescript-eslint/utils";
 
@@ -15,9 +22,7 @@ const DESC: string =
     "(literals and tuples) per " +
     "type alias declaration.";
 
-type TRule = ESLintUtils.RuleModule<"tooDeep", [number]>;
-
-type TStack = Array<number>;
+type TStack = Array<number>; // a little insane, what caused this
 
 type TStackOp = (stack: TStack) => TStack;
 
@@ -34,8 +39,6 @@ const increment: TStackOp = (stack) => {
 
 type TState = [number, TStack];
 
-type TContext = Parameters<TRule["create"]>[0];
-
 type TEnter = (state: TState) => void;
 
 const enter: TEnter = (state) => {
@@ -46,14 +49,7 @@ const exit: TEnter = (state) => {
     state[1] = pop(state[1]);
 };
 
-type TReport = (
-    ctx: TContext,
-    node: TSESTree.Node,
-    count: number,
-    max: number,
-) => void;
-
-const report: TReport = (ctx, node, count, max) => {
+const report: TReportFn<TRule> = (ctx, node, count, max) => {
     ctx.report({
         data: {
             count: String(count),
@@ -64,7 +60,11 @@ const report: TReport = (ctx, node, count, max) => {
     });
 };
 
-type TCheck = (state: TState, ctx: TContext, node: TSESTree.Node) => void;
+type TCheck = (
+    state: TState,
+    ctx: TContext<TRule>,
+    node: TSESTree.Node,
+) => void;
 
 const check: TCheck = (state, ctx, node) => {
     if (state[1].length > 0) {
@@ -77,12 +77,10 @@ const check: TCheck = (state, ctx, node) => {
     }
 };
 
-type TNodeHandler = (node: TSESTree.Node) => void;
-
 type TMakeHandler = (
     check: TCheck,
     state: TState,
-    ctx: TContext,
+    ctx: TContext<TRule>,
 ) => TNodeHandler;
 
 const makeHandler: TMakeHandler = (check, state, ctx) =>
@@ -91,9 +89,7 @@ const makeHandler: TMakeHandler = (check, state, ctx) =>
             check(state, ctx, node)
     )();
 
-type TMeta = TRule["meta"];
-
-const meta: TMeta = {
+const meta: TMeta<TRule> = {
     docs: {
         description: DESC,
     },

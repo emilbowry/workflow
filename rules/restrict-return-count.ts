@@ -1,4 +1,12 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type {
+    TContext,
+    TCreate,
+    TMeta,
+    TNodeHandler,
+    TReportFn,
+    TSchema,
+} from "../type-based/type-based.types";
 
 import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
@@ -16,17 +24,12 @@ const EARLY_MSG: string =
 
 type TRule = ESLintUtils.RuleModule<"earlyReturn" | "tooManyReturns", [number]>;
 
-type TContext = Parameters<TRule["create"]>[0];
-
-type TStackOp = {
-    (stack: Array<number>): void;
-};
+type TStackOp = (stack: Array<number>) => void;
 
 const increment: TStackOp = (stack) => {
-    if (stack.length === 0) {
-        return;
+    if (stack.length > 0) {
+        stack[stack.length - 1]++;
     }
-    stack[stack.length - 1]++;
 };
 
 const push: TStackOp = (stack) => {
@@ -35,54 +38,36 @@ const push: TStackOp = (stack) => {
 
 type TMaybeCount = number | undefined;
 
-type TReportData = {
-    count: string;
-    max: string;
-};
+type TReportTuple = readonly [string, string];
 
-type TMakeData = {
-    (count: number, max: number): TReportData;
-};
+type TMakeData = (count: number, max: number) => TReportTuple;
 
-const makeData: TMakeData = (count, max) => ({
-    count: String(count),
-    max: String(max),
-});
+const makeData: TMakeData = (count, max) =>
+    [String(count), String(max)] as const;
 
-type TReportIfExceeded = {
-    (context: TContext, node: TSESTree.Node, count: number, max: number): void;
-};
-
-const reportIfExceeded: TReportIfExceeded = (context, node, count, max) => {
-    if (count <= max) {
-        return;
+const reportIfExceeded: TReportFn<TRule> = (context, node, count, max) => {
+    if (count > max) {
+        const reportData: TReportTuple = makeData(count, max);
+        context.report({
+            data: { count: reportData[0], max: reportData[1] },
+            messageId: "tooManyReturns",
+            node,
+        });
     }
-    context.report({
-        data: makeData(count, max),
-        messageId: "tooManyReturns",
-        node,
-    });
 };
 
-type TPop = {
-    (
-        stack: Array<number>,
-        context: TContext,
-        node: TSESTree.Node,
-        max: number,
-    ): void;
-};
+type TPop = (
+    stack: Array<number>,
+    context: TContext<TRule>,
+    node: TSESTree.Node,
+    max: number,
+) => void;
 
 const pop: TPop = (stack, context, node, max) => {
     const count: TMaybeCount = stack.pop();
-    if (count === undefined) {
-        return;
+    if (count !== undefined) {
+        reportIfExceeded(context, node, count, max);
     }
-    reportIfExceeded(context, node, count, max);
-};
-
-type TNodeHandler = {
-    (node: TSESTree.Node): void;
 };
 
 type TFunctionNodeTypes = Set<string>;
@@ -93,53 +78,78 @@ const FUNCTION_TYPES: TFunctionNodeTypes = new Set([
     AST_NODE_TYPES.FunctionExpression,
 ]);
 
-type TIsFinalReturn = {
-    (node: TSESTree.ReturnStatement): boolean;
-};
+type TIsFinalReturn = (node: TSESTree.ReturnStatement) => boolean;
 
 const isFinalReturn: TIsFinalReturn = (node) => {
     const parent: TSESTree.Node = node.parent;
-    if (parent.type !== AST_NODE_TYPES.BlockStatement) {
-        return false;
-    }
-    if (!FUNCTION_TYPES.has(parent.parent.type)) {
-        return false;
-    }
-    return parent.body[parent.body.length - 1] === node;
+    return (
+        parent.type === AST_NODE_TYPES.BlockStatement &&
+        FUNCTION_TYPES.has(parent.parent.type) &&
+        parent.body[parent.body.length - 1] === node
+    );
 };
 
-type TReportEarly = {
-    (context: TContext, node: TSESTree.ReturnStatement): void;
-};
+type TReportEarly = (
+    context: TContext<TRule>,
+    node: TSESTree.ReturnStatement,
+) => void;
 
 const reportEarlyReturn: TReportEarly = (context, node) => {
-    if (isFinalReturn(node)) {
-        return;
+    if (!isFinalReturn(node)) {
+        context.report({
+            messageId: "earlyReturn",
+            node,
+        });
     }
-    context.report({
-        messageId: "earlyReturn",
-        node,
-    });
 };
 
-type TReturnHandler = {
-    (node: TSESTree.ReturnStatement): void;
+type TReturnHandler = (node: TSESTree.ReturnStatement) => void;
+
+type THandleReturn = (
+    stack: Array<number>,
+    context: TContext<TRule>,
+    node: TSESTree.ReturnStatement,
+) => void;
+
+const handleReturn: THandleReturn = (stack, context, node) => {
+    increment(stack);
+    reportEarlyReturn(context, node);
 };
 
-type TCreate = TRule["create"];
+type TMakeNodeHandler = (
+    handler: TPop,
+    stack: Array<number>,
+    context: TContext<TRule>,
+    max: number,
+) => TNodeHandler;
 
-const create: TCreate = (context) => {
+const makeOnExit: TMakeNodeHandler = (handler, stack, context, max) =>
+    (
+        () => (node: TSESTree.Node) =>
+            handler(stack, context, node, max)
+    )();
+
+type TMakeReturnHandler = (
+    handler: THandleReturn,
+    stack: Array<number>,
+    context: TContext<TRule>,
+) => TReturnHandler;
+
+const makeOnReturn: TMakeReturnHandler = (handler, stack, context) =>
+    (
+        () => (node: TSESTree.ReturnStatement) =>
+            handler(stack, context, node)
+    )();
+
+const create: TCreate<TRule> = (context) => {
     const max: number = context.options[0];
     const stack: Array<number> = [];
 
     const onEnter: TNodeHandler = () => push(stack);
 
-    const onExit: TNodeHandler = (node) => pop(stack, context, node, max);
+    const onExit: TNodeHandler = makeOnExit(pop, stack, context, max);
 
-    const onReturn: TReturnHandler = (node) => {
-        increment(stack);
-        reportEarlyReturn(context, node);
-    };
+    const onReturn: TReturnHandler = makeOnReturn(handleReturn, stack, context);
 
     return {
         ArrowFunctionExpression: onEnter,
@@ -152,16 +162,9 @@ const create: TCreate = (context) => {
     };
 };
 
-type TSchema = {
-    minimum: number;
-    type: string;
-};
+const SCHEMA: TSchema<TRule> = [{ minimum: 1, type: "integer" }];
 
-const SCHEMA: Array<TSchema> = [{ minimum: 1, type: "integer" }];
-
-type TMeta = TRule["meta"];
-
-const META: TMeta = {
+const META: TMeta<TRule> = {
     docs: { description: DESC },
     messages: { earlyReturn: EARLY_MSG, tooManyReturns: MSG },
     schema: SCHEMA,
