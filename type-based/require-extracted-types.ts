@@ -74,12 +74,14 @@ const isAllowed: TTypeNodePredicate = (node) =>
 
 type TRule = ESLintUtils.RuleModule<"extractType">;
 
-type TReport = (node: TSESTree.TSTypeAnnotation) => void;
+type TReportArgs = [node: TSESTree.TSTypeAnnotation];
+type TReport = (...args: TReportArgs) => void;
 
-type TCheckNode = (
+type TCheckNodeArgs = [
     context: TContext<TRule>,
     node: TSESTree.TSTypeAnnotation,
-) => void;
+];
+type TCheckNode = (...args: TCheckNodeArgs) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     const inner: TSESTree.TypeNode = node.typeAnnotation;
@@ -91,7 +93,8 @@ const checkNode: TCheckNode = (context, node) => {
     }
 };
 
-type TMakeReport = (checkFn: TCheckNode, context: TContext<TRule>) => TReport;
+type TMakeReportArgs = [checkFn: TCheckNode, context: TContext<TRule>];
+type TMakeReport = (...args: TMakeReportArgs) => TReport;
 
 const makeReport: TMakeReport = (checkFn, context) =>
     (
