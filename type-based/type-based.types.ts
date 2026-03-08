@@ -8,34 +8,54 @@ export type TCreate<TRule extends TBaseRule> = TRule["create"];
 
 export type TMeta<TRule extends TBaseRule> = TRule["meta"];
 
-export type THandler = (node: TSESTree.TSTypeAliasDeclaration) => void;
+type THandlerArgs = [node: TSESTree.TSTypeAliasDeclaration];
 
-export type TNodeHandler = (node: TSESTree.Node) => void;
+export type THandler = (...args: THandlerArgs) => void;
 
-export type TCheckNode<TRule extends TBaseRule> = (
+type TNodeHandlerArgs = [node: TSESTree.Node];
+
+export type TNodeHandler = (...args: TNodeHandlerArgs) => void;
+
+type TCheckNodeArgs<TRule extends TBaseRule> = [
     ctx: TContext<TRule>,
     node: TSESTree.TSTypeAliasDeclaration,
+];
+
+export type TCheckNode<TRule extends TBaseRule> = (
+    ...args: TCheckNodeArgs<TRule>
 ) => void;
 
-export type TMakeHandler<TRule extends TBaseRule> = (
+type TMakeHandlerArgs<TRule extends TBaseRule> = [
     checkNode: TCheckNode<TRule>,
     context: TContext<TRule>,
+];
+
+export type TMakeHandler<TRule extends TBaseRule> = (
+    ...args: TMakeHandlerArgs<TRule>
 ) => THandler;
 
 export type TSchema<TRule extends TBaseRule> = TMeta<TRule>["schema"];
 
-export type TReportFn<TRule extends TBaseRule> = (
+type TReportFnArgs<TRule extends TBaseRule> = [
     ctx: TContext<TRule>,
     node: TSESTree.Node,
     count: number,
     max: number,
+];
+
+export type TReportFn<TRule extends TBaseRule> = (
+    ...args: TReportFnArgs<TRule>
 ) => void;
 
-export type TCanonical = (node: TSESTree.TypeNode) => string;
+type TTypeNodeArgs = [node: TSESTree.TypeNode];
 
-export type TRefIdentName = (ref: TSESTree.TSTypeReference) => string;
+export type TCanonical = (...args: TTypeNodeArgs) => string;
 
-export type TTypeNodePredicate = (node: TSESTree.TypeNode) => boolean;
+type TRefIdentNameArgs = [ref: TSESTree.TSTypeReference];
+
+export type TRefIdentName = (...args: TRefIdentNameArgs) => string;
+
+export type TTypeNodePredicate = (...args: TTypeNodeArgs) => boolean;
 
 type TLintKeys = readonly [
     "flags",
