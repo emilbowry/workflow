@@ -68,7 +68,7 @@ const DESC: string =
 
 type TRule = ESLintUtils.RuleModule<"finiteReturnWidening">;
 
-type TTypeNodeArgs = [node: TSESTree.TypeNode];
+type TTypeNodeArgs = [TSESTree.TypeNode];
 type TTypeNodePredicate = (...args: TTypeNodeArgs) => boolean;
 
 const isLiteralType: TTypeNodePredicate = (node) =>
@@ -85,17 +85,17 @@ const isFiniteDomain: TTypeNodePredicate = (node) =>
 const isBareString: TTypeNodePredicate = (node) =>
     node.type === AST_NODE_TYPES.TSStringKeyword;
 
-type TGetReturnTypeArgs = [node: TSESTree.TSFunctionType];
+type TGetReturnTypeArgs = [TSESTree.TSFunctionType];
 type TGetReturnType = (
     ...args: TGetReturnTypeArgs
 ) => TSESTree.TypeNode | undefined;
 
 const getReturnType: TGetReturnType = (node) => node.returnType?.typeAnnotation;
 
-type THasFiniteParamArgs = [params: ReadonlyArray<TSESTree.Parameter>];
+type THasFiniteParamArgs = [ReadonlyArray<TSESTree.Parameter>];
 type THasFiniteParam = (...args: THasFiniteParamArgs) => boolean;
 
-type TGetParamAnnotationArgs = [param: TSESTree.Parameter];
+type TGetParamAnnotationArgs = [TSESTree.Parameter];
 type TGetParamAnnotation = (
     ...args: TGetParamAnnotationArgs
 ) => TSESTree.TypeNode | undefined;
