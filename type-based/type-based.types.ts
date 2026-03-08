@@ -37,13 +37,16 @@ export type TRefIdentName = (ref: TSESTree.TSTypeReference) => string;
 
 export type TTypeNodePredicate = (node: TSESTree.TypeNode) => boolean;
 
-export type TLintKey =
-    | "flags"
-    | "fix"
-    | "pitfalls"
-    | "avoid"
-    | "related"
-    | "philosophy";
+type TLintKeys = readonly [
+    "flags",
+    "fix",
+    "pitfalls",
+    "avoid",
+    "related",
+    "philosophy",
+];
+
+export type TLintKey = TLintKeys[number];
 
 export type TLintValue<T extends TLintKey> = `<${T}>${string}</${T}>`;
 
