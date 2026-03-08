@@ -51,14 +51,17 @@ export const LINT_META: TLintMeta = {
     ),
     philosophy: field(
         "philosophy",
-        "Records make structural " +
-            "comparison obvious. Two " +
-            "Records with identical K,V " +
-            "are visibly the same; two " +
-            "object literals with " +
-            "different property names " +
-            "hide structural identity " +
-            "behind labels",
+        "There are only two concrete " +
+            "containers: Array (positional) " +
+            "and Record/mapped type " +
+            "(key-indexed). Since constant " +
+            "families are invalid " +
+            "(require-parametric-record), " +
+            "every product is dependent — " +
+            "Record<K, F<K>> or " +
+            "{[K in T]: F<K>}. Object " +
+            "literals are ad-hoc encodings " +
+            "of dependent products",
     ),
 };
 

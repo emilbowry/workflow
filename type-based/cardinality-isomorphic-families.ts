@@ -41,11 +41,20 @@ export const LINT_META: TLintMeta = {
     ),
     philosophy: field(
         "philosophy",
-        "Extends structural deduplication " +
-            "into the parameterized case. " +
-            "Two type families that agree " +
-            "pointwise are isomorphic " +
-            "functors and should be unified",
+        "Let F, G : S -> FinSet be " +
+            "functors over a finite " +
+            "discrete category S. If " +
+            "|F(a)| = |G(a)| for all " +
+            "a in S, then F ~ G (naturality " +
+            "is vacuous over discrete S). " +
+            "The natural isomorphism " +
+            "witnesses a factorization: " +
+            "exists H : S x I -> FinSet " +
+            "with H(-,i0) ~ F and " +
+            "H(-,i1) ~ G — the two " +
+            "families are fibers of a " +
+            "single family parameterized " +
+            "by the missing index I",
     ),
     pitfalls: field(
         "pitfalls",
