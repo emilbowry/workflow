@@ -46,9 +46,7 @@ export const LINT_META: TLintMeta = {
 };
 
 const INDENT_SIZE: number = 4;
-const MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " depth={{depth}} max={{max}}";
+const MSG: string = lintMetaToMsg(LINT_META) + " depth={{depth}} max={{max}}";
 
 const DESC: string = "Enforce a maximum indentation " + "depth for all code.";
 

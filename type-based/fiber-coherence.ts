@@ -6,21 +6,13 @@ import type {
     TLintMeta,
     TMeta,
 } from "./type-based.types";
-import type {
-    TTransportGraph,
-} from "./transport-graph";
+import type { TTransportGraph } from "./transport-graph";
 
-import {
-    AST_NODE_TYPES,
-    ESLintUtils,
-} from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 import { lintMetaToMsg } from "./type-based.types";
 
-import {
-    buildTransportGraph,
-    classifyEdge,
-} from "./transport-graph";
+import { buildTransportGraph, classifyEdge } from "./transport-graph";
 
 export const LINT_META: TLintMeta = {
     avoid:
@@ -61,18 +53,14 @@ export const LINT_META: TLintMeta = {
         "type-distance",
 };
 
-const MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " Types: {{left}}, {{right}}";
+const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{left}}, {{right}}";
 
 const DESC: string =
     "Ensure fiber members connected " +
     "by isomorphic edges have " +
     "matching cardinalities.";
 
-type TRule = ESLintUtils.RuleModule<
-    "fiberCoherence"
->;
+type TRule = ESLintUtils.RuleModule<"fiberCoherence">;
 
 type TAliasEntry = {
     readonly name: string;
@@ -80,9 +68,7 @@ type TAliasEntry = {
     readonly annotation: TSESTree.TypeNode;
 };
 
-type TMakeAliasEntry = (
-    node: TSESTree.TSTypeAliasDeclaration,
-) => TAliasEntry;
+type TMakeAliasEntry = (node: TSESTree.TSTypeAliasDeclaration) => TAliasEntry;
 
 const makeAliasEntry: TMakeAliasEntry = (node) => ({
     annotation: node.typeAnnotation,
@@ -99,115 +85,72 @@ const isFunctionType: TIsFunctionType = (
 ): node is TSESTree.TSFunctionType =>
     node.type === AST_NODE_TYPES.TSFunctionType;
 
-type TComputeCardinality = (
-    node: TSESTree.TypeNode,
-) => number;
+type TComputeCardinality = (node: TSESTree.TypeNode) => number;
 
-const computeCardinality: TComputeCardinality =
-    (node) =>
-        node.type === AST_NODE_TYPES.TSUnionType
-            ? node.types.length
-            : node.type ===
-              AST_NODE_TYPES.TSTypeLiteral
-                ? node.members.length
-                : node.type ===
-                  AST_NODE_TYPES.TSTupleType
-                    ? node.elementTypes.length
-                    : node.type ===
-                      AST_NODE_TYPES
-                          .TSIntersectionType
-                        ? node.types.length
-                        : 1;
+const computeCardinality: TComputeCardinality = (node) =>
+    node.type === AST_NODE_TYPES.TSUnionType
+        ? node.types.length
+        : node.type === AST_NODE_TYPES.TSTypeLiteral
+            ? node.members.length
+            : node.type === AST_NODE_TYPES.TSTupleType
+                ? node.elementTypes.length
+                : node.type === AST_NODE_TYPES.TSIntersectionType
+                    ? node.types.length
+                    : 1;
 
-type TCardinalityMap = ReadonlyMap<
-    string,
-    number
->;
+type TCardinalityMap = ReadonlyMap<string, number>;
 
 type TBuildCardinalityMap = (
     entries: ReadonlyArray<TAliasEntry>,
 ) => TCardinalityMap;
 
-const buildCardinalityMap: TBuildCardinalityMap =
-    (entries) =>
-        new Map(
-            entries.map(
-                (e) => [
-                    e.name,
-                    computeCardinality(
-                        e.annotation,
-                    ),
-                ] as const,
-            ),
-        );
+const buildCardinalityMap: TBuildCardinalityMap = (entries) =>
+    new Map(
+        entries.map((e) => [e.name, computeCardinality(e.annotation)] as const),
+    );
 
 type TFindConnected = (
     start: string,
-    adjacency: ReadonlyMap<
-        string,
-        ReadonlyArray<string>
-    >,
+    adjacency: ReadonlyMap<string, ReadonlyArray<string>>,
 ) => ReadonlySet<string>;
 
-const findConnected: TFindConnected =
-    (start, adjacency) => {
-        const visit: (
-            queue: ReadonlyArray<string>,
-            visited: ReadonlySet<string>,
-        ) => ReadonlySet<string> =
-            (queue, visited) => {
-                if (queue.length === 0) {
-                    return visited;
-                }
-                const [head, ...tail]:
-                    readonly [
-                        string,
-                        ...ReadonlyArray<string>,
-                    ] = queue as [
-                        string,
-                        ...ReadonlyArray<string>,
-                    ];
-                if (visited.has(head)) {
-                    return visit(tail, visited);
-                }
-                const next: ReadonlySet<string> =
-                    new Set([...visited, head]);
-                const neighbors: ReadonlyArray<
-                    string
-                > = adjacency.get(head) ?? [];
-                const newQueue: ReadonlyArray<
-                    string
-                > = [...tail, ...neighbors];
-                return visit(newQueue, next);
-            };
-        return visit([start], new Set());
+const findConnected: TFindConnected = (start, adjacency) => {
+    const visit: (
+        queue: ReadonlyArray<string>,
+        visited: ReadonlySet<string>,
+    ) => ReadonlySet<string> = (queue, visited) => {
+        if (queue.length === 0) {
+            return visited;
+        }
+        const [head, ...tail]: readonly [string, ...ReadonlyArray<string>] =
+            queue as [string, ...ReadonlyArray<string>];
+        if (visited.has(head)) {
+            return visit(tail, visited);
+        }
+        const next: ReadonlySet<string> = new Set([...visited, head]);
+        const neighbors: ReadonlyArray<string> = adjacency.get(head) ?? [];
+        const newQueue: ReadonlyArray<string> = [...tail, ...neighbors];
+        return visit(newQueue, next);
     };
+    return visit([start], new Set());
+};
 
 type TFindComponents = (
     graph: TTransportGraph,
 ) => ReadonlyArray<ReadonlySet<string>>;
 
-const findComponents: TFindComponents =
-    (graph) =>
-        graph.nodes.reduce<
-            ReadonlyArray<ReadonlySet<string>>
-        >(
-            (acc, node) => {
-                const alreadySeen: boolean =
-                    acc.some((c) => c.has(node));
-                if (alreadySeen) {
-                    return acc;
-                }
-                const component: ReadonlySet<
-                    string
-                > = findConnected(
-                    node,
-                    graph.adjacency,
-                );
-                return [...acc, component];
-            },
-            [],
+const findComponents: TFindComponents = (graph) =>
+    graph.nodes.reduce<ReadonlyArray<ReadonlySet<string>>>((acc, node) => {
+        const alreadySeen: boolean = acc.some((c) => c.has(node));
+        if (alreadySeen) {
+            return acc;
+        }
+        const component: ReadonlySet<string> = findConnected(
+            node,
+            graph.adjacency,
         );
+        return [...acc, component];
+    }, []);
 
 type TEdge = {
     readonly domain: string;
@@ -219,13 +162,8 @@ type TIsIsoEdge = (
     fnEntries: ReadonlyArray<TAliasEntry>,
 ) => boolean;
 
-const isIsoEdge: TIsIsoEdge =
-    (edge, fnEntries) =>
-        classifyEdge(
-            edge.domain,
-            edge.codomain,
-            fnEntries,
-        ) === "isomorphism";
+const isIsoEdge: TIsIsoEdge = (edge, fnEntries) =>
+    classifyEdge(edge.domain, edge.codomain, fnEntries) === "isomorphism";
 
 type TMismatch = {
     readonly left: string;
@@ -238,115 +176,72 @@ type TCollectMismatches = (
     fnEntries: ReadonlyArray<TAliasEntry>,
 ) => ReadonlyArray<TMismatch>;
 
-const collectMismatches: TCollectMismatches =
-    (graph, cardinalities, fnEntries) =>
-        graph.edges.reduce<
-            ReadonlyArray<TMismatch>
-        >(
-            (acc, edge) => {
-                if (
-                    !isIsoEdge(edge, fnEntries)
-                ) {
-                    return acc;
-                }
-                const lc: number =
-                    cardinalities.get(
-                        edge.domain,
-                    ) ?? 1;
-                const rc: number =
-                    cardinalities.get(
-                        edge.codomain,
-                    ) ?? 1;
-                return lc === rc
-                    ? acc
-                    : [
-                        ...acc,
-                        {
-                            left: edge.domain,
-                            right: edge.codomain,
-                        },
-                    ];
-            },
-            [],
-        );
+const collectMismatches: TCollectMismatches = (
+    graph,
+    cardinalities,
+    fnEntries,
+) =>
+    graph.edges.reduce<ReadonlyArray<TMismatch>>((acc, edge) => {
+        if (!isIsoEdge(edge, fnEntries)) {
+            return acc;
+        }
+        const lc: number = cardinalities.get(edge.domain) ?? 1;
+        const rc: number = cardinalities.get(edge.codomain) ?? 1;
+        return lc === rc
+            ? acc
+            : [
+                ...acc,
+                {
+                    left: edge.domain,
+                    right: edge.codomain,
+                },
+            ];
+    }, []);
 
-type TEntryMap = ReadonlyMap<
-    string,
-    TAliasEntry
->;
+type TEntryMap = ReadonlyMap<string, TAliasEntry>;
 
-type TBuildEntryMap = (
-    entries: ReadonlyArray<TAliasEntry>,
-) => TEntryMap;
+type TBuildEntryMap = (entries: ReadonlyArray<TAliasEntry>) => TEntryMap;
 
-const buildEntryMap: TBuildEntryMap =
-    (entries) =>
-        new Map(
-            entries.map(
-                (e) => [e.name, e] as const,
-            ),
-        );
+const buildEntryMap: TBuildEntryMap = (entries) =>
+    new Map(entries.map((e) => [e.name, e] as const));
 
-type TIsLiteralType = (
-    node: TSESTree.TypeNode,
-) => boolean;
+type TIsLiteralType = (node: TSESTree.TypeNode) => boolean;
 
 const isLiteralType: TIsLiteralType = (node) =>
     node.type === AST_NODE_TYPES.TSLiteralType;
 
-type TIsLiteralUnion = (
-    node: TSESTree.TypeNode,
-) => boolean;
+type TIsLiteralUnion = (node: TSESTree.TypeNode) => boolean;
 
-const isLiteralUnion: TIsLiteralUnion =
-    (node) =>
-        node.type ===
-            AST_NODE_TYPES.TSUnionType &&
-        node.types.length > 0 &&
-        node.types.every(isLiteralType);
+const isLiteralUnion: TIsLiteralUnion = (node) =>
+    node.type === AST_NODE_TYPES.TSUnionType &&
+    node.types.length > 0 &&
+    node.types.every(isLiteralType);
 
 type TGetConstraint = (
     param: TSESTree.TSTypeParameter,
 ) => TSESTree.TypeNode | undefined;
 
-const getConstraint: TGetConstraint = (param) =>
-    param.constraint ?? undefined;
+const getConstraint: TGetConstraint = (param) => param.constraint ?? undefined;
 
-type THasFiniteConstraint = (
-    param: TSESTree.TSTypeParameter,
-) => boolean;
+type THasFiniteConstraint = (param: TSESTree.TSTypeParameter) => boolean;
 
-const hasFiniteConstraint: THasFiniteConstraint =
-    (param) => {
-        const c: TSESTree.TypeNode | undefined =
-            getConstraint(param);
-        return c !== undefined && (
-            isLiteralUnion(c) ||
-            isLiteralType(c)
-        );
-    };
+const hasFiniteConstraint: THasFiniteConstraint = (param) => {
+    const c: TSESTree.TypeNode | undefined = getConstraint(param);
+    return c !== undefined && (isLiteralUnion(c) || isLiteralType(c));
+};
 
-type TIsConstrainedGeneric = (
-    node: TSESTree.TSTypeAliasDeclaration,
-) => boolean;
+type TIsConstrainedGeneric = (node: TSESTree.TSTypeAliasDeclaration) => boolean;
 
-const isConstrainedGeneric: TIsConstrainedGeneric =
-    (node) => {
-        const params: ReadonlyArray<
-            TSESTree.TSTypeParameter
-        > = node.typeParameters?.params ?? [];
-        return params.length > 0 &&
-            params.every(hasFiniteConstraint);
-    };
+const isConstrainedGeneric: TIsConstrainedGeneric = (node) => {
+    const params: ReadonlyArray<TSESTree.TSTypeParameter> =
+        node.typeParameters?.params ?? [];
+    return params.length > 0 && params.every(hasFiniteConstraint);
+};
 
-type TIsDiscriminated = (
-    entry: TAliasEntry,
-) => boolean;
+type TIsDiscriminated = (entry: TAliasEntry) => boolean;
 
-const isDiscriminated: TIsDiscriminated =
-    (entry) =>
-        isLiteralUnion(entry.annotation) ||
-        isConstrainedGeneric(entry.node);
+const isDiscriminated: TIsDiscriminated = (entry) =>
+    isLiteralUnion(entry.annotation) || isConstrainedGeneric(entry.node);
 
 type TReportMismatches = (
     context: TContext<TRule>,
@@ -354,23 +249,21 @@ type TReportMismatches = (
     entryMap: TEntryMap,
 ) => void;
 
-const reportMismatches: TReportMismatches =
-    (context, mismatches, entryMap) => {
-        for (const m of mismatches) {
-            const entry: TAliasEntry | undefined =
-                entryMap.get(m.left);
-            if (entry !== undefined) {
-                context.report({
-                    data: {
-                        left: m.left,
-                        right: m.right,
-                    },
-                    messageId: "fiberCoherence",
-                    node: entry.node,
-                });
-            }
+const reportMismatches: TReportMismatches = (context, mismatches, entryMap) => {
+    for (const m of mismatches) {
+        const entry: TAliasEntry | undefined = entryMap.get(m.left);
+        if (entry !== undefined) {
+            context.report({
+                data: {
+                    left: m.left,
+                    right: m.right,
+                },
+                messageId: "fiberCoherence",
+                node: entry.node,
+            });
         }
-    };
+    }
+};
 
 type TExitHandler = () => void;
 
@@ -379,63 +272,37 @@ type TMakeExitHandler = (
     aliases: ReadonlyArray<TAliasEntry>,
 ) => TExitHandler;
 
-const makeExitHandler: TMakeExitHandler =
-    (context, aliases) =>
-        (
-            () => () => {
-                const discriminated: ReadonlyArray<
-                    TAliasEntry
-                > = aliases.filter(
-                    isDiscriminated,
-                );
-                const fnEntries: ReadonlyArray<
-                    TAliasEntry
-                > = aliases.filter(
-                    (e) => isFunctionType(
-                        e.annotation,
-                    ),
-                );
-                const graph: TTransportGraph =
-                    buildTransportGraph(
-                        discriminated,
-                        fnEntries,
-                    );
-                findComponents(graph);
-                const cardinalities: TCardinalityMap =
-                    buildCardinalityMap(
-                        discriminated,
-                    );
-                const mismatches: ReadonlyArray<
-                    TMismatch
-                > = collectMismatches(
-                    graph,
-                    cardinalities,
-                    fnEntries,
-                );
-                const entryMap: TEntryMap =
-                    buildEntryMap(discriminated);
-                reportMismatches(
-                    context,
-                    mismatches,
-                    entryMap,
-                );
-            }
-        )();
+const makeExitHandler: TMakeExitHandler = (context, aliases) =>
+    (() => () => {
+        const discriminated: ReadonlyArray<TAliasEntry> =
+            aliases.filter(isDiscriminated);
+        const fnEntries: ReadonlyArray<TAliasEntry> = aliases.filter((e) =>
+            isFunctionType(e.annotation),
+        );
+        const graph: TTransportGraph = buildTransportGraph(
+            discriminated,
+            fnEntries,
+        );
+        findComponents(graph);
+        const cardinalities: TCardinalityMap =
+            buildCardinalityMap(discriminated);
+        const mismatches: ReadonlyArray<TMismatch> = collectMismatches(
+            graph,
+            cardinalities,
+            fnEntries,
+        );
+        const entryMap: TEntryMap = buildEntryMap(discriminated);
+        reportMismatches(context, mismatches, entryMap);
+    })();
 
 const create: TCreate<TRule> = (context) => {
     const aliases: Array<TAliasEntry> = [];
-    const aliasHandler: THandler =
-        (
-            () => (
-                node: TSESTree.TSTypeAliasDeclaration,
-            ) => {
-                aliases.push(
-                    makeAliasEntry(node),
-                );
-            }
-        )();
-    const exitHandler: TExitHandler =
-        makeExitHandler(context, aliases);
+    const aliasHandler: THandler = (
+        () => (node: TSESTree.TSTypeAliasDeclaration) => {
+            aliases.push(makeAliasEntry(node));
+        }
+    )();
+    const exitHandler: TExitHandler = makeExitHandler(context, aliases);
     return {
         "Program:exit": exitHandler,
         TSTypeAliasDeclaration: aliasHandler,
@@ -451,10 +318,9 @@ const meta: TMeta<TRule> = {
     type: "suggestion",
 };
 
-const rule: TRule =
-    ESLintUtils.RuleCreator.withoutDocs({
-        create,
-        meta,
-    });
+const rule: TRule = ESLintUtils.RuleCreator.withoutDocs({
+    create,
+    meta,
+});
 
 export default rule;

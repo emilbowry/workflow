@@ -39,9 +39,7 @@ export const LINT_META: TLintMeta = {
         "Currently type-level only — " +
         "runtime signatures commented out",
     related:
-        "require-extracted-types, " +
-        "transport-graph, " +
-        "valid-generics",
+        "require-extracted-types, " + "transport-graph, " + "valid-generics",
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);
@@ -57,33 +55,22 @@ type TFunctionNode =
     // | TSESTree.ArrowFunctionExpression
     // | TSESTree.FunctionDeclaration
     // | TSESTree.FunctionExpression
-    | TSESTree.TSFunctionType
-    | TSESTree.TSCallSignatureDeclaration;
+    TSESTree.TSFunctionType | TSESTree.TSCallSignatureDeclaration;
 
-type TIsRestWithTypeRef = (
-    param: TSESTree.Parameter,
-) => boolean;
+type TIsRestWithTypeRef = (param: TSESTree.Parameter) => boolean;
 
 const isRestWithTypeRef: TIsRestWithTypeRef = (param) =>
     param.type === AST_NODE_TYPES.RestElement &&
     param.typeAnnotation?.typeAnnotation.type ===
         AST_NODE_TYPES.TSTypeReference;
 
-type TIsValidSignature = (
-    node: TFunctionNode,
-) => boolean;
+type TIsValidSignature = (node: TFunctionNode) => boolean;
 
 const isValidSignature: TIsValidSignature = (node) =>
     node.params.length === 0 ||
-    (
-        node.params.length === 1 &&
-        isRestWithTypeRef(node.params[0])
-    );
+    (node.params.length === 1 && isRestWithTypeRef(node.params[0]));
 
-type TCheckNode = (
-    context: TContext<TRule>,
-    node: TFunctionNode,
-) => void;
+type TCheckNode = (context: TContext<TRule>, node: TFunctionNode) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (!isValidSignature(node)) {
@@ -108,8 +95,7 @@ const makeHandler: TMakeHandler = (checkNode, context) =>
     )();
 
 const create: TCreate<TRule> = (context) => {
-    const handler: THandler =
-        makeHandler(checkNode, context);
+    const handler: THandler = makeHandler(checkNode, context);
     return {
         // ArrowFunctionExpression: handler,
         // FunctionDeclaration: handler,

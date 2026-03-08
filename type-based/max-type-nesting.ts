@@ -11,10 +11,7 @@ import { ESLintUtils } from "@typescript-eslint/utils";
 
 import { lintMetaToMsg } from "./type-based.types";
 
-type TRule = ESLintUtils.RuleModule<
-    "tooManyNested",
-    [number]
->;
+type TRule = ESLintUtils.RuleModule<"tooManyNested", [number]>;
 
 export const LINT_META: TLintMeta = {
     flags:
@@ -30,10 +27,7 @@ export const LINT_META: TLintMeta = {
         "depth. Two sibling type " +
         "literals at the same level " +
         "both increment the counter",
-    avoid:
-        "Inline anonymous type " +
-        "structures within type " +
-        "aliases",
+    avoid: "Inline anonymous type " + "structures within type " + "aliases",
     related:
         "require-extracted-types, " +
         "no-duplicate-type-structure," +
@@ -48,9 +42,7 @@ export const LINT_META: TLintMeta = {
         "comparison",
 };
 
-const MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " count={{count}} max={{max}}";
+const MSG: string = lintMetaToMsg(LINT_META) + " count={{count}} max={{max}}";
 
 const DESC: string =
     "Enforce a maximum number " +

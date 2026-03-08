@@ -84,9 +84,7 @@ export const LINT_META: TLintMeta = {
         "IIFE inside makeHandler. " +
         ".bind() is never valid",
     related:
-        "max-lines-per-function, " +
-        "func-style, " +
-        "prefer-arrow-callback",
+        "max-lines-per-function, " + "func-style, " + "prefer-arrow-callback",
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);
@@ -133,10 +131,7 @@ type TFunctionPredicate = (node: TFunctionNode) => boolean;
 const shouldReport: TFunctionPredicate = (node) =>
     node.params.length > 0 && parentIsParameterized(node);
 
-type TCheckNode = (
-    context: TContext<TRule>,
-    node: TFunctionNode,
-) => void;
+type TCheckNode = (context: TContext<TRule>, node: TFunctionNode) => void;
 
 const checkNode: TCheckNode = (context, node) => {
     if (shouldReport(node)) {

@@ -52,9 +52,7 @@ export const LINT_META: TLintMeta = {
         " issues",
 };
 
-const MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " Types: {{names}}";
+const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{names}}";
 
 const DESC: string =
     "Disallow multiple type " +
@@ -162,9 +160,7 @@ const handleConstructSignature: THandleConstructSig = (member) => {
 
 type TCanonicalMember = (member: TSESTree.TypeElement) => string;
 
-type TTryMember = (
-    member: TSESTree.TypeElement,
-) => TMaybeString;
+type TTryMember = (member: TSESTree.TypeElement) => TMaybeString;
 
 const tryPropertySig: TTryMember = (member) =>
     member.type === AST_NODE_TYPES.TSPropertySignature
@@ -187,8 +183,7 @@ const tryMethodSig: TTryMember = (member) =>
         : undefined;
 
 const memberFallback: TCanonicalMember = (member) =>
-    member.type ===
-    AST_NODE_TYPES.TSConstructSignatureDeclaration
+    member.type === AST_NODE_TYPES.TSConstructSignatureDeclaration
         ? handleConstructSignature(member)
         : member.type;
 
@@ -425,9 +420,7 @@ const tryInferType: TTryDispatch = (node) =>
         : undefined;
 
 const tryComposite: TTryDispatch = (node) =>
-    tryTypeLiteral(node) ??
-    tryUnionType(node) ??
-    tryIntersectionType(node);
+    tryTypeLiteral(node) ?? tryUnionType(node) ?? tryIntersectionType(node);
 
 const tryReference: TTryDispatch = (node) =>
     tryTypeReference(node) ??
@@ -436,9 +429,7 @@ const tryReference: TTryDispatch = (node) =>
     tryTypeOperator(node);
 
 const tryLiteral: TTryDispatch = (node) =>
-    tryLiteralType(node) ??
-    tryTupleType(node) ??
-    tryIndexedAccessType(node);
+    tryLiteralType(node) ?? tryTupleType(node) ?? tryIndexedAccessType(node);
 
 const tryAdvanced: TTryDispatch = (node) =>
     tryTypeQuery(node) ??

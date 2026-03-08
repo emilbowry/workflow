@@ -59,11 +59,9 @@ export const LINT_META: TLintMeta = {
         "vacuous edges",
 };
 
-const DEGENERATE_MSG: string =
-    lintMetaToMsg(LINT_META) + " (degenerate)";
+const DEGENERATE_MSG: string = lintMetaToMsg(LINT_META) + " (degenerate)";
 
-const HOMOGENEOUS_MSG: string =
-    lintMetaToMsg(LINT_META) + " (homogeneous)";
+const HOMOGENEOUS_MSG: string = lintMetaToMsg(LINT_META) + " (homogeneous)";
 
 const DESC: string =
     "Disallow degenerate and " + "homogeneous generic type aliases.";

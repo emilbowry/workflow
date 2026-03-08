@@ -7,10 +7,7 @@ import type {
     TMakeHandler,
 } from "./type-based.types";
 
-import {
-    AST_NODE_TYPES,
-    ESLintUtils,
-} from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 
 import { lintMetaToMsg } from "./type-based.types";
 
@@ -46,9 +43,7 @@ export const LINT_META: TLintMeta = {
         "return values, only type-level " +
         "annotations",
     related:
-        "require-rest-params-tuple, " +
-        "transport-graph, " +
-        "valid-generics",
+        "require-rest-params-tuple, " + "transport-graph, " + "valid-generics",
 };
 
 const MSG: string = lintMetaToMsg(LINT_META);
@@ -58,36 +53,26 @@ const DESC: string =
     "must return literal unions, " +
     "not bare string.";
 
-type TRule = ESLintUtils.RuleModule<
-    "finiteReturnWidening"
->;
+type TRule = ESLintUtils.RuleModule<"finiteReturnWidening">;
 
-type TIsLiteralType = (
-    node: TSESTree.TypeNode,
-) => boolean;
+type TIsLiteralType = (node: TSESTree.TypeNode) => boolean;
 
 const isLiteralType: TIsLiteralType = (node) =>
     node.type === AST_NODE_TYPES.TSLiteralType;
 
-type TIsLiteralUnion = (
-    node: TSESTree.TypeNode,
-) => boolean;
+type TIsLiteralUnion = (node: TSESTree.TypeNode) => boolean;
 
 const isLiteralUnion: TIsLiteralUnion = (node) =>
     node.type === AST_NODE_TYPES.TSUnionType &&
     node.types.length > 0 &&
     node.types.every(isLiteralType);
 
-type TIsFiniteDomain = (
-    node: TSESTree.TypeNode,
-) => boolean;
+type TIsFiniteDomain = (node: TSESTree.TypeNode) => boolean;
 
 const isFiniteDomain: TIsFiniteDomain = (node) =>
     isLiteralType(node) || isLiteralUnion(node);
 
-type TIsBareString = (
-    node: TSESTree.TypeNode,
-) => boolean;
+type TIsBareString = (node: TSESTree.TypeNode) => boolean;
 
 const isBareString: TIsBareString = (node) =>
     node.type === AST_NODE_TYPES.TSStringKeyword;
@@ -96,29 +81,23 @@ type TGetReturnType = (
     node: TSESTree.TSFunctionType,
 ) => TSESTree.TypeNode | undefined;
 
-const getReturnType: TGetReturnType = (node) =>
-    node.returnType?.typeAnnotation;
+const getReturnType: TGetReturnType = (node) => node.returnType?.typeAnnotation;
 
-type THasFiniteParam = (
-    params: ReadonlyArray<TSESTree.Parameter>,
-) => boolean;
+type THasFiniteParam = (params: ReadonlyArray<TSESTree.Parameter>) => boolean;
 
 const getParamAnnotation: (
     param: TSESTree.Parameter,
 ) => TSESTree.TypeNode | undefined = (param) =>
     param.type === AST_NODE_TYPES.Identifier
         ? param.typeAnnotation?.typeAnnotation
-        : param.type === AST_NODE_TYPES.RestElement &&
-          param.typeAnnotation
+        : param.type === AST_NODE_TYPES.RestElement && param.typeAnnotation
             ? param.typeAnnotation.typeAnnotation
             : undefined;
 
 const hasFiniteParam: THasFiniteParam = (params) =>
     params.some((p: TSESTree.Parameter) => {
-        const ann: TSESTree.TypeNode | undefined =
-            getParamAnnotation(p);
-        return ann !== undefined &&
-            isFiniteDomain(ann);
+        const ann: TSESTree.TypeNode | undefined = getParamAnnotation(p);
+        return ann !== undefined && isFiniteDomain(ann);
     });
 
 type TIsFunctionType = (
@@ -130,24 +109,16 @@ const isFunctionType: TIsFunctionType = (
 ): node is TSESTree.TSFunctionType =>
     node.type === AST_NODE_TYPES.TSFunctionType;
 
-const checkNode: TCheckNode<TRule> = (
-    context,
-    node,
-) => {
-    const body: TSESTree.TypeNode =
-        node.typeAnnotation;
+const checkNode: TCheckNode<TRule> = (context, node) => {
+    const body: TSESTree.TypeNode = node.typeAnnotation;
     if (!isFunctionType(body)) {
         return;
     }
-    const ret: TSESTree.TypeNode | undefined =
-        getReturnType(body);
+    const ret: TSESTree.TypeNode | undefined = getReturnType(body);
     if (ret === undefined) {
         return;
     }
-    if (
-        hasFiniteParam(body.params) &&
-        isBareString(ret)
-    ) {
+    if (hasFiniteParam(body.params) && isBareString(ret)) {
         context.report({
             messageId: "finiteReturnWidening",
             node,
@@ -155,35 +126,29 @@ const checkNode: TCheckNode<TRule> = (
     }
 };
 
-const makeHandler: TMakeHandler<TRule> = (
-    check,
-    context,
-) =>
+const makeHandler: TMakeHandler<TRule> = (check, context) =>
     (
-        () => (
-            node: TSESTree.TSTypeAliasDeclaration,
-        ) => check(context, node)
+        () => (node: TSESTree.TSTypeAliasDeclaration) =>
+            check(context, node)
     )();
 
 const create: TCreate<TRule> = (context) => {
-    const handler: THandler =
-        makeHandler(checkNode, context);
+    const handler: THandler = makeHandler(checkNode, context);
     return {
         TSTypeAliasDeclaration: handler,
     };
 };
 
-const rule: TRule =
-    ESLintUtils.RuleCreator.withoutDocs({
-        create,
-        meta: {
-            docs: { description: DESC },
-            messages: {
-                finiteReturnWidening: MSG,
-            },
-            schema: [],
-            type: "suggestion",
+const rule: TRule = ESLintUtils.RuleCreator.withoutDocs({
+    create,
+    meta: {
+        docs: { description: DESC },
+        messages: {
+            finiteReturnWidening: MSG,
         },
-    });
+        schema: [],
+        type: "suggestion",
+    },
+});
 
 export default rule;

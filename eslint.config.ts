@@ -64,7 +64,8 @@ export default defineConfig(
                     "require-rest-params-tuple": requireRestParamsTuple,
                     "finite-domain-return-widening": finiteDomainReturnWidening,
                     "type-distance": typeDistance,
-                    "cardinality-isomorphic-families": cardinalityIsomorphicFamilies,
+                    "cardinality-isomorphic-families":
+                        cardinalityIsomorphicFamilies,
                     "transport-graph": transportGraph,
                     "fiber-coherence": fiberCoherence,
                 },
@@ -252,22 +253,14 @@ export default defineConfig(
                 "error",
                 {
                     selector: "TSTypePredicate",
-                    message:
-                        "Type predicates (is) " +
-                        "are not allowed.",
+                    message: "Type predicates (is) " + "are not allowed.",
                 },
                 {
-                    selector:
-                        "TSTypeReference" +
-                        '[typeName.name="Partial"]',
-                    message:
-                        "Partial<T> is banned. " +
-                        "Use total types.",
+                    selector: "TSTypeReference" + '[typeName.name="Partial"]',
+                    message: "Partial<T> is banned. " + "Use total types.",
                 },
                 {
-                    selector:
-                        "TSPropertySignature" +
-                        "[optional=true]",
+                    selector: "TSPropertySignature" + "[optional=true]",
                     message:
                         "Optional fields are " +
                         "banned. Use total types " +
@@ -275,21 +268,15 @@ export default defineConfig(
                 },
                 {
                     selector: "ThrowStatement",
-                    message:
-                        "throw is banned. " +
-                        "Use Result types.",
+                    message: "throw is banned. " + "Use Result types.",
                 },
                 {
                     selector: "TryStatement",
-                    message:
-                        "try/catch is banned. " +
-                        "Use Result types.",
+                    message: "try/catch is banned. " + "Use Result types.",
                 },
                 {
                     selector: "SwitchStatement",
-                    message:
-                        "switch is banned. Use " +
-                        "exhaustive maps.",
+                    message: "switch is banned. Use " + "exhaustive maps.",
                 },
             ],
             "@typescript-eslint/no-confusing-void-expression": [

@@ -48,9 +48,7 @@ export const LINT_META: TLintMeta = {
         "no-single-field-type",
 };
 
-const MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " Types: {{nameA}}, {{nameB}}";
+const MSG: string = lintMetaToMsg(LINT_META) + " Types: {{nameA}}, {{nameB}}";
 
 const DESC: string =
     "Detect type aliases with " +
@@ -63,17 +61,12 @@ type TRule = ESLintUtils.RuleModule<"typeDistance">;
 
 type TMaybeAnn = TSESTree.TSTypeAnnotation | undefined;
 
-type TAnnotationStr = (
-    ann: TMaybeAnn,
-    fallback: string,
-) => string;
+type TAnnotationStr = (ann: TMaybeAnn, fallback: string) => string;
 
 const annotationStr: TAnnotationStr = (ann, fallback) =>
     ann ? canonicalType(ann.typeAnnotation) : fallback;
 
-type TKeyName = (
-    key: TSESTree.PropertyName,
-) => string;
+type TKeyName = (key: TSESTree.PropertyName) => string;
 
 const keyName: TKeyName = (key) =>
     key.type === AST_NODE_TYPES.Identifier
@@ -82,9 +75,7 @@ const keyName: TKeyName = (key) =>
             ? String(key.value)
             : key.type;
 
-type TCanonicalType = (
-    node: TSESTree.TypeNode,
-) => string;
+type TCanonicalType = (node: TSESTree.TypeNode) => string;
 
 const canonicalType: TCanonicalType = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
@@ -95,34 +86,26 @@ const canonicalType: TCanonicalType = (node) =>
                 ? node.types.map(canonicalType).join("&")
                 : node.type;
 
-type THandleTypeLiteral = (
-    node: TSESTree.TSTypeLiteral,
-) => string;
+type THandleTypeLiteral = (node: TSESTree.TSTypeLiteral) => string;
 
 const handleTypeLiteral: THandleTypeLiteral = (node) => {
-    const members: string =
-        node.members.map(canonicalMember).join(";");
+    const members: string = node.members.map(canonicalMember).join(";");
     return "{" + members + "}";
 };
 
-type TCanonicalMember = (
-    member: TSESTree.TypeElement,
-) => string;
+type TCanonicalMember = (member: TSESTree.TypeElement) => string;
 
 const canonicalMember: TCanonicalMember = (member) =>
     member.type === AST_NODE_TYPES.TSPropertySignature
         ? handlePropSig(member)
         : member.type;
 
-type THandlePropSig = (
-    member: TSESTree.TSPropertySignature,
-) => string;
+type THandlePropSig = (member: TSESTree.TSPropertySignature) => string;
 
 const handlePropSig: THandlePropSig = (member) => {
     const key: string = keyName(member.key);
     const opt: string = member.optional ? "?" : "";
-    const ann: string =
-        annotationStr(member.typeAnnotation, "");
+    const ann: string = annotationStr(member.typeAnnotation, "");
     const sep: string = ann ? ":" : "";
     return key + opt + sep + ann;
 };
@@ -132,15 +115,11 @@ type TKeyValuePair = {
     readonly value: string;
 };
 
-type TExtractPairs = (
-    node: TSESTree.TypeNode,
-) => ReadonlyArray<TKeyValuePair>;
+type TExtractPairs = (node: TSESTree.TypeNode) => ReadonlyArray<TKeyValuePair>;
 
 const extractPairs: TExtractPairs = (node) =>
     node.type === AST_NODE_TYPES.TSTypeLiteral
-        ? node.members
-            .filter(isPropSig)
-            .map(toPair)
+        ? node.members.filter(isPropSig).map(toPair)
         : [];
 
 type TIsPropSig = (
@@ -152,18 +131,14 @@ const isPropSig: TIsPropSig = (
 ): member is TSESTree.TSPropertySignature =>
     member.type === AST_NODE_TYPES.TSPropertySignature;
 
-type TToPair = (
-    member: TSESTree.TSPropertySignature,
-) => TKeyValuePair;
+type TToPair = (member: TSESTree.TSPropertySignature) => TKeyValuePair;
 
 const toPair: TToPair = (member) => ({
     key: keyName(member.key),
     value: annotationStr(member.typeAnnotation, "any"),
 });
 
-type TKeysOf = (
-    pairs: ReadonlyArray<TKeyValuePair>,
-) => ReadonlySet<string>;
+type TKeysOf = (pairs: ReadonlyArray<TKeyValuePair>) => ReadonlySet<string>;
 
 const keysOf: TKeysOf = (pairs) =>
     new Set(pairs.map((p: TKeyValuePair) => p.key));
@@ -179,23 +154,19 @@ const jaccardSimilarity: TJaccardSimilarity = (a, b) => {
     if (unionSize === 0) {
         return 1;
     }
-    const intersectionSize: number =
-        [...a].filter((k: string) => b.has(k)).length;
+    const intersectionSize: number = [...a].filter((k: string) =>
+        b.has(k),
+    ).length;
     return intersectionSize / unionSize;
 };
 
 type TValueMap = ReadonlyMap<string, string>;
 
-type TToValueMap = (
-    pairs: ReadonlyArray<TKeyValuePair>,
-) => TValueMap;
+type TToValueMap = (pairs: ReadonlyArray<TKeyValuePair>) => TValueMap;
 
 const toValueMap: TToValueMap = (pairs) =>
     new Map(
-        pairs.map(
-            (p: TKeyValuePair): [string, string] =>
-                [p.key, p.value],
-        ),
+        pairs.map((p: TKeyValuePair): [string, string] => [p.key, p.value]),
     );
 
 type TValueSimilarity = (
@@ -204,11 +175,7 @@ type TValueSimilarity = (
     shared: ReadonlyArray<string>,
 ) => number;
 
-const valueSimilarity: TValueSimilarity = (
-    a,
-    b,
-    shared,
-) => {
+const valueSimilarity: TValueSimilarity = (a, b, shared) => {
     if (shared.length === 0) {
         return 0;
     }
@@ -231,20 +198,14 @@ type TComputeDistance = (
     pairsB: ReadonlyArray<TKeyValuePair>,
 ) => number;
 
-const computeDistance: TComputeDistance = (
-    pairsA,
-    pairsB,
-) => {
+const computeDistance: TComputeDistance = (pairsA, pairsB) => {
     const keysA: ReadonlySet<string> = keysOf(pairsA);
     const keysB: ReadonlySet<string> = keysOf(pairsB);
-    const keySim: number =
-        jaccardSimilarity(keysA, keysB);
-    const shared: ReadonlyArray<string> =
-        sharedKeys(keysA, keysB);
+    const keySim: number = jaccardSimilarity(keysA, keysB);
+    const shared: ReadonlyArray<string> = sharedKeys(keysA, keysB);
     const valMapA: TValueMap = toValueMap(pairsA);
     const valMapB: TValueMap = toValueMap(pairsB);
-    const valSim: number =
-        valueSimilarity(valMapA, valMapB, shared);
+    const valSim: number = valueSimilarity(valMapA, valMapB, shared);
     return (keySim + valSim) / 2;
 };
 
@@ -266,10 +227,10 @@ type TRecordAlias = (
 ) => void;
 
 const recordAlias: TRecordAlias = (file, node) => {
-    const pairs: ReadonlyArray<TKeyValuePair> =
-        extractPairs(node.typeAnnotation);
-    const canon: string =
-        canonicalType(node.typeAnnotation);
+    const pairs: ReadonlyArray<TKeyValuePair> = extractPairs(
+        node.typeAnnotation,
+    );
+    const canon: string = canonicalType(node.typeAnnotation);
     const entry: TEntry = {
         canonical: canon,
         file,
@@ -280,10 +241,7 @@ const recordAlias: TRecordAlias = (file, node) => {
     entries.push(entry);
 };
 
-type TIsSimilarPair = (
-    a: TEntry,
-    b: TEntry,
-) => boolean;
+type TIsSimilarPair = (a: TEntry, b: TEntry) => boolean;
 
 const isSimilarPair: TIsSimilarPair = (a, b) => {
     if (a.canonical === b.canonical) {
@@ -292,8 +250,7 @@ const isSimilarPair: TIsSimilarPair = (a, b) => {
     if (a.pairs.length === 0 && b.pairs.length === 0) {
         return false;
     }
-    const dist: number =
-        computeDistance(a.pairs, b.pairs);
+    const dist: number = computeDistance(a.pairs, b.pairs);
     return dist >= THRESHOLD;
 };
 
@@ -304,12 +261,7 @@ type TReportPair = (
     b: TEntry,
 ) => void;
 
-const reportPair: TReportPair = (
-    context,
-    file,
-    a,
-    b,
-) => {
+const reportPair: TReportPair = (context, file, a, b) => {
     if (a.file === file) {
         context.report({
             data: { nameA: a.name, nameB: b.name },
@@ -326,15 +278,10 @@ const reportPair: TReportPair = (
     }
 };
 
-type TCheckPairs = (
-    context: TContext<TRule>,
-    file: string,
-) => void;
+type TCheckPairs = (context: TContext<TRule>, file: string) => void;
 
 const checkPairs: TCheckPairs = (context, file) => {
-    for (
-        const [i, a] of entries.entries()
-    ) {
+    for (const [i, a] of entries.entries()) {
         for (const b of entries.slice(i + 1)) {
             if (isSimilarPair(a, b)) {
                 reportPair(context, file, a, b);
@@ -345,9 +292,7 @@ const checkPairs: TCheckPairs = (context, file) => {
 
 type TEntryPredicate = (e: TEntry) => boolean;
 
-type TMakeFileFilter = (
-    file: string,
-) => TEntryPredicate;
+type TMakeFileFilter = (file: string) => TEntryPredicate;
 
 const makeFileFilter: TMakeFileFilter = (file) =>
     (
@@ -371,10 +316,7 @@ type TMakeExitHandler = (
     file: string,
 ) => TExitHandler;
 
-const makeExitHandler: TMakeExitHandler = (
-    context,
-    file,
-) =>
+const makeExitHandler: TMakeExitHandler = (context, file) =>
     (
         () => () =>
             checkPairs(context, file)
@@ -391,10 +333,8 @@ const makeAliasHandler: TMakeAliasHandler = (file) =>
 const create: TCreate<TRule> = (context) => {
     const file: string = context.filename;
     clearFile(file);
-    const exitHandler: TExitHandler =
-        makeExitHandler(context, file);
-    const aliasHandler: THandler =
-        makeAliasHandler(file);
+    const exitHandler: TExitHandler = makeExitHandler(context, file);
+    const aliasHandler: THandler = makeAliasHandler(file);
     return {
         "Program:exit": exitHandler,
         TSTypeAliasDeclaration: aliasHandler,

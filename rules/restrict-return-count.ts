@@ -57,15 +57,11 @@ export const LINT_META: TLintMeta = {
         "consistent-type-assertions",
 };
 
-const MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " count={{count}} max={{max}}";
+const MSG: string = lintMetaToMsg(LINT_META) + " count={{count}} max={{max}}";
 
 const DESC: string = "Enforce a maximum number " + "of return statements.";
 
-const EARLY_MSG: string =
-    lintMetaToMsg(LINT_META)
-    + " (early return)";
+const EARLY_MSG: string = lintMetaToMsg(LINT_META) + " (early return)";
 
 type TRule = ESLintUtils.RuleModule<"earlyReturn" | "tooManyReturns", [number]>;
 

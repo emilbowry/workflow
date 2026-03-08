@@ -1,5 +1,8 @@
+export type TEslintSeverity = 1 | 2;
+
 export type TEslintError = {
     ruleId: string;
+    severity: TEslintSeverity;
     line: number;
     column: number;
     message: string;
@@ -11,10 +14,7 @@ export type TEslintFileResult = {
     errors: ReadonlyArray<TEslintError>;
 };
 
-export type TErrorMap = Map<
-    string,
-    ReadonlyArray<TEslintError>
->;
+export type TErrorMap = Map<string, ReadonlyArray<TEslintError>>;
 
 export type TPlanOption = {
     id: number;
@@ -38,8 +38,7 @@ export type TPostMortemEntry = {
     remaining_errors: ReadonlyArray<TEslintError>;
 };
 
-export type TPostMortem =
-    ReadonlyArray<TPostMortemEntry>;
+export type TPostMortem = ReadonlyArray<TPostMortemEntry>;
 
 export type TTriageResult = {
     rule: string;
@@ -62,10 +61,7 @@ export type TWorkflowSummary = {
     skippedRules: ReadonlyArray<string>;
 };
 
-type TAgentModel =
-    | "haiku"
-    | "sonnet"
-    | "opus";
+type TAgentModel = "haiku" | "sonnet" | "opus";
 
 export type TAgentConfig = {
     model: TAgentModel;

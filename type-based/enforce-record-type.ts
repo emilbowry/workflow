@@ -13,12 +13,8 @@ import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 import { lintMetaToMsg } from "./type-based.types";
 
 export const LINT_META: TLintMeta = {
-    flags:
-        "Type alias body is an object " +
-        "literal type (TSTypeLiteral)",
-    fix:
-        "Rewrite { key: T } as " +
-        "Record<K, V> or restructure",
+    flags: "Type alias body is an object " + "literal type (TSTypeLiteral)",
+    fix: "Rewrite { key: T } as " + "Record<K, V> or restructure",
     pitfalls:
         "Fires on all type literals " +
         "including call/index/method " +
